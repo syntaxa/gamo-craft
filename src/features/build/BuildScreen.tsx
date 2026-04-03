@@ -1,20 +1,35 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ThreeEvent } from '@react-three/fiber';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { KeyboardControls, useKeyboardControls, useTexture, type KeyboardControlsEntry } from '@react-three/drei';
 import {
-  KeyboardControls,
-  PointerLockControls,
-  useKeyboardControls,
-  type KeyboardControlsEntry,
-} from '@react-three/drei';
-import { Vector3 } from 'three';
+  BackSide,
+  BoxGeometry,
+  EdgesGeometry,
+  Euler,
+  LineBasicMaterial,
+  Raycaster,
+  Vector2,
+  Vector3,
+  Texture,
+} from 'three';
 import { useAppStore } from '../../app/store';
 import { BuildHUD } from './BuildHUD';
 import { VirtualJoystick } from './VirtualJoystick';
+import type { ResourcePackSpec } from '../../theme/resourcePacks';
+import { useResourcePack } from '../../theme/useResourcePack';
 
-type MaterialPreset = { color: string; emissive?: string; metalness?: number; roughness?: number };
 type ControlKey = 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down';
 type GridTarget = { x: number; y: number; z: number };
+type HitResult = {
+  kind: 'voxel';
+  point: Vector3;
+  faceNormal?: Vector3;
+  voxel?: GridTarget;
+};
+type HotbarSlot =
+  | { kind: 'eraser'; label: string }
+  | { kind: 'item'; itemId: string; count: number; label: string }
+  | { kind: 'empty'; label: string };
 
 const keyMap: KeyboardControlsEntry<ControlKey>[] = [
   { name: 'forward', keys: ['KeyW', 'ArrowUp'] },
@@ -25,30 +40,65 @@ const keyMap: KeyboardControlsEntry<ControlKey>[] = [
   { name: 'down', keys: ['ShiftLeft', 'ShiftRight'] },
 ];
 
-const blockMaterials: Record<string, MaterialPreset> = {
-  block_brick_red: { color: '#9b5f35' },
-  res_wood: { color: '#b38b5f' },
-  block_glow_blue: { color: '#5ba7ff', emissive: '#2e7cff', metalness: 0.15, roughness: 0.35 },
-  block_rainbow: { color: '#f0a1ff', emissive: '#a75dff', metalness: 0.2, roughness: 0.2 },
-  block_cat_gold: { color: '#f7c948', emissive: '#c2901e', metalness: 0.45, roughness: 0.25 },
-};
+const PLAYER_HEIGHT = 1.62;
+const PLAYER_RADIUS = 0.32;
+const STANDING_EYE_Y = 2.62;
 
-function placeFromGround(point: [number, number, number]): GridTarget {
-  const x = Math.round(point[0] + 12);
-  const z = Math.round(point[2] + 12);
-  return { x, y: 0, z };
-}
+function placeFromHit(hit: HitResult): GridTarget | null {
+  if (!hit.voxel || !hit.faceNormal) return null;
 
-function placeFromFace(x: number, y: number, z: number, e: ThreeEvent<PointerEvent>): GridTarget | null {
-  if (!e.face) return null;
   return {
-    x: x + Math.round(e.face.normal.x),
-    y: y + Math.round(e.face.normal.y),
-    z: z + Math.round(e.face.normal.z),
+    x: hit.voxel.x + Math.round(hit.faceNormal.x),
+    y: hit.voxel.y + Math.round(hit.faceNormal.y),
+    z: hit.voxel.z + Math.round(hit.faceNormal.z),
   };
 }
 
-function PlayerController({ isFlying }: { isFlying: boolean }) {
+function previewFromHit(hit: HitResult | null, selectedSlot: HotbarSlot): GridTarget | null {
+  if (!hit) return null;
+  if (selectedSlot.kind === 'item') return placeFromHit(hit);
+  if (selectedSlot.kind === 'eraser') return hit.voxel ?? null;
+  return null;
+}
+
+function sameTarget(a: GridTarget | null, b: GridTarget | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.x === b.x && a.y === b.y && a.z === b.z;
+}
+
+function collidesWithVoxel(position: Vector3, voxels: Array<{ x: number; y: number; z: number }>): boolean {
+  const minX = position.x - PLAYER_RADIUS;
+  const maxX = position.x + PLAYER_RADIUS;
+  const minY = position.y - PLAYER_HEIGHT;
+  const maxY = position.y;
+  const minZ = position.z - PLAYER_RADIUS;
+  const maxZ = position.z + PLAYER_RADIUS;
+
+  return voxels.some((voxel) => {
+    const cx = voxel.x - 12;
+    const cy = voxel.y + 0.5;
+    const cz = voxel.z - 12;
+
+    const voxelMinX = cx - 0.5;
+    const voxelMaxX = cx + 0.5;
+    const voxelMinY = cy - 0.5;
+    const voxelMaxY = cy + 0.5;
+    const voxelMinZ = cz - 0.5;
+    const voxelMaxZ = cz + 0.5;
+
+    return (
+      maxX > voxelMinX &&
+      minX < voxelMaxX &&
+      maxY > voxelMinY &&
+      minY < voxelMaxY &&
+      maxZ > voxelMinZ &&
+      minZ < voxelMaxZ
+    );
+  });
+}
+
+function PlayerController({ isFlying, voxels }: { isFlying: boolean; voxels: Array<{ x: number; y: number; z: number }> }) {
   const [, getKeys] = useKeyboardControls<ControlKey>();
   const forwardVec = useRef(new Vector3());
   const rightVec = useRef(new Vector3());
@@ -64,7 +114,6 @@ function PlayerController({ isFlying }: { isFlying: boolean }) {
     if (forwardAxis === 0 && sideAxis === 0 && (!isFlying || verticalAxis === 0)) return;
 
     camera.getWorldDirection(forwardVec.current);
-
     moveVec.current.set(0, 0, 0);
 
     if (isFlying) {
@@ -87,12 +136,34 @@ function PlayerController({ isFlying }: { isFlying: boolean }) {
 
     if (moveVec.current.lengthSq() > 0) {
       const speed = isFlying ? 7.2 : 4.8;
-      moveVec.current.normalize().multiplyScalar(speed * delta);
-      camera.position.add(moveVec.current);
+      const step = moveVec.current.normalize().multiplyScalar(speed * delta);
+      const basePosition = camera.position.clone();
+
+      const target = basePosition.clone().add(step);
+      if (!collidesWithVoxel(target, voxels)) {
+        camera.position.copy(target);
+      } else {
+        const slideX = basePosition.clone().add(new Vector3(step.x, 0, 0));
+        if (!collidesWithVoxel(slideX, voxels)) {
+          camera.position.copy(slideX);
+        }
+
+        const slideZ = camera.position.clone().add(new Vector3(0, 0, step.z));
+        if (!collidesWithVoxel(slideZ, voxels)) {
+          camera.position.copy(slideZ);
+        }
+
+        if (isFlying) {
+          const slideY = camera.position.clone().add(new Vector3(0, step.y, 0));
+          if (!collidesWithVoxel(slideY, voxels)) {
+            camera.position.copy(slideY);
+          }
+        }
+      }
     }
 
     if (!isFlying) {
-      camera.position.y = 1.8;
+      camera.position.y = STANDING_EYE_Y;
     }
   });
 
@@ -100,190 +171,410 @@ function PlayerController({ isFlying }: { isFlying: boolean }) {
 }
 
 function Scene({
-  selectedBlockId,
+  selectedSlot,
   isFlying,
+  resourcePack,
 }: {
-  selectedBlockId: string | null;
+  selectedSlot: HotbarSlot;
   isFlying: boolean;
+  resourcePack: ResourcePackSpec;
 }) {
   const voxels = useAppStore((s) => s.world.voxels);
   const placeVoxel = useAppStore((s) => s.placeVoxel);
   const removeVoxel = useAppStore((s) => s.removeVoxel);
+
   const [previewTarget, setPreviewTarget] = useState<GridTarget | null>(null);
 
-  function handleGroundPointerMove(e: ThreeEvent<PointerEvent>) {
-    const target = placeFromGround([e.point.x, e.point.y, e.point.z]);
-    setPreviewTarget(target);
-  }
+  const { camera, gl, scene } = useThree();
+  const raycasterRef = useRef(new Raycaster());
+  const mouseNdcRef = useRef(new Vector2(0, 0));
+  const currentHitRef = useRef<HitResult | null>(null);
 
-  function handleGroundPointerDown(e: ThreeEvent<PointerEvent>) {
-    if (e.button !== 0 || !selectedBlockId) return;
-    const target = placeFromGround([e.point.x, e.point.y, e.point.z]);
-    setPreviewTarget(target);
-    placeVoxel(target.x, target.y, target.z, selectedBlockId);
-  }
+  const isFreeLookRef = useRef(false);
+  const yawPitchRef = useRef({ yaw: 0, pitch: 0 });
+  const lastMouseRef = useRef({ x: 0, y: 0 });
 
-  function handleVoxelPointerMove(e: ThreeEvent<PointerEvent>, x: number, y: number, z: number) {
-    const target = placeFromFace(x, y, z, e);
-    if (!target) return;
-    setPreviewTarget(target);
-  }
+  const previewEdgesGeometry = useMemo(() => new EdgesGeometry(new BoxGeometry(1.02, 1.02, 1.02)), []);
+  const previewEdgesMaterial = useMemo(
+    () => new LineBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.85, depthTest: false }),
+    [],
+  );
 
-  function handleVoxelPointerDown(e: ThreeEvent<PointerEvent>, x: number, y: number, z: number) {
-    e.stopPropagation();
-    if (e.button === 2) {
-      setPreviewTarget({ x, y, z });
-      removeVoxel(x, y, z);
+  const textureUrls = useMemo(() => {
+    const faceUrls = Object.values(resourcePack.world.blocks)
+      .flatMap((spec) => [
+        spec.faceTextures?.top,
+        spec.faceTextures?.bottom,
+        spec.faceTextures?.side,
+      ])
+      .filter((url): url is string => Boolean(url));
+
+    const urls = [
+      resourcePack.world.skyTextureUrl,
+      resourcePack.world.defaultBlock.textureUrl,
+      ...Object.values(resourcePack.world.blocks).map((spec) => spec.textureUrl),
+      ...faceUrls,
+    ];
+    return [...new Set(urls)];
+  }, [resourcePack]);
+
+  const loadedTextures = useTexture(textureUrls);
+
+  const textureByUrl = useMemo<Record<string, Texture>>(() => {
+    const result: Record<string, Texture> = {};
+    textureUrls.forEach((url, idx) => {
+      const texture = loadedTextures[idx];
+      if (texture) {
+        result[url] = texture;
+      }
+    });
+    return result;
+  }, [loadedTextures, textureUrls]);
+
+  const skyTexture = textureByUrl[resourcePack.world.skyTextureUrl] ?? null;
+
+  useEffect(() => {
+    return () => {
+      previewEdgesGeometry.dispose();
+      previewEdgesMaterial.dispose();
+    };
+  }, [previewEdgesGeometry, previewEdgesMaterial]);
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+
+    const onPointerMove = (event: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      mouseNdcRef.current.x = (x / rect.width) * 2 - 1;
+      mouseNdcRef.current.y = -(y / rect.height) * 2 + 1;
+
+      if (!isFreeLookRef.current) return;
+
+      const dx = event.clientX - lastMouseRef.current.x;
+      const dy = event.clientY - lastMouseRef.current.y;
+      lastMouseRef.current = { x: event.clientX, y: event.clientY };
+
+      const sensitivity = 0.0026;
+      yawPitchRef.current.yaw -= dx * sensitivity;
+      yawPitchRef.current.pitch -= dy * sensitivity;
+      yawPitchRef.current.pitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, yawPitchRef.current.pitch));
+
+      camera.rotation.set(yawPitchRef.current.pitch, yawPitchRef.current.yaw, 0, 'YXZ');
+    };
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.button === 2) {
+        isFreeLookRef.current = true;
+        lastMouseRef.current = { x: event.clientX, y: event.clientY };
+
+        const euler = new Euler().setFromQuaternion(camera.quaternion, 'YXZ');
+        yawPitchRef.current = { yaw: euler.y, pitch: euler.x };
+        return;
+      }
+
+      if (event.button !== 0 || !currentHitRef.current) return;
+
+      if (selectedSlot.kind === 'item') {
+        const target = placeFromHit(currentHitRef.current);
+        if (!target) return;
+        placeVoxel(target.x, target.y, target.z, selectedSlot.itemId);
+        return;
+      }
+
+      if (selectedSlot.kind === 'eraser') {
+        if (currentHitRef.current.kind !== 'voxel' || !currentHitRef.current.voxel) return;
+        const t = currentHitRef.current.voxel;
+        removeVoxel(t.x, t.y, t.z);
+      }
+    };
+
+    const onPointerUp = (event: PointerEvent) => {
+      if (event.button === 2) {
+        isFreeLookRef.current = false;
+      }
+    };
+
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointerup', onPointerUp);
+
+    return () => {
+      canvas.removeEventListener('pointermove', onPointerMove);
+      canvas.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointerup', onPointerUp);
+    };
+  }, [camera, gl, placeVoxel, removeVoxel, selectedSlot]);
+
+  useFrame(() => {
+    const raycaster = raycasterRef.current;
+    raycaster.setFromCamera(mouseNdcRef.current, camera);
+
+    const hits = raycaster.intersectObjects(scene.children, true);
+    const hit = hits.find((candidate) => {
+      const kind = candidate.object.userData?.kind as 'voxel' | undefined;
+      return kind === 'voxel';
+    });
+
+    if (!hit) {
+      currentHitRef.current = null;
+      if (!sameTarget(previewTarget, null)) {
+        setPreviewTarget(null);
+      }
       return;
     }
-    if (e.button !== 0 || !selectedBlockId) return;
 
-    const target = placeFromFace(x, y, z, e);
-    if (!target) return;
+    const hitKind = hit.object.userData?.kind as 'voxel' | undefined;
 
-    setPreviewTarget(target);
-    placeVoxel(target.x, target.y, target.z, selectedBlockId);
-  }
+    let currentHit: HitResult | null = null;
+
+    if (hitKind === 'voxel') {
+      const voxel = {
+        x: hit.object.userData?.x as number,
+        y: hit.object.userData?.y as number,
+        z: hit.object.userData?.z as number,
+      };
+      currentHit = {
+        kind: 'voxel',
+        point: hit.point.clone(),
+        faceNormal: hit.face?.normal.clone(),
+        voxel,
+      };
+    }
+
+    currentHitRef.current = currentHit;
+
+    const nextPreview = previewFromHit(currentHit, selectedSlot);
+    if (!sameTarget(previewTarget, nextPreview)) {
+      setPreviewTarget(nextPreview);
+    }
+  });
 
   return (
     <>
-      <ambientLight intensity={0.85} />
-      <directionalLight intensity={1.1} position={[8, 10, 6]} />
-      <mesh
-        rotation-x={-Math.PI / 2}
-        position={[0, -0.5, 0]}
-        receiveShadow
-        onPointerMove={handleGroundPointerMove}
-        onPointerDown={handleGroundPointerDown}
-      >
-        <planeGeometry args={[40, 40]} />
-        <meshStandardMaterial color="#8ccf8a" />
+      <color attach="background" args={['#9ed8ff']} />
+      <ambientLight intensity={0.92} />
+      <directionalLight intensity={1.05} position={[8, 10, 6]} />
+
+      <mesh position={[0, 12, 0]}>
+        <sphereGeometry args={[72, 28, 22]} />
+        <meshBasicMaterial map={skyTexture} side={BackSide} />
       </mesh>
 
       {voxels.map((v) => {
         const materialKey = v.blockId ?? 'default';
-        const m = blockMaterials[materialKey] ?? { color: '#b2b2b2' };
+        const spec = resourcePack.world.blocks[materialKey] ?? resourcePack.world.defaultBlock;
+        const sideTexture =
+          textureByUrl[spec.faceTextures?.side ?? spec.textureUrl] ??
+          textureByUrl[spec.textureUrl] ??
+          null;
+        const topTexture =
+          textureByUrl[spec.faceTextures?.top ?? spec.textureUrl] ??
+          textureByUrl[spec.textureUrl] ??
+          null;
+        const bottomTexture =
+          textureByUrl[spec.faceTextures?.bottom ?? spec.textureUrl] ??
+          textureByUrl[spec.textureUrl] ??
+          null;
+
         return (
           <mesh
             key={`${v.x}:${v.y}:${v.z}`}
             position={[v.x - 12, v.y + 0.5, v.z - 12]}
-            onPointerMove={(e) => handleVoxelPointerMove(e, v.x, v.y, v.z)}
-            onPointerDown={(e) => handleVoxelPointerDown(e, v.x, v.y, v.z)}
+            userData={{ kind: 'voxel', x: v.x, y: v.y, z: v.z }}
           >
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial
-              color={m.color}
-              emissive={m.emissive ?? '#000000'}
-              metalness={m.metalness ?? 0.05}
-              roughness={m.roughness ?? 0.9}
+              attach="material-0"
+              map={sideTexture}
+              color={spec.color}
+              emissive={spec.emissive ?? '#000000'}
+              metalness={spec.metalness ?? 0.05}
+              roughness={spec.roughness ?? 0.88}
+            />
+            <meshStandardMaterial
+              attach="material-1"
+              map={sideTexture}
+              color={spec.color}
+              emissive={spec.emissive ?? '#000000'}
+              metalness={spec.metalness ?? 0.05}
+              roughness={spec.roughness ?? 0.88}
+            />
+            <meshStandardMaterial
+              attach="material-2"
+              map={topTexture}
+              color={spec.color}
+              emissive={spec.emissive ?? '#000000'}
+              metalness={spec.metalness ?? 0.05}
+              roughness={spec.roughness ?? 0.88}
+            />
+            <meshStandardMaterial
+              attach="material-3"
+              map={bottomTexture}
+              color={spec.color}
+              emissive={spec.emissive ?? '#000000'}
+              metalness={spec.metalness ?? 0.05}
+              roughness={spec.roughness ?? 0.88}
+            />
+            <meshStandardMaterial
+              attach="material-4"
+              map={sideTexture}
+              color={spec.color}
+              emissive={spec.emissive ?? '#000000'}
+              metalness={spec.metalness ?? 0.05}
+              roughness={spec.roughness ?? 0.88}
+            />
+            <meshStandardMaterial
+              attach="material-5"
+              map={sideTexture}
+              color={spec.color}
+              emissive={spec.emissive ?? '#000000'}
+              metalness={spec.metalness ?? 0.05}
+              roughness={spec.roughness ?? 0.88}
             />
           </mesh>
         );
       })}
 
-      {selectedBlockId && previewTarget ? (
-        <mesh
+      {previewTarget ? (
+        <lineSegments
+          geometry={previewEdgesGeometry}
+          material={previewEdgesMaterial}
           position={[previewTarget.x - 12, previewTarget.y + 0.5, previewTarget.z - 12]}
-          raycast={() => {}}
+          raycast={() => null}
           renderOrder={10}
-        >
-          <boxGeometry args={[1.02, 1.02, 1.02]} />
-          <meshBasicMaterial color="#ffffff" wireframe transparent opacity={0.75} depthTest={false} />
-        </mesh>
+        />
       ) : null}
 
-      <PlayerController isFlying={isFlying} />
-      <PointerLockControls />
+      <PlayerController isFlying={isFlying} voxels={voxels} />
     </>
   );
 }
 
+function makeHotbarSlots(blockEntries: Array<[string, number]>): HotbarSlot[] {
+  const slots: HotbarSlot[] = [{ kind: 'eraser', label: 'Ластик' }];
+
+  for (let i = 0; i < 8; i += 1) {
+    const item = blockEntries[i];
+    if (!item) {
+      slots.push({ kind: 'empty', label: 'Пусто' });
+      continue;
+    }
+    slots.push({ kind: 'item', itemId: item[0], count: item[1], label: item[0] });
+  }
+
+  return slots;
+}
+
+function getSlotIconUrl(slot: HotbarSlot, resourcePack: ResourcePackSpec): string | null {
+  if (slot.kind !== 'item') return null;
+  const spec = resourcePack.world.blocks[slot.itemId] ?? resourcePack.world.defaultBlock;
+  if (slot.itemId === 'block_grass_dirt') {
+    return spec.faceTextures?.side ?? spec.textureUrl;
+  }
+  return spec.faceTextures?.top ?? spec.textureUrl;
+}
+
 export function BuildScreen() {
   const blocks = useAppStore((s) => s.inventory.blocks);
+  const resourcePack = useResourcePack();
+
   const blockEntries = useMemo(
     () => Object.entries(blocks).filter(([, count]) => count > 0),
     [blocks],
   );
-  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+  const hotbarSlots = useMemo(() => makeHotbarSlots(blockEntries), [blockEntries]);
+
+  const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(1);
   const [isFlying, setIsFlying] = useState(false);
   const lastSpacePressRef = useRef(0);
-  const selectedCount = selectedBlockId ? (blocks[selectedBlockId] ?? 0) : 0;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.code !== 'Space' || event.repeat) return;
-      const now = Date.now();
-      if (now - lastSpacePressRef.current <= 300) {
-        setIsFlying((prev) => !prev);
+      if (event.code === 'Space' && !event.repeat) {
+        const now = Date.now();
+        if (now - lastSpacePressRef.current <= 300) {
+          setIsFlying((prev) => !prev);
+        }
+        lastSpacePressRef.current = now;
+        return;
       }
-      lastSpacePressRef.current = now;
+
+      if (event.code.startsWith('Digit')) {
+        const digit = Number(event.code.replace('Digit', ''));
+        if (digit >= 1 && digit <= 9) {
+          setSelectedSlotIndex(digit - 1);
+        }
+      }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  const effectiveSelected =
-    selectedBlockId && selectedCount > 0
-      ? selectedBlockId
-      : (blockEntries[0]?.[0] ?? null);
+  const selectedSlot = hotbarSlots[selectedSlotIndex] ?? hotbarSlots[1];
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
       <div
+        className="build-stage"
         style={{
           height: '64vh',
           minHeight: 360,
           borderRadius: 16,
           overflow: 'hidden',
-          border: '1px solid #cfdced',
           position: 'relative',
         }}
         onContextMenu={(e) => e.preventDefault()}
       >
         <KeyboardControls map={keyMap}>
-          <Canvas camera={{ position: [0, 1.8, 8], fov: 70 }}>
-            <Scene selectedBlockId={effectiveSelected} isFlying={isFlying} />
+          <Canvas camera={{ position: [0, STANDING_EYE_Y, 8], fov: 70 }}>
+            <Scene selectedSlot={selectedSlot} isFlying={isFlying} resourcePack={resourcePack} />
           </Canvas>
         </KeyboardControls>
         <VirtualJoystick />
-        <div className="crosshair" aria-hidden>
-          <span />
-          <span />
+
+        <div className="hotbar" aria-label="Инвентарь">
+          {hotbarSlots.map((slot, idx) => {
+            const selected = idx === selectedSlotIndex;
+            return (
+              <button
+                key={`slot-${idx}`}
+                type="button"
+                className={`hotbar-slot ${selected ? 'selected' : ''}`}
+                onClick={() => setSelectedSlotIndex(idx)}
+                title={`${idx + 1}: ${slot.label}`}
+              >
+                <span className="hotbar-slot-index">{idx + 1}</span>
+                {slot.kind === 'item' ? (
+                  <span
+                    className="hotbar-slot-icon"
+                    aria-hidden
+                    style={{ backgroundImage: `url("${getSlotIconUrl(slot, resourcePack)}")` }}
+                  />
+                ) : slot.kind === 'eraser' ? (
+                  <span className="hotbar-eraser-icon" aria-hidden />
+                ) : (
+                  <span className="hotbar-slot-label">-</span>
+                )}
+                {slot.kind === 'item' ? <span className="hotbar-slot-count">{slot.count}</span> : null}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <BuildHUD isFlying={isFlying} />
-
-      <div className="card">
-        <strong>Блоки для строительства</strong>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-          {blockEntries.length === 0 ? (
-            <span>Нет блоков. Получи их в уроках, магазине или из яиц.</span>
-          ) : (
-            blockEntries.map(([id, count]) => {
-              const selected = id === effectiveSelected;
-              return (
-                <button
-                  key={id}
-                  className="btn"
-                  style={{
-                    background: selected ? '#0060d9' : '#1a84ff',
-                    borderColor: selected ? '#004ca9' : '#1a84ff',
-                  }}
-                  onClick={() => setSelectedBlockId(id)}
-                >
-                  {id} ({count})
-                </button>
-              );
-            })
-          )}
-        </div>
-      </div>
+      <BuildHUD isFlying={isFlying} packName={resourcePack.displayName} />
 
       <p style={{ margin: 0 }}>
-        ЛКМ: поставить блок. ПКМ: удалить блок. WASD: движение. Двойной Space: режим полета. В полете: Space вверх, Shift вниз.
+        ЛКМ: действие выбранного слота. Слот 1: ластик (удаление). Удержание ПКМ: свободный обзор камеры. WASD: движение. Двойной Space: режим полета. В полете: Space вверх, Shift вниз.
       </p>
     </div>
   );
 }
+
+
+
+

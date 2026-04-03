@@ -1,11 +1,26 @@
-﻿:root {
-  font-family: 'Segoe UI', Tahoma, sans-serif;
-  color: #17212b;
-  background: linear-gradient(180deg, #f8fbff 0%, #eaf3ff 100%);
-  --bg-card: #ffffff;
-  --line: #cfdced;
-  --brand: #1a84ff;
-  --brand-strong: #0060d9;
+﻿@font-face {
+  font-family: 'Kenney Future';
+  src: url('/resource-packs/cartoon-blocky-v1/fonts/KenneyFuture.ttf') format('truetype');
+  font-display: swap;
+}
+
+:root {
+  --font-ui: 'Kenney Future', 'Segoe UI', Tahoma, sans-serif;
+  --line: #2e4a21;
+  --text-main: #172412;
+  --nav-bg: #b9e973;
+  --nav-active: #f4ff80;
+  --nav-active-line: #4f7f2a;
+  --tex-app-bg: linear-gradient(180deg, #f8fbff 0%, #eaf3ff 100%);
+  --tex-card: none;
+  --tex-button: none;
+  --tex-hud-panel: none;
+  --tex-hotbar-slot: none;
+  --tex-hotbar-slot-selected: none;
+  --tex-coin: none;
+  color: var(--text-main);
+  background: #9ed8ff;
+  font-family: var(--font-ui);
 }
 
 * {
@@ -19,6 +34,14 @@ body,
   min-height: 100%;
 }
 
+body {
+  color: var(--text-main);
+  background-color: #9ed8ff;
+  background-image: var(--tex-app-bg);
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
 .app-shell {
   min-height: 100vh;
   display: grid;
@@ -30,18 +53,19 @@ body,
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: #fff;
-  border-bottom: 1px solid var(--line);
+  background-color: rgba(245, 255, 234, 0.95);
+  border-bottom: 2px solid var(--line);
 }
 
 .brand {
   font-weight: 800;
+  letter-spacing: 0.03em;
   font-size: 20px;
 }
 
 .app-version {
   font-size: 12px;
-  color: #5d6d82;
+  color: #25411d;
   margin-top: 2px;
 }
 
@@ -49,11 +73,22 @@ body,
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #fff7d6;
-  border: 1px solid #f2da81;
+  background-color: rgba(255, 245, 174, 0.95);
+  border: 2px solid #7f6516;
   border-radius: 999px;
   padding: 6px 12px;
   font-weight: 700;
+}
+
+.coin {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  color: transparent;
+  background-image: var(--tex-coin);
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .main-nav {
@@ -61,22 +96,23 @@ body,
   gap: 8px;
   overflow-x: auto;
   padding: 10px 12px;
-  background: #f6faff;
-  border-bottom: 1px solid var(--line);
+  background: var(--nav-bg);
+  border-bottom: 2px solid var(--line);
 }
 
 .main-nav a {
   text-decoration: none;
-  color: #114;
+  color: var(--text-main);
   padding: 10px 14px;
   border-radius: 12px;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
   white-space: nowrap;
+  font-weight: 700;
 }
 
 .main-nav a.active {
-  background: #d9ebff;
-  border-color: #b7d5ff;
+  background: var(--nav-active);
+  border-color: var(--nav-active-line);
 }
 
 .screen-wrap {
@@ -84,16 +120,23 @@ body,
 }
 
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--line);
+  background-color: rgba(255, 255, 255, 0.86);
+  background-image: var(--tex-card);
+  background-repeat: repeat;
+  background-size: 64px 64px;
+  border: 2px solid var(--line);
   border-radius: 16px;
   padding: 12px;
 }
 
 .btn {
-  border: 1px solid var(--brand);
-  background: var(--brand);
-  color: #fff;
+  border: 2px solid #35501f;
+  background-color: #7ecf4b;
+  background-image: var(--tex-button);
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: #ffffff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
   border-radius: 12px;
   padding: 10px 14px;
   min-height: 44px;
@@ -106,9 +149,26 @@ body,
   cursor: not-allowed;
 }
 
+input,
+select,
+textarea {
+  border: 2px solid #486a2f;
+  border-radius: 8px;
+  min-height: 36px;
+  padding: 6px 10px;
+  font: inherit;
+}
+
 .layout-grid {
   display: grid;
   gap: 12px;
+}
+
+.build-stage {
+  border: 2px solid var(--line);
+  background-image: var(--tex-hud-panel);
+  background-size: 64px 64px;
+  background-repeat: repeat;
 }
 
 .hotbar {
@@ -120,8 +180,8 @@ body,
   gap: 6px;
   padding: 8px;
   border-radius: 14px;
-  background: rgba(20, 28, 38, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(12, 25, 10, 0.3);
+  border: 2px solid rgba(201, 247, 141, 0.55);
   backdrop-filter: blur(2px);
 }
 
@@ -129,18 +189,19 @@ body,
   width: 58px;
   height: 58px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  border: 2px solid rgba(24, 56, 12, 0.85);
+  background: rgba(20, 28, 22, 0.55);
+  color: #ffffff;
   position: relative;
   cursor: pointer;
   padding: 4px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.65);
 }
 
 .hotbar-slot.selected {
-  border-color: #ffe66a;
-  box-shadow: 0 0 0 2px rgba(255, 230, 106, 0.35) inset;
-  background: rgba(255, 255, 255, 0.2);
+  border-color: #fff58a;
+  background: rgba(39, 54, 43, 0.72);
+  box-shadow: 0 0 0 2px rgba(255, 245, 138, 0.35) inset;
 }
 
 .hotbar-slot-index {
@@ -163,6 +224,50 @@ body,
   text-align: center;
 }
 
+.hotbar-slot-icon {
+  position: absolute;
+  left: 9px;
+  top: 12px;
+  width: 36px;
+  height: 36px;
+  image-rendering: pixelated;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 5px;
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 3px 6px rgba(0, 0, 0, 0.45);
+}
+
+.hotbar-eraser-icon {
+  position: absolute;
+  left: 13px;
+  top: 15px;
+  width: 30px;
+  height: 24px;
+  border-radius: 6px;
+  transform: rotate(-24deg);
+  background: linear-gradient(145deg, #fefefe 0%, #d7dbe2 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.3) inset,
+    0 3px 6px rgba(0, 0, 0, 0.5);
+}
+
+.hotbar-eraser-icon::before {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: 0;
+  width: 13px;
+  height: 24px;
+  border-radius: 0 6px 6px 0;
+  background: linear-gradient(145deg, #ff9cc0 0%, #f06292 100%);
+}
+
 .hotbar-slot-count {
   position: absolute;
   right: 5px;
@@ -176,3 +281,4 @@ body,
     grid-template-columns: 1.1fr 0.9fr;
   }
 }
+

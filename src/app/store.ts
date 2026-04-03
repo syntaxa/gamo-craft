@@ -3,17 +3,25 @@ import type { PlayerProfile } from '../domains/player/model';
 import type { InventoryState } from '../domains/inventory/model';
 import type { WorldCell, WorldState } from '../domains/world/model';
 import { createInitialWorld } from '../domains/world/service';
+import { defaultResourcePackId, resourcePackRegistry } from '../theme/resourcePacks';
 
 interface AppState {
   player: PlayerProfile;
   inventory: InventoryState;
   world: WorldState;
+  activeResourcePackId: string;
+  setActiveResourcePack: (packId: string) => void;
   addCatCoins: (amount: number) => void;
   spendCatCoins: (amount: number) => boolean;
   addInventoryItem: (itemId: string, count: number) => void;
+  addBlockRewardItem: (itemId: string, count: number) => void;
   consumeBlockItem: (itemId: string, count?: number) => boolean;
   placeVoxel: (x: number, y: number, z: number, blockId: string) => boolean;
   removeVoxel: (x: number, y: number, z: number) => boolean;
+}
+
+function isBlockItem(itemId: string): boolean {
+  return itemId.startsWith('block_');
 }
 
 const initialPlayer: PlayerProfile = {
@@ -33,8 +41,8 @@ const initialPlayer: PlayerProfile = {
 
 const initialInventory: InventoryState = {
   playerId: 'player-1',
-  resources: { res_wood: 25, block_brick_red: 25 },
-  blocks: { block_brick_red: 25 },
+  resources: { res_wood: 25, block_brick_red: 25, block_grass_dirt: 48 },
+  blocks: { block_brick_red: 25, block_grass_dirt: 48 },
   cosmetics: {},
   updatedAt: new Date().toISOString(),
 };
@@ -51,6 +59,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   player: initialPlayer,
   inventory: initialInventory,
   world: createInitialWorld('player-1', 24, 12, 24),
+  activeResourcePackId: defaultResourcePackId,
+
+  setActiveResourcePack: (packId) =>
+    set(() => ({
+      activeResourcePackId: resourcePackRegistry[packId] ? packId : defaultResourcePackId,
+    })),
 
   addCatCoins: (amount) =>
     set((state) => ({
@@ -79,19 +93,41 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   addInventoryItem: (itemId, count) =>
     set((state) => ({
-      inventory: {
-        ...state.inventory,
-        resources: {
+      inventory: (() => {
+        const nextResources = {
           ...state.inventory.resources,
           [itemId]: (state.inventory.resources[itemId] ?? 0) + count,
-        },
-        blocks: {
-          ...state.inventory.blocks,
-          [itemId]: (state.inventory.blocks[itemId] ?? 0) + count,
-        },
-        updatedAt: new Date().toISOString(),
-      },
+        };
+
+        const nextBlocks = { ...state.inventory.blocks };
+        if (isBlockItem(itemId)) {
+          nextBlocks[itemId] = (state.inventory.blocks[itemId] ?? 0) + count;
+        }
+
+        return {
+          ...state.inventory,
+          resources: nextResources,
+          blocks: nextBlocks,
+          updatedAt: new Date().toISOString(),
+        };
+      })(),
     })),
+
+  addBlockRewardItem: (itemId, count) =>
+    set((state) => {
+      const nextBlocks = { ...state.inventory.blocks };
+      if (isBlockItem(itemId)) {
+        nextBlocks[itemId] = (state.inventory.blocks[itemId] ?? 0) + count;
+      }
+
+      return {
+        inventory: {
+          ...state.inventory,
+          blocks: nextBlocks,
+          updatedAt: new Date().toISOString(),
+        },
+      };
+    }),
 
   consumeBlockItem: (itemId, count = 1) => {
     let ok = false;
@@ -99,12 +135,17 @@ export const useAppStore = create<AppState>((set, get) => ({
       const current = state.inventory.blocks[itemId] ?? 0;
       if (count <= 0 || current < count) return state;
       ok = true;
+      const nextResourceCount = Math.max(0, (state.inventory.resources[itemId] ?? 0) - count);
       return {
         inventory: {
           ...state.inventory,
           blocks: {
             ...state.inventory.blocks,
             [itemId]: current - count,
+          },
+          resources: {
+            ...state.inventory.resources,
+            [itemId]: nextResourceCount,
           },
           updatedAt: new Date().toISOString(),
         },
@@ -135,11 +176,27 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (idx === -1) return false;
     set((state) => {
       const next = [...state.world.voxels];
-      next.splice(idx, 1);
+      const [removed] = next.splice(idx, 1);
+      const removedBlockId = removed?.blockId ?? null;
+
+      const nextBlocks = { ...state.inventory.blocks };
+      const nextResources = { ...state.inventory.resources };
+
+      if (removedBlockId) {
+        nextBlocks[removedBlockId] = (nextBlocks[removedBlockId] ?? 0) + 1;
+        nextResources[removedBlockId] = (nextResources[removedBlockId] ?? 0) + 1;
+      }
+
       return {
         world: {
           ...state.world,
           voxels: next,
+          updatedAt: new Date().toISOString(),
+        },
+        inventory: {
+          ...state.inventory,
+          blocks: nextBlocks,
+          resources: nextResources,
           updatedAt: new Date().toISOString(),
         },
       };
@@ -147,3 +204,4 @@ export const useAppStore = create<AppState>((set, get) => ({
     return true;
   },
 }));
+

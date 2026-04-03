@@ -8,13 +8,20 @@ export function createInitialWorld(
   sizeY: number,
   sizeZ: number,
 ): WorldState {
+  const voxels: WorldState['voxels'] = [];
+  for (let x = 0; x < sizeX; x += 1) {
+    for (let z = 0; z < sizeZ; z += 1) {
+      voxels.push({ x, y: 0, z, blockId: 'block_grass_dirt' });
+    }
+  }
+
   return {
     id: makeId('world'),
     playerId,
     sizeX,
     sizeY,
     sizeZ,
-    voxels: [],
+    voxels,
     decorations: [],
     updatedAt: nowIso(),
   };

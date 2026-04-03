@@ -1,10 +1,18 @@
-﻿import { NavLink } from 'react-router-dom';
+﻿import { useEffect } from 'react';
+import { NavLink } from 'react-router-dom';
 import { AppRouter } from './router';
 import { CurrencyBadge } from '../shared/ui/CurrencyBadge';
 import { useAppStore } from './store';
+import { applyResourcePack } from '../theme/applyResourcePack';
+import { useResourcePack } from '../theme/useResourcePack';
 
 export function App() {
   const catCoins = useAppStore((s) => s.player.currencyCatCoins);
+  const resourcePack = useResourcePack();
+
+  useEffect(() => {
+    applyResourcePack(resourcePack);
+  }, [resourcePack]);
 
   return (
     <div className="app-shell">
@@ -30,3 +38,4 @@ export function App() {
     </div>
   );
 }
+

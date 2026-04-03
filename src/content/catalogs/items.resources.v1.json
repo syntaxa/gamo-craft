@@ -2,6 +2,7 @@
   "version": 1,
   "items": [
     { "id": "res_wood", "name": "Дерево", "icon": "wood.png", "kind": "resource" },
+    { "id": "block_grass_dirt", "name": "Земля с травой", "icon": "block_grass_dirt.png", "kind": "block" },
     { "id": "block_brick_red", "name": "Красный кирпич", "icon": "brick_red.png", "kind": "block" },
     { "id": "block_glow_blue", "name": "Светящийся синий блок", "icon": "block_glow_blue.png", "kind": "block" },
     { "id": "block_rainbow", "name": "Радужный блок", "icon": "block_rainbow.png", "kind": "block" },

@@ -29,7 +29,7 @@ function rollReward(pool: EggReward[]): EggReward {
 
 export function EggsScreen() {
   const spend = useAppStore((s) => s.spendCatCoins);
-  const addInventoryItem = useAppStore((s) => s.addInventoryItem);
+  const addBlockRewardItem = useAppStore((s) => s.addBlockRewardItem);
   const [lastReward, setLastReward] = useState<string>('');
 
   function openCommonEgg() {
@@ -38,7 +38,7 @@ export function EggsScreen() {
       return;
     }
     const reward = rollReward(commonEggRewards);
-    addInventoryItem(reward.id, reward.count);
+    addBlockRewardItem(reward.id, reward.count);
     setLastReward(`Награда: ${reward.label} x${reward.count}. Доступно в режиме строительства.`);
   }
 
