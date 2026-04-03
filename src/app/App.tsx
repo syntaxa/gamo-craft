@@ -9,7 +9,10 @@ export function App() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <div className="brand">Gamo</div>
+        <div>
+          <div className="brand">Gamo</div>
+          <div className="app-version">v{__APP_VERSION__}</div>
+        </div>
         <CurrencyBadge value={catCoins} />
       </header>
 
