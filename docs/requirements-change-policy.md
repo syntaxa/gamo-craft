@@ -8,14 +8,14 @@
 
 ## Минимальный набор документов
 При изменении требований проверяются и при необходимости обновляются:
-- `concept.md`
-- `architecture.md`
-- `technical-design.md`
+- `docs/concept.md`
+- `docs/architecture.md`
+- `docs/technical-design.md`
 
 ## Матрица соответствия
-- Изменения продуктовой логики и фич: `concept.md`
-- Изменения модулей, эпиков, DoD, MVP scope: `architecture.md`
-- Изменения API, моделей данных, событий, storage, спринтов: `technical-design.md`
+- Изменения продуктовой логики и фич: `docs/concept.md`
+- Изменения модулей, эпиков, DoD, MVP scope: `docs/architecture.md`
+- Изменения API, моделей данных, событий, storage, спринтов: `docs/technical-design.md`
 
 ## Процедура внесения изменений
 1. Зафиксировать само изменение требования (что изменилось и зачем).
@@ -28,9 +28,9 @@
 ## Requirements Change
 - Change: <кратко, что изменилось в требованиях>
 - Updated docs:
-  - [ ] concept.md
-  - [ ] architecture.md
-  - [ ] technical-design.md
+  - [ ] docs/concept.md
+  - [ ] docs/architecture.md
+  - [ ] docs/technical-design.md
 - Notes: <что именно синхронизировано>
 ```
 
@@ -38,11 +38,11 @@
 PR/изменение должно быть отклонено, если:
 - требования изменены, но документация не обновлена;
 - документы противоречат друг другу;
-- MVP scope в `architecture.md` и `technical-design.md` расходится с `concept.md`.
+- MVP scope в `docs/architecture.md` и `docs/technical-design.md` расходится с `docs/concept.md`.
 
 ## Definition of Done (для изменений требований)
 Изменение требований считается завершенным только если:
 1. Код (если был) обновлен.
 2. Документация синхронизирована.
 3. В PR заполнен checklist по документации.
-4. Нет противоречий между `concept.md`, `architecture.md`, `technical-design.md`.
+4. Нет противоречий между `docs/concept.md`, `docs/architecture.md`, `docs/technical-design.md`.

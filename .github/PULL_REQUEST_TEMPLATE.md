@@ -5,9 +5,9 @@
 ## Requirements Change
 - Change:
 - Updated docs:
-  - [ ] concept.md (updated or N/A)
-  - [ ] architecture.md (updated or N/A)
-  - [ ] technical-design.md (updated or N/A)
+  - [ ] docs/concept.md (updated or N/A)
+  - [ ] docs/architecture.md (updated or N/A)
+  - [ ] docs/technical-design.md (updated or N/A)
 - Notes:
 
 ## Validation

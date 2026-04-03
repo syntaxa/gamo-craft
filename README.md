@@ -3,18 +3,18 @@
 FPV-игра-песочница для ребенка с обучением математике и игровой экономикой.
 
 ## Документация
-- [concept.md](./concept.md)
-- [architecture.md](./architecture.md)
-- [technical-design.md](./technical-design.md)
+- [concept.md](./docs/concept.md)
+- [architecture.md](./docs/architecture.md)
+- [technical-design.md](./docs/technical-design.md)
 - [requirements-change-policy.md](./docs/requirements-change-policy.md)
 
 ## Обязательное правило проекта
 Любое изменение требований должно сопровождаться обновлением документации.
 
 Критично синхронизировать:
-- `concept.md`
-- `architecture.md`
-- `technical-design.md`
+- `docs/concept.md`
+- `docs/architecture.md`
+- `docs/technical-design.md`
 
 Подробная процедура и критерии приемки: [docs/requirements-change-policy.md](./docs/requirements-change-policy.md)
 
