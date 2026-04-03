@@ -1,0 +1,7 @@
+﻿{
+  "version": 1,
+  "items": [
+    { "id": "sticker_cat_star", "name": "Кот-звезда", "kind": "sticker", "rarity": "common" },
+    { "id": "skin_hat_blue", "name": "Синяя шапка", "kind": "skin", "rarity": "rare" }
+  ]
+}

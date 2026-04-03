@@ -1,0 +1,11 @@
+﻿{
+  "version": 1,
+  "items": [
+    {
+      "id": "pack_basic",
+      "type": "resource-pack",
+      "priceCatCoins": 15,
+      "payload": { "res_wood": 20, "block_brick_red": 10 }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+﻿{
+  "version": 1,
+  "eggs": [
+    { "id": "egg_common", "priceCatCoins": 20, "lootTableId": "loot_common" },
+    { "id": "egg_rare", "priceCatCoins": 50, "lootTableId": "loot_rare" },
+    { "id": "egg_epic", "priceCatCoins": 100, "lootTableId": "loot_epic" }
+  ]
+}

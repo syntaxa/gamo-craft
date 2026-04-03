@@ -1,0 +1,18 @@
+﻿{
+  "version": 1,
+  "programId": "math-1",
+  "levels": {
+    "A": { "range": [1, 10], "operations": ["add", "sub"] },
+    "B": { "range": [1, 20], "operations": ["add", "sub"] },
+    "C": { "range": [1, 20], "operations": ["add", "sub"], "mixed": true }
+  },
+  "lesson": {
+    "minTasks": 5,
+    "maxTasks": 10,
+    "reward": {
+      "correctAnswer": 2,
+      "streak5": 5,
+      "lessonAccuracy80": 10
+    }
+  }
+}
