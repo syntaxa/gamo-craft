@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { KeyboardControls, useKeyboardControls, useTexture, type KeyboardControlsEntry } from '@react-three/drei';
 import {
@@ -39,6 +39,26 @@ const keyMap: KeyboardControlsEntry<ControlKey>[] = [
   { name: 'up', keys: ['Space'] },
   { name: 'down', keys: ['ShiftLeft', 'ShiftRight'] },
 ];
+const MOVEMENT_KEY_CODES = new Set(['KeyW', 'ArrowUp', 'KeyS', 'ArrowDown', 'KeyA', 'ArrowLeft', 'KeyD', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight']);
+const MOVEMENT_KEYUP_EVENTS: Array<{ code: string; key: string }> = [
+  { code: 'KeyW', key: 'w' },
+  { code: 'ArrowUp', key: 'ArrowUp' },
+  { code: 'KeyS', key: 's' },
+  { code: 'ArrowDown', key: 'ArrowDown' },
+  { code: 'KeyA', key: 'a' },
+  { code: 'ArrowLeft', key: 'ArrowLeft' },
+  { code: 'KeyD', key: 'd' },
+  { code: 'ArrowRight', key: 'ArrowRight' },
+  { code: 'Space', key: ' ' },
+  { code: 'ShiftLeft', key: 'Shift' },
+  { code: 'ShiftRight', key: 'Shift' },
+];
+
+function releaseStuckMovementKeys() {
+  for (const { code, key } of MOVEMENT_KEYUP_EVENTS) {
+    window.dispatchEvent(new KeyboardEvent('keyup', { code, key, bubbles: true }));
+  }
+}
 
 const PLAYER_HEIGHT = 1.62;
 const PLAYER_RADIUS = 0.32;
@@ -98,13 +118,30 @@ function collidesWithVoxel(position: Vector3, voxels: Array<{ x: number; y: numb
   });
 }
 
-function PlayerController({ isFlying, voxels }: { isFlying: boolean; voxels: Array<{ x: number; y: number; z: number }> }) {
+function PlayerController({
+  isFlying,
+  isKeyboardInputArmed,
+  isWorldPaused,
+  voxels,
+}: {
+  isFlying: boolean;
+  isKeyboardInputArmed: boolean;
+  isWorldPaused: boolean;
+  voxels: Array<{ x: number; y: number; z: number }>;
+}) {
   const [, getKeys] = useKeyboardControls<ControlKey>();
   const forwardVec = useRef(new Vector3());
   const rightVec = useRef(new Vector3());
   const moveVec = useRef(new Vector3());
 
   useFrame(({ camera }, delta) => {
+    if (isWorldPaused || !isKeyboardInputArmed) {
+      if (!isFlying) {
+        camera.position.y = STANDING_EYE_Y;
+      }
+      return;
+    }
+
     const { forward, backward, left, right, up, down } = getKeys();
 
     const forwardAxis = (forward ? 1 : 0) - (backward ? 1 : 0);
@@ -173,10 +210,14 @@ function PlayerController({ isFlying, voxels }: { isFlying: boolean; voxels: Arr
 function Scene({
   selectedSlot,
   isFlying,
+  isKeyboardInputArmed,
+  isWorldPaused,
   resourcePack,
 }: {
   selectedSlot: HotbarSlot;
   isFlying: boolean;
+  isKeyboardInputArmed: boolean;
+  isWorldPaused: boolean;
   resourcePack: ResourcePackSpec;
 }) {
   const voxels = useAppStore((s) => s.world.voxels);
@@ -231,6 +272,41 @@ function Scene({
     return result;
   }, [loadedTextures, textureUrls]);
 
+  const rotatedTextureCacheRef = useRef(new Map<string, Texture>());
+
+  useEffect(() => {
+    return () => {
+      for (const texture of rotatedTextureCacheRef.current.values()) {
+        texture.dispose();
+      }
+      rotatedTextureCacheRef.current.clear();
+    };
+  }, []);
+
+  useEffect(() => {
+    for (const texture of rotatedTextureCacheRef.current.values()) {
+      texture.dispose();
+    }
+    rotatedTextureCacheRef.current.clear();
+  }, [textureByUrl]);
+
+  function resolveTexture(url: string, rotationDeg?: number): Texture | null {
+    const source = textureByUrl[url] ?? null;
+    if (!source) return null;
+    if (!rotationDeg || rotationDeg % 360 === 0) return source;
+
+    const cacheKey = `${url}|${rotationDeg}`;
+    const cached = rotatedTextureCacheRef.current.get(cacheKey);
+    if (cached) return cached;
+
+    const rotated = source.clone();
+    rotated.center.set(0.5, 0.5);
+    rotated.rotation = (rotationDeg * Math.PI) / 180;
+    rotated.needsUpdate = true;
+    rotatedTextureCacheRef.current.set(cacheKey, rotated);
+    return rotated;
+  }
+
   const skyTexture = textureByUrl[resourcePack.world.skyTextureUrl] ?? null;
 
   useEffect(() => {
@@ -239,6 +315,12 @@ function Scene({
       previewEdgesMaterial.dispose();
     };
   }, [previewEdgesGeometry, previewEdgesMaterial]);
+
+  useEffect(() => {
+    if (isWorldPaused) {
+      isFreeLookRef.current = false;
+    }
+  }, [isWorldPaused]);
 
   useEffect(() => {
     const canvas = gl.domElement;
@@ -266,6 +348,8 @@ function Scene({
     };
 
     const onPointerDown = (event: PointerEvent) => {
+      if (isWorldPaused) return;
+
       if (event.button === 2) {
         isFreeLookRef.current = true;
         lastMouseRef.current = { x: event.clientX, y: event.clientY };
@@ -306,7 +390,7 @@ function Scene({
       canvas.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointerup', onPointerUp);
     };
-  }, [camera, gl, placeVoxel, removeVoxel, selectedSlot]);
+  }, [camera, gl, isWorldPaused, placeVoxel, removeVoxel, selectedSlot]);
 
   useFrame(() => {
     const raycaster = raycasterRef.current;
@@ -366,16 +450,19 @@ function Scene({
       {voxels.map((v) => {
         const materialKey = v.blockId ?? 'default';
         const spec = resourcePack.world.blocks[materialKey] ?? resourcePack.world.defaultBlock;
+        const sideTextureUrl = spec.faceTextures?.side ?? spec.textureUrl;
+        const topTextureUrl = spec.faceTextures?.top ?? spec.textureUrl;
+        const bottomTextureUrl = spec.faceTextures?.bottom ?? spec.textureUrl;
         const sideTexture =
-          textureByUrl[spec.faceTextures?.side ?? spec.textureUrl] ??
+          resolveTexture(sideTextureUrl, spec.faceTextureRotationDeg?.side) ??
           textureByUrl[spec.textureUrl] ??
           null;
         const topTexture =
-          textureByUrl[spec.faceTextures?.top ?? spec.textureUrl] ??
+          resolveTexture(topTextureUrl, spec.faceTextureRotationDeg?.top) ??
           textureByUrl[spec.textureUrl] ??
           null;
         const bottomTexture =
-          textureByUrl[spec.faceTextures?.bottom ?? spec.textureUrl] ??
+          resolveTexture(bottomTextureUrl, spec.faceTextureRotationDeg?.bottom) ??
           textureByUrl[spec.textureUrl] ??
           null;
 
@@ -448,7 +535,7 @@ function Scene({
         />
       ) : null}
 
-      <PlayerController isFlying={isFlying} voxels={voxels} />
+      <PlayerController isFlying={isFlying} isKeyboardInputArmed={isKeyboardInputArmed} isWorldPaused={isWorldPaused} voxels={voxels} />
     </>
   );
 }
@@ -489,10 +576,74 @@ export function BuildScreen() {
 
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(1);
   const [isFlying, setIsFlying] = useState(false);
+  const [isWorldPaused, setIsWorldPaused] = useState(false);
+  const [isKeyboardInputArmed, setIsKeyboardInputArmed] = useState(true);
   const lastSpacePressRef = useRef(0);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const pauseWorld = useCallback(() => {
+    setIsWorldPaused(true);
+    setIsKeyboardInputArmed(false);
+    releaseStuckMovementKeys();
+  }, []);
+  const resumeWorld = useCallback(() => {
+    setIsWorldPaused(false);
+    releaseStuckMovementKeys();
+  }, []);
+
+  useEffect(() => {
+    const onWindowBlur = () => {
+      pauseWorld();
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        pauseWorld();
+      }
+    };
+
+    window.addEventListener('blur', onWindowBlur);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      window.removeEventListener('blur', onWindowBlur);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [pauseWorld]);
+
+  useEffect(() => {
+    const isInsideStage = (target: EventTarget | null) => {
+      if (!(target instanceof Node)) return false;
+      const stage = stageRef.current;
+      if (!stage) return false;
+      return stage.contains(target);
+    };
+
+    const onPointerDownAnywhere = (event: PointerEvent) => {
+      if (isInsideStage(event.target)) {
+        resumeWorld();
+        return;
+      }
+      pauseWorld();
+    };
+
+    const onContextMenuAnywhere = (event: MouseEvent) => {
+      if (isInsideStage(event.target)) return;
+      pauseWorld();
+    };
+
+    window.addEventListener('pointerdown', onPointerDownAnywhere, true);
+    window.addEventListener('contextmenu', onContextMenuAnywhere);
+    return () => {
+      window.removeEventListener('pointerdown', onPointerDownAnywhere, true);
+      window.removeEventListener('contextmenu', onContextMenuAnywhere);
+    };
+  }, [pauseWorld, resumeWorld]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (MOVEMENT_KEY_CODES.has(event.code)) {
+        setIsKeyboardInputArmed(true);
+      }
+
       if (event.code === 'Space' && !event.repeat) {
         const now = Date.now();
         if (now - lastSpacePressRef.current <= 300) {
@@ -519,6 +670,7 @@ export function BuildScreen() {
   return (
     <div style={{ display: 'grid', gap: 12 }}>
       <div
+        ref={stageRef}
         className="build-stage"
         style={{
           height: '64vh',
@@ -527,11 +679,19 @@ export function BuildScreen() {
           overflow: 'hidden',
           position: 'relative',
         }}
+        onPointerDownCapture={resumeWorld}
+        onFocusCapture={resumeWorld}
         onContextMenu={(e) => e.preventDefault()}
       >
         <KeyboardControls map={keyMap}>
           <Canvas camera={{ position: [0, STANDING_EYE_Y, 8], fov: 70 }}>
-            <Scene selectedSlot={selectedSlot} isFlying={isFlying} resourcePack={resourcePack} />
+            <Scene
+              selectedSlot={selectedSlot}
+              isFlying={isFlying}
+              isKeyboardInputArmed={isKeyboardInputArmed}
+              isWorldPaused={isWorldPaused}
+              resourcePack={resourcePack}
+            />
           </Canvas>
         </KeyboardControls>
         <VirtualJoystick />
@@ -571,6 +731,7 @@ export function BuildScreen() {
       <p style={{ margin: 0 }}>
         ЛКМ: действие выбранного слота. Слот 1: ластик (удаление). Удержание ПКМ: свободный обзор камеры. WASD: движение. Двойной Space: режим полета. В полете: Space вверх, Shift вниз.
       </p>
+      {isWorldPaused ? <p style={{ margin: 0 }}>Мир на паузе: кликните по окну мира, чтобы продолжить.</p> : null}
     </div>
   );
 }

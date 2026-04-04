@@ -25,4 +25,8 @@ FPV-игра-песочница для ребенка с обучением ма
 - `npm run dev`
 - `npm run lint`
 - `npm run build`
+- `npm run orth:build`
+- `npm run orth:validate`
+- `npm run orth:program`
+- `npm run orth:samples -- --count 30 --seed 42 --level A --mode balanced`
 

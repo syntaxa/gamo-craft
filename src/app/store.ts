@@ -21,7 +21,7 @@ interface AppState {
 }
 
 function isBlockItem(itemId: string): boolean {
-  return itemId.startsWith('block_');
+  return itemId.startsWith('block_') || itemId === 'res_planks';
 }
 
 const initialPlayer: PlayerProfile = {
@@ -41,8 +41,8 @@ const initialPlayer: PlayerProfile = {
 
 const initialInventory: InventoryState = {
   playerId: 'player-1',
-  resources: { res_wood: 25, block_brick_red: 25, block_grass_dirt: 48 },
-  blocks: { block_brick_red: 25, block_grass_dirt: 48 },
+  resources: { block_brick_red: 24 },
+  blocks: { block_brick_red: 24 },
   cosmetics: {},
   updatedAt: new Date().toISOString(),
 };
@@ -55,10 +55,14 @@ function voxelIndex(voxels: WorldCell[], x: number, y: number, z: number): numbe
   return voxels.findIndex((v) => v.x === x && v.y === y && v.z === z);
 }
 
+const WORLD_SIZE_X = 24;
+const WORLD_SIZE_Y = 24;
+const WORLD_SIZE_Z = 24;
+
 export const useAppStore = create<AppState>((set, get) => ({
   player: initialPlayer,
   inventory: initialInventory,
-  world: createInitialWorld('player-1', 24, 12, 24),
+  world: createInitialWorld('player-1', WORLD_SIZE_X, WORLD_SIZE_Y, WORLD_SIZE_Z),
   activeResourcePackId: defaultResourcePackId,
 
   setActiveResourcePack: (packId) =>

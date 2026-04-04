@@ -1,0 +1,2820 @@
+{
+  "version": 1,
+  "programId": "orthography-1",
+  "meta": {
+    "locale": "ru-RU",
+    "age": "7-9",
+    "taskFormat": "choice_3",
+    "generatedAt": "2026-04-04T22:52:04.630Z"
+  },
+  "rules": [
+    {
+      "id": "zhi_shi",
+      "title": "Р–Р-РЁР"
+    },
+    {
+      "id": "cha_sha",
+      "title": "Р§Рђ-Р©Рђ"
+    },
+    {
+      "id": "chu_shu",
+      "title": "Р§РЈ-Р©РЈ"
+    },
+    {
+      "id": "unstressed_vowel_root",
+      "title": "Р‘РµР·СѓРґР°СЂРЅР°СЏ РіР»Р°СЃРЅР°СЏ"
+    },
+    {
+      "id": "paired_consonants",
+      "title": "РџР°СЂРЅС‹Рµ СЃРѕРіР»Р°СЃРЅС‹Рµ"
+    },
+    {
+      "id": "unpronounceable_consonants",
+      "title": "РќРµРїСЂРѕРёР·РЅРѕСЃРёРјС‹Рµ СЃРѕРіР»Р°СЃРЅС‹Рµ"
+    },
+    {
+      "id": "hard_soft_sign",
+      "title": "Р Р°Р·РґРµР»РёС‚РµР»СЊРЅС‹Рµ Р¬/РЄ"
+    },
+    {
+      "id": "double_consonants",
+      "title": "РЈРґРІРѕРµРЅРЅС‹Рµ СЃРѕРіР»Р°СЃРЅС‹Рµ"
+    }
+  ],
+  "lesson": {
+    "minTasks": 5,
+    "maxTasks": 10,
+    "taskType": "choice_3",
+    "antiRepeatWindow": 20,
+    "levelRuleWeights": {
+      "A": {
+        "zhi_shi": 1.2,
+        "cha_sha": 1.2,
+        "chu_shu": 1.2,
+        "unstressed_vowel_root": 1,
+        "paired_consonants": 1,
+        "unpronounceable_consonants": 0.8,
+        "hard_soft_sign": 0.9,
+        "double_consonants": 0.8
+      },
+      "B": {
+        "zhi_shi": 1,
+        "cha_sha": 1,
+        "chu_shu": 1,
+        "unstressed_vowel_root": 1.1,
+        "paired_consonants": 1.1,
+        "unpronounceable_consonants": 1,
+        "hard_soft_sign": 1,
+        "double_consonants": 1
+      },
+      "C": {
+        "zhi_shi": 1,
+        "cha_sha": 1,
+        "chu_shu": 1,
+        "unstressed_vowel_root": 1.2,
+        "paired_consonants": 1.2,
+        "unpronounceable_consonants": 1.1,
+        "hard_soft_sign": 1.1,
+        "double_consonants": 1.1
+      }
+    }
+  },
+  "lexicon": [
+    {
+      "id": "o001",
+      "lemma": "машина",
+      "correct": "машина",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o002",
+      "lemma": "шина",
+      "correct": "шина",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o003",
+      "lemma": "жираф",
+      "correct": "жираф",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o004",
+      "lemma": "кувшин",
+      "correct": "кувшин",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o005",
+      "lemma": "жизнь",
+      "correct": "жизнь",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o006",
+      "lemma": "живот",
+      "correct": "живот",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o007",
+      "lemma": "жители",
+      "correct": "жители",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o008",
+      "lemma": "режим",
+      "correct": "режим",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o009",
+      "lemma": "этажи",
+      "correct": "этажи",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o010",
+      "lemma": "лыжи",
+      "correct": "лыжи",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o011",
+      "lemma": "ножи",
+      "correct": "ножи",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o012",
+      "lemma": "пружина",
+      "correct": "пружина",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o013",
+      "lemma": "шипы",
+      "correct": "шипы",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o014",
+      "lemma": "шишка",
+      "correct": "шишка",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o015",
+      "lemma": "камыши",
+      "correct": "камыши",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o016",
+      "lemma": "дружить",
+      "correct": "дружить",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o017",
+      "lemma": "бежит",
+      "correct": "бежит",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o018",
+      "lemma": "лежит",
+      "correct": "лежит",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o019",
+      "lemma": "держи",
+      "correct": "держи",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o020",
+      "lemma": "пиши",
+      "correct": "пиши",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o021",
+      "lemma": "решить",
+      "correct": "решить",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o022",
+      "lemma": "прошить",
+      "correct": "прошить",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o023",
+      "lemma": "вышить",
+      "correct": "вышить",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o024",
+      "lemma": "пожить",
+      "correct": "пожить",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o025",
+      "lemma": "тишина",
+      "correct": "тишина",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o026",
+      "lemma": "вершина",
+      "correct": "вершина",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o027",
+      "lemma": "крыши",
+      "correct": "крыши",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o028",
+      "lemma": "ширина",
+      "correct": "ширина",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o029",
+      "lemma": "жимолость",
+      "correct": "жимолость",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o030",
+      "lemma": "жилище",
+      "correct": "жилище",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o031",
+      "lemma": "пушистый",
+      "correct": "пушистый",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o032",
+      "lemma": "живчик",
+      "correct": "живчик",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o033",
+      "lemma": "шиповник",
+      "correct": "шиповник",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o034",
+      "lemma": "жидкий",
+      "correct": "жидкий",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o035",
+      "lemma": "шипение",
+      "correct": "шипение",
+      "ruleTags": [
+        "zhi_shi"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o036",
+      "lemma": "чашка",
+      "correct": "чашка",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o037",
+      "lemma": "роща",
+      "correct": "роща",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o038",
+      "lemma": "чайка",
+      "correct": "чайка",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o039",
+      "lemma": "чаща",
+      "correct": "чаща",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o040",
+      "lemma": "площадка",
+      "correct": "площадка",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o041",
+      "lemma": "задача",
+      "correct": "задача",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o042",
+      "lemma": "удача",
+      "correct": "удача",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o043",
+      "lemma": "туча",
+      "correct": "туча",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o044",
+      "lemma": "свеча",
+      "correct": "свеча",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o045",
+      "lemma": "печать",
+      "correct": "печать",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o046",
+      "lemma": "начало",
+      "correct": "начало",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o047",
+      "lemma": "чайник",
+      "correct": "чайник",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o048",
+      "lemma": "часть",
+      "correct": "часть",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o049",
+      "lemma": "частица",
+      "correct": "частица",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o050",
+      "lemma": "перчатка",
+      "correct": "перчатка",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o051",
+      "lemma": "часики",
+      "correct": "часики",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o052",
+      "lemma": "чашечка",
+      "correct": "чашечка",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o053",
+      "lemma": "чабрец",
+      "correct": "чабрец",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o054",
+      "lemma": "щавель",
+      "correct": "щавель",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o055",
+      "lemma": "щадить",
+      "correct": "щадить",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o056",
+      "lemma": "прощание",
+      "correct": "прощание",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o057",
+      "lemma": "обещание",
+      "correct": "обещание",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o058",
+      "lemma": "трещать",
+      "correct": "трещать",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o059",
+      "lemma": "пищащий",
+      "correct": "пищащий",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o060",
+      "lemma": "молчать",
+      "correct": "молчать",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o061",
+      "lemma": "мычащий",
+      "correct": "мычащий",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o062",
+      "lemma": "встреча",
+      "correct": "встреча",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o063",
+      "lemma": "врачам",
+      "correct": "врачам",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o064",
+      "lemma": "прощай",
+      "correct": "прощай",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o065",
+      "lemma": "чайный",
+      "correct": "чайный",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o066",
+      "lemma": "качалка",
+      "correct": "качалка",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o067",
+      "lemma": "отчаянный",
+      "correct": "отчаянный",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o068",
+      "lemma": "участок",
+      "correct": "участок",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o069",
+      "lemma": "чародей",
+      "correct": "чародей",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o070",
+      "lemma": "щадящий",
+      "correct": "щадящий",
+      "ruleTags": [
+        "cha_sha"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o071",
+      "lemma": "чудо",
+      "correct": "чудо",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o072",
+      "lemma": "щука",
+      "correct": "щука",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o073",
+      "lemma": "чугун",
+      "correct": "чугун",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o074",
+      "lemma": "чулок",
+      "correct": "чулок",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o075",
+      "lemma": "хочу",
+      "correct": "хочу",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o076",
+      "lemma": "лечу",
+      "correct": "лечу",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o077",
+      "lemma": "кричу",
+      "correct": "кричу",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o078",
+      "lemma": "тащу",
+      "correct": "тащу",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o079",
+      "lemma": "ищу",
+      "correct": "ищу",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o080",
+      "lemma": "чучело",
+      "correct": "чучело",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o081",
+      "lemma": "чужой",
+      "correct": "чужой",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o082",
+      "lemma": "чуткий",
+      "correct": "чуткий",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o083",
+      "lemma": "щуриться",
+      "correct": "щуриться",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o084",
+      "lemma": "щупать",
+      "correct": "щупать",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o085",
+      "lemma": "чувство",
+      "correct": "чувство",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o086",
+      "lemma": "чучельник",
+      "correct": "чучельник",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o087",
+      "lemma": "чурбан",
+      "correct": "чурбан",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o088",
+      "lemma": "чугунок",
+      "correct": "чугунок",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o089",
+      "lemma": "чудак",
+      "correct": "чудак",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o090",
+      "lemma": "ворчу",
+      "correct": "ворчу",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o091",
+      "lemma": "молчу",
+      "correct": "молчу",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o092",
+      "lemma": "шепчу",
+      "correct": "шепчу",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o093",
+      "lemma": "тащусь",
+      "correct": "тащусь",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o094",
+      "lemma": "щупальце",
+      "correct": "щупальце",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o095",
+      "lemma": "чудеса",
+      "correct": "чудеса",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o096",
+      "lemma": "чуткость",
+      "correct": "чуткость",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o097",
+      "lemma": "щурок",
+      "correct": "щурок",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o098",
+      "lemma": "чубчик",
+      "correct": "чубчик",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o099",
+      "lemma": "чугунный",
+      "correct": "чугунный",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o100",
+      "lemma": "рыщу",
+      "correct": "рыщу",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o101",
+      "lemma": "шучу",
+      "correct": "шучу",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o102",
+      "lemma": "щурюсь",
+      "correct": "щурюсь",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o103",
+      "lemma": "чурка",
+      "correct": "чурка",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o104",
+      "lemma": "чумазый",
+      "correct": "чумазый",
+      "ruleTags": [
+        "chu_shu"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o105",
+      "lemma": "трава",
+      "correct": "трава",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o106",
+      "lemma": "вода",
+      "correct": "вода",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o107",
+      "lemma": "река",
+      "correct": "река",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o108",
+      "lemma": "слеза",
+      "correct": "слеза",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o109",
+      "lemma": "дорога",
+      "correct": "дорога",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o110",
+      "lemma": "гора",
+      "correct": "гора",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o111",
+      "lemma": "мороз",
+      "correct": "мороз",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o112",
+      "lemma": "леса",
+      "correct": "леса",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o113",
+      "lemma": "нога",
+      "correct": "нога",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o114",
+      "lemma": "земля",
+      "correct": "земля",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o115",
+      "lemma": "зима",
+      "correct": "зима",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o116",
+      "lemma": "линейка",
+      "correct": "линейка",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o117",
+      "lemma": "ведро",
+      "correct": "ведро",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o118",
+      "lemma": "береза",
+      "correct": "береза",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o119",
+      "lemma": "стена",
+      "correct": "стена",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o120",
+      "lemma": "лампа",
+      "correct": "лампа",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o121",
+      "lemma": "книга",
+      "correct": "книга",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o122",
+      "lemma": "кошка",
+      "correct": "кошка",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o123",
+      "lemma": "котенок",
+      "correct": "котенок",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o124",
+      "lemma": "корова",
+      "correct": "корова",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o125",
+      "lemma": "собака",
+      "correct": "собака",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o126",
+      "lemma": "молоко",
+      "correct": "молоко",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o127",
+      "lemma": "ворона",
+      "correct": "ворона",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o128",
+      "lemma": "воробей",
+      "correct": "воробей",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o129",
+      "lemma": "дороги",
+      "correct": "дороги",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o130",
+      "lemma": "реки",
+      "correct": "реки",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o131",
+      "lemma": "голова",
+      "correct": "голова",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o132",
+      "lemma": "колесо",
+      "correct": "колесо",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o133",
+      "lemma": "медведь",
+      "correct": "медведь",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o134",
+      "lemma": "поляна",
+      "correct": "поляна",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o135",
+      "lemma": "тепло",
+      "correct": "тепло",
+      "ruleTags": [
+        "unstressed_vowel_root"
+      ],
+      "difficulty": "A",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o136",
+      "lemma": "зуб",
+      "correct": "зуб",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o137",
+      "lemma": "гриб",
+      "correct": "гриб",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o138",
+      "lemma": "лодка",
+      "correct": "лодка",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o139",
+      "lemma": "сказка",
+      "correct": "сказка",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o140",
+      "lemma": "клуб",
+      "correct": "клуб",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o141",
+      "lemma": "берег",
+      "correct": "берег",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o142",
+      "lemma": "снег",
+      "correct": "снег",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o143",
+      "lemma": "флаг",
+      "correct": "флаг",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o144",
+      "lemma": "дуб",
+      "correct": "дуб",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o145",
+      "lemma": "сад",
+      "correct": "сад",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o146",
+      "lemma": "пруд",
+      "correct": "пруд",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o147",
+      "lemma": "год",
+      "correct": "год",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o148",
+      "lemma": "глаз",
+      "correct": "глаз",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o149",
+      "lemma": "крот",
+      "correct": "крот",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o150",
+      "lemma": "книжка",
+      "correct": "книжка",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o151",
+      "lemma": "повозка",
+      "correct": "повозка",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o152",
+      "lemma": "грядка",
+      "correct": "грядка",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o153",
+      "lemma": "тетрадка",
+      "correct": "тетрадка",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o154",
+      "lemma": "рубка",
+      "correct": "рубка",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o155",
+      "lemma": "скобка",
+      "correct": "скобка",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o156",
+      "lemma": "клад",
+      "correct": "клад",
+      "ruleTags": [
+        "paired_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o157",
+      "lemma": "честный",
+      "correct": "честный",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o158",
+      "lemma": "честность",
+      "correct": "честность",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o159",
+      "lemma": "местный",
+      "correct": "местный",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o160",
+      "lemma": "местность",
+      "correct": "местность",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o161",
+      "lemma": "устный",
+      "correct": "устный",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o162",
+      "lemma": "радостный",
+      "correct": "радостный",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o163",
+      "lemma": "грустный",
+      "correct": "грустный",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o164",
+      "lemma": "прелестный",
+      "correct": "прелестный",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o165",
+      "lemma": "известный",
+      "correct": "известный",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o166",
+      "lemma": "окрестный",
+      "correct": "окрестный",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o167",
+      "lemma": "поздний",
+      "correct": "поздний",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o168",
+      "lemma": "поздно",
+      "correct": "поздно",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o169",
+      "lemma": "праздник",
+      "correct": "праздник",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o170",
+      "lemma": "праздный",
+      "correct": "праздный",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o171",
+      "lemma": "звездный",
+      "correct": "звездный",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o172",
+      "lemma": "солнце",
+      "correct": "солнце",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o173",
+      "lemma": "солнцем",
+      "correct": "солнцем",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o174",
+      "lemma": "сердце",
+      "correct": "сердце",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o175",
+      "lemma": "сердцем",
+      "correct": "сердцем",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o176",
+      "lemma": "чувства",
+      "correct": "чувства",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o177",
+      "lemma": "здравствуй",
+      "correct": "здравствуй",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o178",
+      "lemma": "здравствуйте",
+      "correct": "здравствуйте",
+      "ruleTags": [
+        "unpronounceable_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o179",
+      "lemma": "семья",
+      "correct": "семья",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o180",
+      "lemma": "вьюга",
+      "correct": "вьюга",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o181",
+      "lemma": "пьеса",
+      "correct": "пьеса",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o182",
+      "lemma": "подъезд",
+      "correct": "подъезд",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o183",
+      "lemma": "съел",
+      "correct": "съел",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o184",
+      "lemma": "бельё",
+      "correct": "бельё",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o185",
+      "lemma": "ружьё",
+      "correct": "ружьё",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o186",
+      "lemma": "объезд",
+      "correct": "объезд",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o187",
+      "lemma": "съёмка",
+      "correct": "съёмка",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o188",
+      "lemma": "объявление",
+      "correct": "объявление",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o189",
+      "lemma": "объём",
+      "correct": "объём",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o190",
+      "lemma": "разъезд",
+      "correct": "разъезд",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o191",
+      "lemma": "подъём",
+      "correct": "подъём",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o192",
+      "lemma": "бьёт",
+      "correct": "бьёт",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o193",
+      "lemma": "льёт",
+      "correct": "льёт",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o194",
+      "lemma": "вьётся",
+      "correct": "вьётся",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o195",
+      "lemma": "пьёт",
+      "correct": "пьёт",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o196",
+      "lemma": "вьюн",
+      "correct": "вьюн",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o197",
+      "lemma": "колья",
+      "correct": "колья",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o198",
+      "lemma": "листья",
+      "correct": "листья",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o199",
+      "lemma": "вьюнок",
+      "correct": "вьюнок",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o200",
+      "lemma": "пьянка",
+      "correct": "пьянка",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o201",
+      "lemma": "подъёмник",
+      "correct": "подъёмник",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o202",
+      "lemma": "разъём",
+      "correct": "разъём",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o203",
+      "lemma": "объятие",
+      "correct": "объятие",
+      "ruleTags": [
+        "hard_soft_sign"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o204",
+      "lemma": "класс",
+      "correct": "класс",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o205",
+      "lemma": "группа",
+      "correct": "группа",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o206",
+      "lemma": "касса",
+      "correct": "касса",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o207",
+      "lemma": "тонна",
+      "correct": "тонна",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o208",
+      "lemma": "аллея",
+      "correct": "аллея",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o209",
+      "lemma": "ванна",
+      "correct": "ванна",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o210",
+      "lemma": "сумма",
+      "correct": "сумма",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o211",
+      "lemma": "балл",
+      "correct": "балл",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o212",
+      "lemma": "иллюзия",
+      "correct": "иллюзия",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o213",
+      "lemma": "коллекция",
+      "correct": "коллекция",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o214",
+      "lemma": "аккуратный",
+      "correct": "аккуратный",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o215",
+      "lemma": "аппетит",
+      "correct": "аппетит",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o216",
+      "lemma": "грамматика",
+      "correct": "грамматика",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o217",
+      "lemma": "комиссия",
+      "correct": "комиссия",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o218",
+      "lemma": "программа",
+      "correct": "программа",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o219",
+      "lemma": "телеграмма",
+      "correct": "телеграмма",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o220",
+      "lemma": "рассказ",
+      "correct": "рассказ",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o221",
+      "lemma": "шоссе",
+      "correct": "шоссе",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o222",
+      "lemma": "массаж",
+      "correct": "массаж",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o223",
+      "lemma": "металл",
+      "correct": "металл",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o224",
+      "lemma": "килограмм",
+      "correct": "килограмм",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o225",
+      "lemma": "профессор",
+      "correct": "профессор",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o226",
+      "lemma": "перрон",
+      "correct": "перрон",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o227",
+      "lemma": "ассистент",
+      "correct": "ассистент",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    },
+    {
+      "id": "o228",
+      "lemma": "терраса",
+      "correct": "терраса",
+      "ruleTags": [
+        "double_consonants"
+      ],
+      "difficulty": "B",
+      "flags": {
+        "dictionaryWord": false
+      }
+    }
+  ]
+}

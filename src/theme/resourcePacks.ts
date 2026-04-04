@@ -1,9 +1,14 @@
-export type BlockMaterialSpec = {
+﻿export type BlockMaterialSpec = {
   textureUrl: string;
   faceTextures?: {
     top?: string;
     bottom?: string;
     side?: string;
+  };
+  faceTextureRotationDeg?: {
+    top?: number;
+    bottom?: number;
+    side?: number;
   };
   color: string;
   emissive?: string;
@@ -77,8 +82,11 @@ const cartoonBlockyV1: ResourcePackSpec = {
         textureUrl: '/resource-packs/cartoon-blocky-v1/world/block_brick_red.png',
         color: '#f7f7f7',
       },
-      res_wood: {
+      res_planks: {
         textureUrl: '/resource-packs/cartoon-blocky-v1/world/block_wood.png',
+        faceTextureRotationDeg: {
+          side: 90,
+        },
         color: '#f7f7f7',
       },
       block_glow_blue: {
@@ -104,7 +112,7 @@ const cartoonBlockyV1: ResourcePackSpec = {
     },
   },
   ui: {
-    fontFamily: "'Kenney Future', 'Segoe UI', Tahoma, sans-serif",
+    fontFamily: "Verdana, 'Segoe UI', Tahoma, sans-serif",
     textures: {
       appBg: '/resource-packs/cartoon-blocky-v1/world/sky_clouds.png',
       card: '',
@@ -112,7 +120,7 @@ const cartoonBlockyV1: ResourcePackSpec = {
       hudPanel: '/resource-packs/cartoon-blocky-v1/ui/hud_panel.png',
       hotbarSlot: '/resource-packs/cartoon-blocky-v1/ui/hotbar_slot.png',
       hotbarSlotSelected: '/resource-packs/cartoon-blocky-v1/ui/hotbar_slot_selected.png',
-      coinIcon: '/resource-packs/cartoon-blocky-v1/ui/coin_icon.png',
+      coinIcon: '/resource-packs/cartoon-blocky-v1/ui/coin_icon_kotocoin.svg',
     },
     palette: {
       line: '#2e4a21',
@@ -135,3 +143,5 @@ export const defaultResourcePackId = cartoonBlockyV1.id;
 export function resolveResourcePack(packId: string): ResourcePackSpec {
   return resourcePackRegistry[packId] ?? resourcePackRegistry[defaultResourcePackId];
 }
+
+

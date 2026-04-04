@@ -1,7 +1,7 @@
-﻿import type { EggTypeId } from './common';
+import type { EggTypeId } from './common';
 
 export type AppEvent =
-  | { type: 'lesson.started'; sessionId: string; programId: 'math-1' }
+  | { type: 'lesson.started'; sessionId: string; programId: 'math-1' | 'orthography-1' }
   | { type: 'lesson.completed'; sessionId: string; accuracy: number; rewardCatCoins: number }
   | { type: 'currency.changed'; delta: number; balance: number; txnType: string }
   | { type: 'shop.purchase.completed'; shopItemId: string }

@@ -122,7 +122,7 @@
 export type PlayerId = string;
 export type ItemId = string;
 export type EggTypeId = 'egg_common' | 'egg_rare' | 'egg_epic';
-export type LessonProgramId = 'math-1';
+export type LessonProgramId = 'math-1' | 'orthography-1';
 export type TxnId = string;
 export type SessionId = string;
 ```
@@ -168,13 +168,31 @@ export interface MathTask {
   level: 'A' | 'B' | 'C';
 }
 
+export interface OrthographyTask {
+  id: string;
+  type: 'choice_3';
+  ruleId:
+    | 'zhi_shi'
+    | 'cha_sha'
+    | 'chu_shu'
+    | 'unstressed_vowel_root'
+    | 'paired_consonants'
+    | 'unpronounceable_consonants'
+    | 'hard_soft_sign'
+    | 'double_consonants';
+  prompt: string;
+  options: [string, string, string];
+  correctOptionIndex: 0 | 1 | 2;
+  level: 'A' | 'B' | 'C';
+}
+
 export interface LessonSession {
   id: SessionId;
   playerId: PlayerId;
   programId: LessonProgramId;
   startedAt: string;
   finishedAt?: string;
-  tasks: MathTask[];
+  tasks: Array<MathTask | OrthographyTask>;
   answers: Array<{
     taskId: string;
     value: number;
@@ -327,6 +345,33 @@ export interface CurrencyTxn {
 }
 ```
 
+`orthography-1.v1.json`
+```json
+{
+  "version": 1,
+  "programId": "orthography-1",
+  "lesson": {
+    "minTasks": 5,
+    "maxTasks": 10,
+    "taskType": "choice_3"
+  },
+  "rules": [
+    "zhi_shi",
+    "cha_sha",
+    "chu_shu",
+    "unstressed_vowel_root",
+    "paired_consonants",
+    "unpronounceable_consonants",
+    "hard_soft_sign",
+    "double_consonants"
+  ],
+  "taskInvariant": {
+    "optionsCount": 3,
+    "correctAnswersPerTask": 1
+  }
+}
+```
+
 ## 5. Application use-cases (публичные API)
 ## 5.1. Complete Lesson
 ```ts
@@ -416,7 +461,7 @@ declare function removeBlock(input: {
 
 ```ts
 type AppEvent =
-  | { type: 'lesson.started'; sessionId: string; programId: 'math-1' }
+  | { type: 'lesson.started'; sessionId: string; programId: 'math-1' | 'orthography-1' }
   | { type: 'lesson.completed'; sessionId: string; accuracy: number; rewardCatCoins: number }
   | { type: 'currency.changed'; delta: number; balance: number; txnType: string }
   | { type: 'shop.purchase.completed'; shopItemId: string }
@@ -497,6 +542,11 @@ this.version(2).stores({
 - Любой `itemId` из лута должен существовать в каталоге.
 - Любой `shopItem.payload` должен ссылаться только на существующие `itemId`.
 - Для задач вычитания выполняется `a >= b`.
+- Для `orthography-1` distractor-варианты проходят quality-filter:
+  - генерация сначала по целевому `ruleId`, затем по ограниченному `allowedRuleChain` для этого правила;
+  - каждый кандидат проходит `isRulePlausible(ruleId, correct, candidate)`;
+  - кандидаты, совпадающие с любым `lexicon.correct`, отбрасываются;
+  - если после фильтра нельзя получить 2 distractor-варианта, задача/слово считаются невалидными для выдачи.
 
 Ошибки:
 ```ts
@@ -528,6 +578,9 @@ interface PointerState {
 Контролы MVP (FPV):
 - Desktop: `WASD` (движение), удержание ПКМ + мышь (free camera view), ЛКМ выполняет действие активного слота hotbar.
 - Tablet: левый виртуальный джойстик (движение), правый свайп (обзор), кнопки `Поставить/Удалить`.
+- При `window.blur` и `document.visibilitychange -> hidden` Build-режим ставится на паузу, а состояние клавиш принудительно сбрасывается (защита от «залипания» движения).
+- При клике/контекстном меню вне области `.build-stage` Build-режим также ставится на паузу с тем же сбросом клавиш.
+- Сброс клавиш реализуется без перемонтирования сцены: ввод движения «разоружается» до следующего `keydown` управляющей клавиши, поэтому позиция игрока не откатывается.
 - Режим строительства включается отдельной кнопкой HUD для снижения случайных действий.
 - Концепция центра-экрана/прицела не используется: постановка идет по позиции курсора/касания.
 - Превью постановки: тонкая рамка только по ребрам (без диагоналей), рассчитывается тем же raycast-контуром, что и фактическое действие слота.
@@ -538,6 +591,7 @@ interface PointerState {
 - Ключевые зоны HUD строительства: минимум 56x56 px.
 - Ограничить число одновременных CTA на экране до 3.
 - Анимации открытия яйца: 400-900ms.
+- Карточка награды после открытия яйца должна начинать fade-out через `2` секунды и автоматически скрываться.
 - Поддержка `prefers-reduced-motion`.
 - Hotbar должен быть доступен мышью и горячими клавишами `1..9`.
 
@@ -563,12 +617,15 @@ interface AnalyticsEvent {
 ## 12. Тестовая стратегия
 ## 12.1. Unit
 - Генерация задач математики (границы 1..20).
+- Генерация задач орфографии (`choice_3`) с инвариантом: ровно `1` правильный вариант и `2` distractor-варианта.
 - Расчет наград за урок и серии.
 - Roll лута по весам и дубликаты.
 - Инварианты экономики.
 
 ## 12.2. Component
 - Экран урока: прохождение 5 задач и получение результата.
+- Экран урока: повторное нажатие «Начать мини-урок» генерирует новый набор задач.
+- Экран орфографии: рендер `3` вариантов написания слова и проверка выбора корректного варианта.
 - Экран магазина: покупка при достаточном/недостаточном балансе.
 - Экран яиц: корректное отображение результата открытия.
 
@@ -698,3 +755,28 @@ type ResourcePackSpec = {
 - Текущий контракт Build UI: `VirtualJoystick` рендерится только при `matchMedia('(pointer: coarse)')`.
 - Исправлена утечка ресурсов в Build: при `placeBlock` теперь списывается не только `blocks`, но и соответствующий `resources`-остаток.
 - Уточнение экономики инвентаря: награды из яиц добавляются только в `blocks` (без прироста `resources`).
+
+## Update 2026-04-04
+- Базовый seed `initialInventory` фиксирован: `resources = { block_brick_red: 24 }`, `blocks = { block_brick_red: 24 }`.
+- При `db.delete()` и следующем запуске применяется этот же стартовый seed.
+- `LessonScreen` хранит reward в состоянии результата и рендерит строку награды с классами `shop-price-tag` + `shop-price-coin`.
+- `EggsScreen` рендерит последний reward через классы витрины магазина: `shop-lot`, `shop-lot-iso`, `shop-cube-*`, `shop-lot-count`.
+- `EggsScreen` добавляет авто-скрытие карточки награды: запуск fade-out через `2` секунды, затем удаление из DOM.
+- `ShopScreen` рендерит боковые грани превью через `side`-текстуру и применяет `faceTextureRotationDeg.side` из resource-pack.
+- Базовый размер мира по оси `Y` увеличен до `24` (вместо `12`), чтобы поднять верхний предел постановки блоков.
+
+## Update 2026-04-05
+- Для `orthography-1` зафиксирован формат задачи `choice_3`: `3` варианта написания (`1` правильный + `2` с орфографическими ошибками).
+- В контракт программы добавлен базовый список орфограмм 7-9 лет: `zhi_shi`, `cha_sha`, `chu_shu`, `unstressed_vowel_root`, `paired_consonants`, `unpronounceable_consonants`, `hard_soft_sign`, `double_consonants`.
+- В тестовой стратегии добавлены unit/component проверки для орфографического формата `choice_3`.
+- Добавлен офлайн pipeline в `scripts/orthography/*.mjs`: `build-lexicon`, `validate-lexicon`, `build-program`, `sample-batch`.
+- Тестовый режим качества задач реализован через CLI-команду `orth:samples` с параметрами `--count`, `--seed`, `--level`, `--mode`, `--rule`.
+- JSON-отчеты тестовых пачек сохраняются в `tmp/orthography/samples/*.json`.
+- В генератор добавлен строгий фильтр distractor-вариантов: `allowedRuleChain` + `isRulePlausible` + отсев словарных слов.
+- `LessonScreen` поддерживает запуск орфографических мини-уроков через три карточки сложности (`A/B/C`) с фиксированным `count=3`.
+- Для орфографических карточек введена функция расчета награды `calculateOrthographyCardReward(baseReward, mistakes)`:
+  - `0` ошибок -> `100%` базовой награды;
+  - `1` ошибка -> `90%`;
+  - `2` ошибки -> `70%`;
+  - `3` ошибки -> `0`.
+- Генератор `generateOrthographyLesson` усилен лимитом попыток подбора задач, чтобы стабильно собирать целевой размер урока при строгой фильтрации distractor-вариантов.

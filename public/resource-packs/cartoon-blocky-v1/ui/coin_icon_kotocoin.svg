@@ -1,0 +1,37 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Kotocoin">
+  <defs>
+    <radialGradient id="coinFill" cx="34%" cy="28%" r="74%">
+      <stop offset="0%" stop-color="#aee3ff" />
+      <stop offset="56%" stop-color="#4aa0f0" />
+      <stop offset="100%" stop-color="#1d5eb5" />
+    </radialGradient>
+    <linearGradient id="rimFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eaf8ff" />
+      <stop offset="100%" stop-color="#76c1ff" />
+    </linearGradient>
+  </defs>
+
+  <circle cx="64" cy="64" r="58" fill="url(#coinFill)" />
+  <circle cx="64" cy="64" r="58" fill="none" stroke="url(#rimFill)" stroke-width="8" />
+  <circle cx="64" cy="64" r="47" fill="none" stroke="#d0ecff" stroke-opacity="0.7" stroke-width="2" />
+
+  <path d="M49 49 L38 35 L36 54 L49 60 Z" fill="#f5fbff" stroke="#11427f" stroke-width="3" stroke-linejoin="round" />
+  <path d="M79 49 L90 35 L92 54 L79 60 Z" fill="#f5fbff" stroke="#11427f" stroke-width="3" stroke-linejoin="round" />
+  <circle cx="64" cy="68" r="29" fill="#f9fdff" stroke="#11427f" stroke-width="4" />
+
+  <circle cx="54" cy="64" r="5" fill="#103a73" />
+  <circle cx="74" cy="64" r="5" fill="#103a73" />
+  <circle cx="56" cy="62" r="1.5" fill="#ffffff" />
+  <circle cx="76" cy="62" r="1.5" fill="#ffffff" />
+
+  <ellipse cx="48" cy="74" rx="5" ry="3.5" fill="#ffadc7" opacity="0.75" />
+  <ellipse cx="80" cy="74" rx="5" ry="3.5" fill="#ffadc7" opacity="0.75" />
+
+  <path d="M64 68 L60 73 L68 73 Z" fill="#ff8cb6" stroke="#11427f" stroke-width="2" stroke-linejoin="round" />
+  <path d="M60 78 C62 81 66 81 68 78" fill="none" stroke="#11427f" stroke-width="3" stroke-linecap="round" />
+
+  <path d="M59 75 L49 73" stroke="#11427f" stroke-width="2" stroke-linecap="round" />
+  <path d="M59 78 L48 78" stroke="#11427f" stroke-width="2" stroke-linecap="round" />
+  <path d="M69 75 L79 73" stroke="#11427f" stroke-width="2" stroke-linecap="round" />
+  <path d="M69 78 L80 78" stroke="#11427f" stroke-width="2" stroke-linecap="round" />
+</svg>

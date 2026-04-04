@@ -2,10 +2,16 @@
   "version": 1,
   "items": [
     {
-      "id": "pack_basic",
-      "type": "resource-pack",
-      "priceCatCoins": 15,
-      "payload": { "res_wood": 20, "block_brick_red": 10 }
+      "id": "lot_planks_20",
+      "type": "resource-lot",
+      "priceCatCoins": 10,
+      "payload": { "res_planks": 20 }
+    },
+    {
+      "id": "lot_brick_20",
+      "type": "resource-lot",
+      "priceCatCoins": 30,
+      "payload": { "block_brick_red": 20 }
     }
   ]
 }
