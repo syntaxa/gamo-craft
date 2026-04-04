@@ -1,13 +1,17 @@
 {
   "name": "gamo",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "orth:build": "node scripts/orthography/build-lexicon.mjs",
+    "orth:validate": "node scripts/orthography/validate-lexicon.mjs",
+    "orth:program": "node scripts/orthography/build-program.mjs",
+    "orth:samples": "node scripts/orthography/sample-batch.mjs"
   },
   "engines": {
     "node": ">=24.14.0",
