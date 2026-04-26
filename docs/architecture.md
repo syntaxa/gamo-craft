@@ -190,6 +190,14 @@ interface WorldState {
 - `completeLesson()`, `grantLessonReward()`, `buyEgg()`, `openEgg()`, `placeBlock()`.
 - Оркестрация сценариев между доменными сервисами.
 
+Статус MVP 2026-04-26: целевой Application Layer описан как направление развития, но активная реализация пока проще: React-экраны вызывают доменные сервисы и Zustand-store напрямую. `src/application/useCases/*.ts` и `src/features/*/use*Controller.ts` остаются scaffold и не считаются текущим runtime-контрактом. Фактическая оркестрация сценариев:
+- уроки: `LessonScreen` + `learning/service` + `useAppStore.addCatCoins`;
+- магазин: `ShopScreen` + `useAppStore.spendCatCoins/addInventoryItem`;
+- яйца: `EggsScreen` + локальный roll + `useAppStore.addBlockRewardItem`;
+- строительство: `BuildScreen` + `useAppStore.placeVoxel/removeVoxel`.
+
+Если проект вернется к отдельному Application Layer, перенос должен быть выполнен как явный рефакторинг без изменения продуктового поведения.
+
 3. **Domain Layer**
 - Правила математики, экономики, лута, строительства.
 - Валидация и инварианты.

@@ -64,7 +64,7 @@ function releaseStuckMovementKeys() {
 
 const PLAYER_HEIGHT = 1.62;
 const PLAYER_RADIUS = 0.32;
-const STANDING_EYE_Y = 2.62;
+const WORLD_RENDER_OFFSET = 12;
 
 function placeFromHit(hit: HitResult): GridTarget | null {
   if (!hit.voxel || !hit.faceNormal) return null;
@@ -98,9 +98,9 @@ function collidesWithVoxel(position: Vector3, voxels: Array<{ x: number; y: numb
   const maxZ = position.z + PLAYER_RADIUS;
 
   return voxels.some((voxel) => {
-    const cx = voxel.x - 12;
+    const cx = voxel.x - WORLD_RENDER_OFFSET;
     const cy = voxel.y + 0.5;
-    const cz = voxel.z - 12;
+    const cz = voxel.z - WORLD_RENDER_OFFSET;
 
     const voxelMinX = cx - 0.5;
     const voxelMaxX = cx + 0.5;
@@ -118,6 +118,47 @@ function collidesWithVoxel(position: Vector3, voxels: Array<{ x: number; y: numb
       minZ < voxelMaxZ
     );
   });
+}
+
+function findStandingEyeY(position: Vector3, voxels: Array<{ x: number; y: number; z: number }>): number | null {
+  const minX = position.x - PLAYER_RADIUS;
+  const maxX = position.x + PLAYER_RADIUS;
+  const footY = position.y - PLAYER_HEIGHT;
+  const minZ = position.z - PLAYER_RADIUS;
+  const maxZ = position.z + PLAYER_RADIUS;
+  let highestSurfaceY: number | null = null;
+
+  for (const voxel of voxels) {
+    const cx = voxel.x - WORLD_RENDER_OFFSET;
+    const cz = voxel.z - WORLD_RENDER_OFFSET;
+
+    const voxelMinX = cx - 0.5;
+    const voxelMaxX = cx + 0.5;
+    const voxelMinZ = cz - 0.5;
+    const voxelMaxZ = cz + 0.5;
+    const horizontallyOverlaps =
+      maxX > voxelMinX &&
+      minX < voxelMaxX &&
+      maxZ > voxelMinZ &&
+      minZ < voxelMaxZ;
+
+    if (!horizontallyOverlaps) continue;
+
+    const surfaceY = voxel.y + 1;
+    if (surfaceY > footY + 0.05) continue;
+    if (highestSurfaceY === null || surfaceY > highestSurfaceY) {
+      highestSurfaceY = surfaceY;
+    }
+  }
+
+  return highestSurfaceY === null ? null : highestSurfaceY + PLAYER_HEIGHT;
+}
+
+function placePlayerOnNearestSurface(position: Vector3, voxels: Array<{ x: number; y: number; z: number }>): void {
+  const standingEyeY = findStandingEyeY(position, voxels);
+  if (standingEyeY !== null) {
+    position.y = standingEyeY;
+  }
 }
 
 function samePlayerTransform(a: PlayerTransformState, b: PlayerTransformState): boolean {
@@ -150,7 +191,7 @@ function PlayerController({
   useFrame(({ camera }, delta) => {
     if (isWorldPaused || !isKeyboardInputArmed) {
       if (!isFlying) {
-        camera.position.y = STANDING_EYE_Y;
+        placePlayerOnNearestSurface(camera.position, voxels);
       }
       return;
     }
@@ -161,59 +202,61 @@ function PlayerController({
     const sideAxis = (right ? 1 : 0) - (left ? 1 : 0);
     const verticalAxis = (up ? 1 : 0) - (down ? 1 : 0);
 
-    if (forwardAxis === 0 && sideAxis === 0 && (!isFlying || verticalAxis === 0)) return;
+    const hasMovementInput = forwardAxis !== 0 || sideAxis !== 0 || (isFlying && verticalAxis !== 0);
 
-    camera.getWorldDirection(forwardVec.current);
-    moveVec.current.set(0, 0, 0);
+    if (hasMovementInput) {
+      camera.getWorldDirection(forwardVec.current);
+      moveVec.current.set(0, 0, 0);
 
-    if (isFlying) {
-      if (forwardVec.current.lengthSq() > 0) {
-        forwardVec.current.normalize();
-      }
-      rightVec.current.crossVectors(forwardVec.current, camera.up).normalize();
-      moveVec.current.addScaledVector(forwardVec.current, forwardAxis);
-      moveVec.current.addScaledVector(rightVec.current, sideAxis);
-      moveVec.current.addScaledVector(camera.up, verticalAxis);
-    } else {
-      forwardVec.current.y = 0;
-      if (forwardVec.current.lengthSq() > 0) {
-        forwardVec.current.normalize();
-      }
-      rightVec.current.crossVectors(forwardVec.current, camera.up).normalize();
-      moveVec.current.addScaledVector(forwardVec.current, forwardAxis);
-      moveVec.current.addScaledVector(rightVec.current, sideAxis);
-    }
-
-    if (moveVec.current.lengthSq() > 0) {
-      const speed = isFlying ? 7.2 : 4.8;
-      const step = moveVec.current.normalize().multiplyScalar(speed * delta);
-      const basePosition = camera.position.clone();
-
-      const target = basePosition.clone().add(step);
-      if (!collidesWithVoxel(target, voxels)) {
-        camera.position.copy(target);
+      if (isFlying) {
+        if (forwardVec.current.lengthSq() > 0) {
+          forwardVec.current.normalize();
+        }
+        rightVec.current.crossVectors(forwardVec.current, camera.up).normalize();
+        moveVec.current.addScaledVector(forwardVec.current, forwardAxis);
+        moveVec.current.addScaledVector(rightVec.current, sideAxis);
+        moveVec.current.addScaledVector(camera.up, verticalAxis);
       } else {
-        const slideX = basePosition.clone().add(new Vector3(step.x, 0, 0));
-        if (!collidesWithVoxel(slideX, voxels)) {
-          camera.position.copy(slideX);
+        forwardVec.current.y = 0;
+        if (forwardVec.current.lengthSq() > 0) {
+          forwardVec.current.normalize();
         }
+        rightVec.current.crossVectors(forwardVec.current, camera.up).normalize();
+        moveVec.current.addScaledVector(forwardVec.current, forwardAxis);
+        moveVec.current.addScaledVector(rightVec.current, sideAxis);
+      }
 
-        const slideZ = camera.position.clone().add(new Vector3(0, 0, step.z));
-        if (!collidesWithVoxel(slideZ, voxels)) {
-          camera.position.copy(slideZ);
-        }
+      if (moveVec.current.lengthSq() > 0) {
+        const speed = isFlying ? 7.2 : 4.8;
+        const step = moveVec.current.normalize().multiplyScalar(speed * delta);
+        const basePosition = camera.position.clone();
 
-        if (isFlying) {
-          const slideY = camera.position.clone().add(new Vector3(0, step.y, 0));
-          if (!collidesWithVoxel(slideY, voxels)) {
-            camera.position.copy(slideY);
+        const target = basePosition.clone().add(step);
+        if (!collidesWithVoxel(target, voxels)) {
+          camera.position.copy(target);
+        } else {
+          const slideX = basePosition.clone().add(new Vector3(step.x, 0, 0));
+          if (!collidesWithVoxel(slideX, voxels)) {
+            camera.position.copy(slideX);
+          }
+
+          const slideZ = camera.position.clone().add(new Vector3(0, 0, step.z));
+          if (!collidesWithVoxel(slideZ, voxels)) {
+            camera.position.copy(slideZ);
+          }
+
+          if (isFlying) {
+            const slideY = camera.position.clone().add(new Vector3(0, step.y, 0));
+            if (!collidesWithVoxel(slideY, voxels)) {
+              camera.position.copy(slideY);
+            }
           }
         }
       }
     }
 
     if (!isFlying) {
-      camera.position.y = STANDING_EYE_Y;
+      placePlayerOnNearestSurface(camera.position, voxels);
     }
   });
 
@@ -572,7 +615,7 @@ function Scene({
         return (
           <mesh
             key={`${v.x}:${v.y}:${v.z}`}
-            position={[v.x - 12, v.y + 0.5, v.z - 12]}
+            position={[v.x - WORLD_RENDER_OFFSET, v.y + 0.5, v.z - WORLD_RENDER_OFFSET]}
             userData={{ kind: 'voxel', x: v.x, y: v.y, z: v.z }}
           >
             <boxGeometry args={[1, 1, 1]} />
@@ -650,7 +693,7 @@ function Scene({
         <lineSegments
           geometry={previewEdgesGeometry}
           material={previewEdgesMaterial}
-          position={[previewTarget.x - 12, previewTarget.y + 0.5, previewTarget.z - 12]}
+          position={[previewTarget.x - WORLD_RENDER_OFFSET, previewTarget.y + 0.5, previewTarget.z - WORLD_RENDER_OFFSET]}
           raycast={() => null}
           renderOrder={10}
         />

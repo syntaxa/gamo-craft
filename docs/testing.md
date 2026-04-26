@@ -3,9 +3,15 @@
 ## 1. Статус документа
 Документ актуализирован под текущую структуру проекта и может использоваться как основа для разработки автотестов.
 
-Важно: тестовая инфраструктура пока не установлена. В `package.json` на текущий момент есть только рабочие команды `dev`, `build`, `lint`, `preview` и `orth:*`; пакетов Vitest, Testing Library, Playwright, `jsdom` и `fake-indexeddb`, а также npm-скриптов `test:*`, пока нет.
+Статус 2026-04-26: базовая тестовая инфраструктура установлена. В `package.json` добавлены Vitest, Testing Library, Playwright, `jsdom`, `fake-indexeddb`, `@vitest/coverage-v8` и npm-скрипты `test:*`; `vite.config.ts` содержит конфигурацию Vitest, а `src/tests/setup.ts` настраивает `jsdom`, jest-dom matchers, fake IndexedDB и очистку browser storage.
 
-Перед написанием автотестов нужно добавить dev-dependencies и скрипты из раздела 11.
+Первый unit-набор находится в `src/tests/unit` и покрывает инварианты `math-1`, `orthography-1`, каталогов, store-экономики/строительства, стартового мира и LocalStorage-снимка.
+
+Component/integration набор находится в `src/tests/component` и покрывает `LessonScreen`, `ShopScreen`, `EggsScreen` и App Shell navigation с реальным Zustand-store. Для App Shell теста WebGL Build-экран заменяется легкой границей, потому что проверяется маршрутизация, а не R3F-рендер.
+
+E2E smoke-набор находится в `src/tests/e2e` и запускается Playwright на desktop Chromium и tablet Chromium. Сейчас покрыты: навигация shell, `orthography-card-flow`, `glass-shop-flow` и `egg-economy-guardrail`. Полные e2e-сценарии `happy-path-mvp`, `persistence-reopen` и `inventory-management-flow` требуют дальнейшего расширения продукта/тестов.
+
+Архитектурный статус 2026-04-26: рабочая MVP-оркестрация находится в React-экранах и Zustand-store (`src/app/store.ts`). Файлы `src/application/useCases/*.ts` и `src/features/*/use*Controller.ts` являются scaffold под возможный будущий рефакторинг и не считаются активным продуктивным слоем. Тесты должны покрывать реальные пути исполнения: доменные сервисы, Zustand-store, UI-обработчики и e2e-сценарии. Unit-тесты для `application/useCases` добавляются только после переноса туда рабочей логики.
 
 `docs/requirements-registry.md` является каноническим источником требований для тестового покрытия. При заведении или изменении тестов нужно сначала проверить активные `REQ-*` в реестре и убедиться, что для каждого продуктового инварианта есть хотя бы один уровень покрытия: unit, component/integration, e2e, CI/контентная валидация или явно зафиксированная ручная проверка.
 
@@ -32,7 +38,8 @@
 - инвентарь: `src/domains/inventory/service.ts`;
 - лут: `src/domains/loot/service.ts`;
 - world-операции и ограничения координат: `src/domains/world/service.ts`, `voxelGrid.ts`, `raycast.ts`;
-- use-case функции: `src/application/useCases/*.ts`;
+- Zustand-store сценарии: `src/app/store.ts` (`spendCatCoins`, `addInventoryItem`, `addBlockRewardItem`, `placeVoxel`, `removeVoxel`);
+- active use-case функции после их реализации/переноса в `src/application/useCases/*.ts`;
 - LocalStorage-снимок: `src/persistence/localSnapshot.ts`.
 - каталожные инварианты: наличие обязательных buildable blocks и shop-позиций из `docs/requirements-registry.md`.
 
@@ -52,10 +59,10 @@
 
 Цель покрытия:
 - доменные модули: >= 90% line coverage;
-- use-case функции: >= 80% line coverage.
+- активные store/use-case сценарии: >= 80% line coverage. Неактивный scaffold `src/application/useCases/*.ts` не входит в обязательную цель покрытия до переноса туда рабочей логики.
 
 ### 4.2. Component/Integration (Testing Library + Vitest)
-Тестируем React-экраны с реальным Zustand-store и реальными доменными/use-case модулями:
+Тестируем React-экраны с реальным Zustand-store и реальными доменными модулями. До переноса логики в `src/application/useCases` UI-сценарии проверяются через фактический путь `screen -> store/domain`:
 - `LessonScreen`: прохождение математического мини-урока, результат, начисление валюты один раз;
 - `LessonScreen`: карточки `Учим слова - Легко/Средне/Сложно`, генерация `3` заданий `choice_3`, расчет награды `20/40/80` со штрафами за ошибки;
 - `EggsScreen`: покупка яйца, выдача FPV-награды, визуальный результат, fade-out карточки лута через 2 секунды;
@@ -120,7 +127,7 @@
 - проверить восстановление блока и инвентаря.
 
 ## 5. Правило "без имитации вместо функционала"
-- В тестах обязательно вызывать реальный код проекта: доменные сервисы, use-case, store, UI-обработчики.
+- В тестах обязательно вызывать реальный код проекта: доменные сервисы, active use-case/store, UI-обработчики.
 - Запрещено заменять тестируемый модуль на мок/заглушку, если его можно вызвать напрямую.
 - Допустимо мокать только внешние границы:
   - сеть/HTTP;
@@ -203,16 +210,17 @@
 - `npm run orth:program`;
 - `npm run orth:samples -- --count 30 --seed 42 --level A --mode balanced`.
 
-Рекомендуемые dev-dependencies для внедрения автотестов:
+Установленные dev-dependencies для автотестов:
 - `vitest`;
 - `@testing-library/react`;
 - `@testing-library/user-event`;
 - `@testing-library/jest-dom`;
 - `jsdom`;
 - `fake-indexeddb`;
-- `@playwright/test`.
+- `@playwright/test`;
+- `@vitest/coverage-v8`.
 
-Рекомендуемые новые скрипты:
+Добавленные npm-скрипты:
 - `test`: запуск unit + component;
 - `test:unit`;
 - `test:component`;
@@ -242,7 +250,7 @@ Merge в `main` разрешать только при успешном прох
 ## 14. Приоритизация внедрения
 Порядок внедрения тестов:
 1. Unit для математики, орфографии, экономики, инвентаря, лута.
-2. Unit для world/use-case/persistence-инвариантов.
+2. Unit для world/store/persistence-инвариантов; use-case unit добавлять после активации слоя `src/application/useCases`.
 3. Component для `LessonScreen`, `EggsScreen`, `BuildScreen`, `ShopScreen`.
 4. E2E `happy-path-mvp`.
 5. Persistence тесты: `fake-indexeddb` + e2e reopen + LocalStorage-snapshot priority.

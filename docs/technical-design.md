@@ -2,7 +2,7 @@
 
 Документ детализирует реализацию концепта и архитектуры:
 - структура проекта;
-- интерфейсы модулей и use-case API;
+- интерфейсы модулей, текущий Zustand-store API и целевой use-case API;
 - контракт событий;
 - схема хранения в IndexedDB;
 - контракты контента (ресурсы, яйца, лут, задания);
@@ -379,6 +379,16 @@ export interface CurrencyTxn {
 ```
 
 ## 5. Application use-cases (публичные API)
+Статус 2026-04-26: этот раздел описывает целевой application-слой. В текущей MVP-реализации рабочая оркестрация находится в React-экранах и `src/app/store.ts`; файлы `src/application/useCases/*.ts` и `src/features/*/use*Controller.ts` пока являются scaffold и не используются продуктивным UI.
+
+Активный runtime-контракт MVP:
+- `LessonScreen` генерирует и проверяет уроки через `src/domains/learning/service.ts`, затем начисляет валюту через `useAppStore.addCatCoins`.
+- `ShopScreen` покупает лоты через `useAppStore.spendCatCoins` и `useAppStore.addInventoryItem`.
+- `EggsScreen` списывает цену через `useAppStore.spendCatCoins`, роллит локальный loot pool и добавляет строительную награду через `useAppStore.addBlockRewardItem`.
+- `BuildScreen` ставит и удаляет блоки через `useAppStore.placeVoxel` и `useAppStore.removeVoxel`.
+
+Требование к дальнейшему развитию: если логика будет переноситься в `src/application/useCases`, сначала нужно перенести туда фактическое поведение из store/UI, затем подключить экраны к этим функциям и только после этого считать use-case API активным контрактом.
+
 ## 5.1. Complete Lesson
 ```ts
 interface CompleteLessonInput {
@@ -510,12 +520,13 @@ export class GamoDB extends Dexie {
 ```
 
 ## 7.2. Политика сохранения
-- Автосохранение после каждого критичного use-case:
-  - `completeLesson`
-  - `buyShopItem`
-  - `openEgg`
-  - `placeBlock`
-  - `removeBlock`
+- Автосохранение после каждого критичного игрового сценария. В текущей MVP-реализации сценарии выполняются через React-экраны и Zustand-store:
+  - завершение урока (`LessonScreen` + `addCatCoins`);
+  - покупка в магазине (`ShopScreen` + `spendCatCoins`/`addInventoryItem`);
+  - открытие яйца (`EggsScreen` + `spendCatCoins`/`addBlockRewardItem`);
+  - постановка блока (`BuildScreen` + `placeVoxel`);
+  - удаление блока (`BuildScreen` + `removeVoxel`).
+- После активации слоя `src/application/useCases` политика должна быть перенесена на функции `completeLesson`, `buyShopItem`, `openEgg`, `placeBlock`, `removeBlock`.
 - Build-режим сериализует в `world` также `playerTransform` (`position`, `rotation`, `isFlying`), чтобы восстановить состояние игрока после перезагрузки.
 - После каждого изменения `world` приложение синхронно записывает в `localStorage` снимок `player + inventory + world`, чтобы закрыть окно потери данных между изменением мира и завершением асинхронной записи IndexedDB.
 - При bootstrap приложение сравнивает `world.updatedAt` из IndexedDB и LocalStorage-снимка; если LocalStorage свежее, восстанавливаются `player`, `inventory` и `world` из одного локального снимка.
