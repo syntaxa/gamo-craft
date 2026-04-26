@@ -7,6 +7,19 @@ export interface WorldCell {
   blockId: ItemId | null;
 }
 
+export interface PlayerTransformState {
+  position: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  rotation: {
+    yaw: number;
+    pitch: number;
+  };
+  isFlying: boolean;
+}
+
 export interface WorldState {
   id: string;
   playerId: PlayerId;
@@ -15,5 +28,6 @@ export interface WorldState {
   sizeZ: number;
   voxels: WorldCell[];
   decorations: Array<{ id: string; x: number; y: number; z: number }>;
+  playerTransform: PlayerTransformState;
   updatedAt: string;
 }

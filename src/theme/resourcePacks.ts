@@ -109,6 +109,13 @@ const cartoonBlockyV1: ResourcePackSpec = {
         roughness: 0.5,
         metalness: 0.2,
       },
+      block_coin: {
+        textureUrl: '/resource-packs/cartoon-blocky-v1/world/block_coin.png',
+        color: '#fff1bf',
+        emissive: '#7a4f16',
+        roughness: 0.52,
+        metalness: 0.18,
+      },
     },
   },
   ui: {

@@ -1,6 +1,23 @@
 ﻿import { makeId } from '../../shared/lib/id';
 import { nowIso } from '../../shared/lib/time';
-import type { WorldState } from './model';
+import type { PlayerTransformState, WorldState } from './model';
+
+const DEFAULT_PLAYER_EYE_Y = 2.62;
+
+export function createDefaultPlayerTransform(): PlayerTransformState {
+  return {
+    position: {
+      x: 0,
+      y: DEFAULT_PLAYER_EYE_Y,
+      z: 8,
+    },
+    rotation: {
+      yaw: 0,
+      pitch: 0,
+    },
+    isFlying: false,
+  };
+}
 
 export function createInitialWorld(
   playerId: string,
@@ -23,6 +40,7 @@ export function createInitialWorld(
     sizeZ,
     voxels,
     decorations: [],
+    playerTransform: createDefaultPlayerTransform(),
     updatedAt: nowIso(),
   };
 }

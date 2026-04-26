@@ -4,9 +4,10 @@
     {
       "id": "loot_common",
       "entries": [
-        { "itemId": "block_glow_blue", "weight": 45, "duplicateCompensationCatCoins": 5 },
-        { "itemId": "block_rainbow", "weight": 35, "duplicateCompensationCatCoins": 7 },
-        { "itemId": "block_cat_gold", "weight": 20, "duplicateCompensationCatCoins": 10 }
+        { "itemId": "block_glow_blue", "weight": 35, "duplicateCompensationCatCoins": 5 },
+        { "itemId": "block_rainbow", "weight": 30, "duplicateCompensationCatCoins": 7 },
+        { "itemId": "block_cat_gold", "weight": 20, "duplicateCompensationCatCoins": 10 },
+        { "itemId": "block_coin", "weight": 15, "duplicateCompensationCatCoins": 8 }
       ]
     }
   ]

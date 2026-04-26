@@ -12,9 +12,10 @@ type EggReward = {
 };
 
 const commonEggRewards: EggReward[] = [
-  { id: 'block_glow_blue', label: 'Светящийся синий блок', count: 6, weight: 45 },
-  { id: 'block_rainbow', label: 'Радужный куб', count: 4, weight: 35 },
+  { id: 'block_glow_blue', label: 'Светящийся синий блок', count: 6, weight: 35 },
+  { id: 'block_rainbow', label: 'Радужный куб', count: 4, weight: 30 },
   { id: 'block_cat_gold', label: 'Кот-золотой блок', count: 2, weight: 20 },
+  { id: 'block_coin', label: 'Монетный блок', count: 3, weight: 15 },
 ];
 
 function rollReward(pool: EggReward[]): EggReward {

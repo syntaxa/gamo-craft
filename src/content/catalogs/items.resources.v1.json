@@ -6,6 +6,7 @@
     { "id": "block_brick_red", "name": "Красный кирпич", "icon": "brick_red.png", "kind": "block" },
     { "id": "block_glow_blue", "name": "Светящийся синий блок", "icon": "block_glow_blue.png", "kind": "block" },
     { "id": "block_rainbow", "name": "Радужный куб", "icon": "block_rainbow.png", "kind": "block" },
-    { "id": "block_cat_gold", "name": "Кот-золотой блок", "icon": "block_cat_gold.png", "kind": "block" }
+    { "id": "block_cat_gold", "name": "Кот-золотой блок", "icon": "block_cat_gold.png", "kind": "block" },
+    { "id": "block_coin", "name": "Монетный блок", "icon": "block_coin.png", "kind": "block" }
   ]
 }

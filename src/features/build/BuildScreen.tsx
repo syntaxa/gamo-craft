@@ -17,6 +17,8 @@ import { BuildHUD } from './BuildHUD';
 import { VirtualJoystick } from './VirtualJoystick';
 import type { ResourcePackSpec } from '../../theme/resourcePacks';
 import { useResourcePack } from '../../theme/useResourcePack';
+import resourceItemsCatalog from '../../content/catalogs/items.resources.v1.json';
+import type { PlayerTransformState } from '../../domains/world/model';
 
 type ControlKey = 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down';
 type GridTarget = { x: number; y: number; z: number };
@@ -213,16 +215,19 @@ function Scene({
   isKeyboardInputArmed,
   isWorldPaused,
   resourcePack,
+  initialPlayerTransform,
 }: {
   selectedSlot: HotbarSlot;
   isFlying: boolean;
   isKeyboardInputArmed: boolean;
   isWorldPaused: boolean;
   resourcePack: ResourcePackSpec;
+  initialPlayerTransform: PlayerTransformState;
 }) {
   const voxels = useAppStore((s) => s.world.voxels);
   const placeVoxel = useAppStore((s) => s.placeVoxel);
   const removeVoxel = useAppStore((s) => s.removeVoxel);
+  const setPlayerTransform = useAppStore((s) => s.setPlayerTransform);
 
   const [previewTarget, setPreviewTarget] = useState<GridTarget | null>(null);
 
@@ -230,6 +235,8 @@ function Scene({
   const raycasterRef = useRef(new Raycaster());
   const mouseNdcRef = useRef(new Vector2(0, 0));
   const currentHitRef = useRef<HitResult | null>(null);
+  const lastPersistedTransformRef = useRef<PlayerTransformState>(initialPlayerTransform);
+  const lastPersistTsRef = useRef(0);
 
   const isFreeLookRef = useRef(false);
   const yawPitchRef = useRef({ yaw: 0, pitch: 0 });
@@ -272,42 +279,73 @@ function Scene({
     return result;
   }, [loadedTextures, textureUrls]);
 
-  const rotatedTextureCacheRef = useRef(new Map<string, Texture>());
+  const rotatedTextureByKey = useMemo(() => {
+    const rotatedTextures = new Map<string, Texture>();
+
+    for (const spec of Object.values(resourcePack.world.blocks)) {
+      const candidates = [
+        [spec.faceTextures?.top ?? spec.textureUrl, spec.faceTextureRotationDeg?.top],
+        [spec.faceTextures?.bottom ?? spec.textureUrl, spec.faceTextureRotationDeg?.bottom],
+        [spec.faceTextures?.side ?? spec.textureUrl, spec.faceTextureRotationDeg?.side],
+      ] as const;
+
+      for (const [url, rotationDeg] of candidates) {
+        if (!url || !rotationDeg || rotationDeg % 360 === 0 || rotatedTextures.has(`${url}|${rotationDeg}`)) {
+          continue;
+        }
+
+        const source = textureByUrl[url];
+        if (!source) {
+          continue;
+        }
+
+        const rotated = source.clone();
+        rotated.center.set(0.5, 0.5);
+        rotated.rotation = (rotationDeg * Math.PI) / 180;
+        rotated.needsUpdate = true;
+        rotatedTextures.set(`${url}|${rotationDeg}`, rotated);
+      }
+    }
+
+    return rotatedTextures;
+  }, [resourcePack, textureByUrl]);
 
   useEffect(() => {
     return () => {
-      for (const texture of rotatedTextureCacheRef.current.values()) {
+      for (const texture of rotatedTextureByKey.values()) {
         texture.dispose();
       }
-      rotatedTextureCacheRef.current.clear();
     };
-  }, []);
-
-  useEffect(() => {
-    for (const texture of rotatedTextureCacheRef.current.values()) {
-      texture.dispose();
-    }
-    rotatedTextureCacheRef.current.clear();
-  }, [textureByUrl]);
+  }, [rotatedTextureByKey]);
 
   function resolveTexture(url: string, rotationDeg?: number): Texture | null {
     const source = textureByUrl[url] ?? null;
     if (!source) return null;
     if (!rotationDeg || rotationDeg % 360 === 0) return source;
 
-    const cacheKey = `${url}|${rotationDeg}`;
-    const cached = rotatedTextureCacheRef.current.get(cacheKey);
-    if (cached) return cached;
-
-    const rotated = source.clone();
-    rotated.center.set(0.5, 0.5);
-    rotated.rotation = (rotationDeg * Math.PI) / 180;
-    rotated.needsUpdate = true;
-    rotatedTextureCacheRef.current.set(cacheKey, rotated);
-    return rotated;
+    return rotatedTextureByKey.get(`${url}|${rotationDeg}`) ?? source;
   }
 
   const skyTexture = textureByUrl[resourcePack.world.skyTextureUrl] ?? null;
+
+  useEffect(() => {
+    camera.position.set(
+      initialPlayerTransform.position.x,
+      initialPlayerTransform.position.y,
+      initialPlayerTransform.position.z,
+    );
+    camera.rotation.set(
+      initialPlayerTransform.rotation.pitch,
+      initialPlayerTransform.rotation.yaw,
+      0,
+      'YXZ',
+    );
+    yawPitchRef.current = {
+      yaw: initialPlayerTransform.rotation.yaw,
+      pitch: initialPlayerTransform.rotation.pitch,
+    };
+    lastPersistedTransformRef.current = initialPlayerTransform;
+  }, [camera, initialPlayerTransform]);
 
   useEffect(() => {
     return () => {
@@ -392,7 +430,7 @@ function Scene({
     };
   }, [camera, gl, isWorldPaused, placeVoxel, removeVoxel, selectedSlot]);
 
-  useFrame(() => {
+  useFrame(({ camera }) => {
     const raycaster = raycasterRef.current;
     raycaster.setFromCamera(mouseNdcRef.current, camera);
 
@@ -402,38 +440,69 @@ function Scene({
       return kind === 'voxel';
     });
 
-    if (!hit) {
-      currentHitRef.current = null;
-      if (!sameTarget(previewTarget, null)) {
-        setPreviewTarget(null);
-      }
-      return;
-    }
-
-    const hitKind = hit.object.userData?.kind as 'voxel' | undefined;
-
     let currentHit: HitResult | null = null;
 
-    if (hitKind === 'voxel') {
-      const voxel = {
-        x: hit.object.userData?.x as number,
-        y: hit.object.userData?.y as number,
-        z: hit.object.userData?.z as number,
-      };
-      currentHit = {
-        kind: 'voxel',
-        point: hit.point.clone(),
-        faceNormal: hit.face?.normal.clone(),
-        voxel,
-      };
-    }
+    if (!hit) {
+      currentHitRef.current = null;
+    } else {
+      const hitKind = hit.object.userData?.kind as 'voxel' | undefined;
 
-    currentHitRef.current = currentHit;
+      if (hitKind === 'voxel') {
+        const voxel = {
+          x: hit.object.userData?.x as number,
+          y: hit.object.userData?.y as number,
+          z: hit.object.userData?.z as number,
+        };
+        currentHit = {
+          kind: 'voxel',
+          point: hit.point.clone(),
+          faceNormal: hit.face?.normal.clone(),
+          voxel,
+        };
+      }
+
+      currentHitRef.current = currentHit;
+    }
 
     const nextPreview = previewFromHit(currentHit, selectedSlot);
     if (!sameTarget(previewTarget, nextPreview)) {
       setPreviewTarget(nextPreview);
     }
+
+    const nextPlayerTransform: PlayerTransformState = {
+      position: {
+        x: Number(camera.position.x.toFixed(4)),
+        y: Number(camera.position.y.toFixed(4)),
+        z: Number(camera.position.z.toFixed(4)),
+      },
+      rotation: {
+        yaw: Number(yawPitchRef.current.yaw.toFixed(4)),
+        pitch: Number(yawPitchRef.current.pitch.toFixed(4)),
+      },
+      isFlying,
+    };
+
+    const prevPlayerTransform = lastPersistedTransformRef.current;
+    const hasChanged =
+      nextPlayerTransform.position.x !== prevPlayerTransform.position.x ||
+      nextPlayerTransform.position.y !== prevPlayerTransform.position.y ||
+      nextPlayerTransform.position.z !== prevPlayerTransform.position.z ||
+      nextPlayerTransform.rotation.yaw !== prevPlayerTransform.rotation.yaw ||
+      nextPlayerTransform.rotation.pitch !== prevPlayerTransform.rotation.pitch ||
+      nextPlayerTransform.isFlying !== prevPlayerTransform.isFlying;
+
+    if (!hasChanged) {
+      return;
+    }
+
+    const now = performance.now();
+    if (now - lastPersistTsRef.current < 150) {
+      return;
+    }
+
+    lastPersistTsRef.current = now;
+    lastPersistedTransformRef.current = nextPlayerTransform;
+    setPlayerTransform(nextPlayerTransform);
   });
 
   return (
@@ -540,7 +609,10 @@ function Scene({
   );
 }
 
-function makeHotbarSlots(blockEntries: Array<[string, number]>): HotbarSlot[] {
+function makeHotbarSlots(
+  blockEntries: Array<[string, number]>,
+  nameByItemId: Record<string, string>,
+): HotbarSlot[] {
   const slots: HotbarSlot[] = [{ kind: 'eraser', label: 'Ластик' }];
 
   for (let i = 0; i < 8; i += 1) {
@@ -549,7 +621,13 @@ function makeHotbarSlots(blockEntries: Array<[string, number]>): HotbarSlot[] {
       slots.push({ kind: 'empty', label: 'Пусто' });
       continue;
     }
-    slots.push({ kind: 'item', itemId: item[0], count: item[1], label: item[0] });
+    const itemId = item[0];
+    slots.push({
+      kind: 'item',
+      itemId,
+      count: item[1],
+      label: nameByItemId[itemId] ?? itemId,
+    });
   }
 
   return slots;
@@ -566,16 +644,21 @@ function getSlotIconUrl(slot: HotbarSlot, resourcePack: ResourcePackSpec): strin
 
 export function BuildScreen() {
   const blocks = useAppStore((s) => s.inventory.blocks);
+  const playerTransform = useAppStore((s) => s.world.playerTransform);
   const resourcePack = useResourcePack();
+  const itemNameById = useMemo(() => {
+    const entries = resourceItemsCatalog.items.map((item) => [item.id, item.name] as const);
+    return Object.fromEntries(entries);
+  }, []);
 
   const blockEntries = useMemo(
     () => Object.entries(blocks).filter(([, count]) => count > 0),
     [blocks],
   );
-  const hotbarSlots = useMemo(() => makeHotbarSlots(blockEntries), [blockEntries]);
+  const hotbarSlots = useMemo(() => makeHotbarSlots(blockEntries, itemNameById), [blockEntries, itemNameById]);
 
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(1);
-  const [isFlying, setIsFlying] = useState(false);
+  const [isFlying, setIsFlying] = useState(playerTransform.isFlying);
   const [isWorldPaused, setIsWorldPaused] = useState(false);
   const [isKeyboardInputArmed, setIsKeyboardInputArmed] = useState(true);
   const lastSpacePressRef = useRef(0);
@@ -684,13 +767,23 @@ export function BuildScreen() {
         onContextMenu={(e) => e.preventDefault()}
       >
         <KeyboardControls map={keyMap}>
-          <Canvas camera={{ position: [0, STANDING_EYE_Y, 8], fov: 70 }}>
+          <Canvas
+            camera={{
+              position: [
+                playerTransform.position.x,
+                playerTransform.position.y,
+                playerTransform.position.z,
+              ],
+              fov: 70,
+            }}
+          >
             <Scene
               selectedSlot={selectedSlot}
               isFlying={isFlying}
               isKeyboardInputArmed={isKeyboardInputArmed}
               isWorldPaused={isWorldPaused}
               resourcePack={resourcePack}
+              initialPlayerTransform={playerTransform}
             />
           </Canvas>
         </KeyboardControls>

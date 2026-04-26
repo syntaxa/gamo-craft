@@ -1,8 +1,8 @@
 ﻿import { create } from 'zustand';
 import type { PlayerProfile } from '../domains/player/model';
 import type { InventoryState } from '../domains/inventory/model';
-import type { WorldCell, WorldState } from '../domains/world/model';
-import { createInitialWorld } from '../domains/world/service';
+import type { PlayerTransformState, WorldCell, WorldState } from '../domains/world/model';
+import { createDefaultPlayerTransform, createInitialWorld } from '../domains/world/service';
 import { defaultResourcePackId, resourcePackRegistry } from '../theme/resourcePacks';
 
 interface AppState {
@@ -18,6 +18,7 @@ interface AppState {
   consumeBlockItem: (itemId: string, count?: number) => boolean;
   placeVoxel: (x: number, y: number, z: number, blockId: string) => boolean;
   removeVoxel: (x: number, y: number, z: number) => boolean;
+  setPlayerTransform: (playerTransform: PlayerTransformState) => void;
 }
 
 function isBlockItem(itemId: string): boolean {
@@ -207,5 +208,21 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
     return true;
   },
+
+  setPlayerTransform: (playerTransform) =>
+    set((state) => ({
+      world: {
+        ...state.world,
+        playerTransform,
+        updatedAt: new Date().toISOString(),
+      },
+    })),
 }));
+
+export function normalizeWorldState(world: WorldState): WorldState {
+  return {
+    ...world,
+    playerTransform: world.playerTransform ?? createDefaultPlayerTransform(),
+  };
+}
 

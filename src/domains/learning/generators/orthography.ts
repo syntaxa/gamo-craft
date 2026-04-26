@@ -376,7 +376,7 @@ export function generateOrthographyLesson(level: LessonLevel, count = 5, seed?: 
 
   while (tasks.length < targetCount && attempts < maxAttempts) {
     attempts += 1;
-    let ruleId = weightedRule(level, rng);
+    const ruleId = weightedRule(level, rng);
     let pool = lexicon.filter((entry) => entry.ruleTags.includes(ruleId) && !recentWordIds.includes(entry.id));
 
     if (pool.length === 0) {

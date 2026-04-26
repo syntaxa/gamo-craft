@@ -87,3 +87,13 @@
   - `1` mistake: `-10%`;
   - `2` mistakes: `-30%`;
   - `3` mistakes: `0` reward.
+
+## Update 2026-04-05 (Coin Block In Eggs)
+- `REQ-EGG-003` Common egg loot table must include `block_coin` (`Монетный блок`) so the block can be obtained from eggs and used in build mode.
+- `REQ-VIS-010` Resource-pack `cartoon-blocky-v1` must provide texture asset `world/block_coin.png` for `block_coin`.
+## Update 2026-04-05 (Build Player Restore)
+- `REQ-WORLD-012` Build save data must persist and restore player transform: camera position, yaw/pitch, and flying mode survive reload.
+
+## Update 2026-04-26 (Build Local Snapshot)
+- `REQ-WORLD-013` Every `world` state change must synchronously write a LocalStorage snapshot containing `player`, `inventory`, and `world`.
+- `REQ-WORLD-014` On bootstrap, if the LocalStorage snapshot has a newer `world.updatedAt` than IndexedDB, the app must restore `player`, `inventory`, and `world` from that single snapshot.

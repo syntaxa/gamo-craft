@@ -14,7 +14,7 @@
 - Сборка: Vite.
 - State: Zustand.
 - Рендер мира: Three.js + React Three Fiber (3D voxel, FPV).
-- Persistence: Dexie + IndexedDB.
+- Persistence: Dexie + IndexedDB, плюс синхронный LocalStorage-снимок для критичных изменений мира.
 - Unit/Component тесты: Vitest + Testing Library.
 - E2E: Playwright.
 
@@ -225,6 +225,11 @@ export interface WorldState {
   sizeZ: number;
   voxels: WorldCell[];
   decorations: Array<{ id: string; x: number; y: number; z: number }>;
+  playerTransform: {
+    position: { x: number; y: number; z: number };
+    rotation: { yaw: number; pitch: number };
+    isFlying: boolean;
+  };
   updatedAt: string;
 }
 ```
@@ -297,9 +302,10 @@ export interface CurrencyTxn {
     {
       "id": "loot_common",
       "entries": [
-        { "itemId": "block_glow_blue", "weight": 45, "duplicateCompensationCatCoins": 5 },
-        { "itemId": "block_rainbow", "weight": 35, "duplicateCompensationCatCoins": 7 },
-        { "itemId": "block_cat_gold", "weight": 20, "duplicateCompensationCatCoins": 10 }
+        { "itemId": "block_glow_blue", "weight": 35, "duplicateCompensationCatCoins": 5 },
+        { "itemId": "block_rainbow", "weight": 30, "duplicateCompensationCatCoins": 7 },
+        { "itemId": "block_cat_gold", "weight": 20, "duplicateCompensationCatCoins": 10 },
+        { "itemId": "block_coin", "weight": 15, "duplicateCompensationCatCoins": 8 }
       ]
     }
   ]
@@ -510,6 +516,9 @@ export class GamoDB extends Dexie {
   - `openEgg`
   - `placeBlock`
   - `removeBlock`
+- Build-режим сериализует в `world` также `playerTransform` (`position`, `rotation`, `isFlying`), чтобы восстановить состояние игрока после перезагрузки.
+- После каждого изменения `world` приложение синхронно записывает в `localStorage` снимок `player + inventory + world`, чтобы закрыть окно потери данных между изменением мира и завершением асинхронной записи IndexedDB.
+- При bootstrap приложение сравнивает `world.updatedAt` из IndexedDB и LocalStorage-снимка; если LocalStorage свежее, восстанавливаются `player`, `inventory` и `world` из одного локального снимка.
 - Debounce для частых действий строительства: 500-1000ms.
 - Принудительный flush на `visibilitychange` (`hidden`).
 
@@ -520,6 +529,7 @@ export class GamoDB extends Dexie {
 3. Загрузить `world`.
 4. Построить store.
 5. Проверить консистентность (баланс >= 0, неотрицательные количества).
+6. Если в legacy-сохранении нет `playerTransform`, использовать fallback spawn-point по умолчанию.
 
 ## 7.4. Миграции
 Принцип:
@@ -780,3 +790,7 @@ type ResourcePackSpec = {
   - `2` ошибки -> `70%`;
   - `3` ошибки -> `0`.
 - Генератор `generateOrthographyLesson` усилен лимитом попыток подбора задач, чтобы стабильно собирать целевой размер урока при строгой фильтрации distractor-вариантов.
+- В каталог ресурсов добавлен новый строительный предмет `block_coin` (`Монетный блок`) с текстурой `block_coin.png`.
+- Таблица `loot_common` расширена дропом `block_coin`, поэтому монетный блок может выпадать из обычного яйца.
+- Build persistence дополнен сериализуемым `playerTransform`: после reload восстанавливаются позиция камеры, yaw/pitch и режим полета.
+- Build persistence дополнен синхронным LocalStorage-снимком после каждого изменения `world`; при старте он имеет приоритет над IndexedDB, если его `world.updatedAt` свежее.
