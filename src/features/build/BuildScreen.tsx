@@ -120,6 +120,17 @@ function collidesWithVoxel(position: Vector3, voxels: Array<{ x: number; y: numb
   });
 }
 
+function samePlayerTransform(a: PlayerTransformState, b: PlayerTransformState): boolean {
+  return (
+    a.position.x === b.position.x &&
+    a.position.y === b.position.y &&
+    a.position.z === b.position.z &&
+    a.rotation.yaw === b.rotation.yaw &&
+    a.rotation.pitch === b.rotation.pitch &&
+    a.isFlying === b.isFlying
+  );
+}
+
 function PlayerController({
   isFlying,
   isKeyboardInputArmed,
@@ -328,6 +339,43 @@ function Scene({
 
   const skyTexture = textureByUrl[resourcePack.world.skyTextureUrl] ?? null;
 
+  const persistCurrentPlayerTransform = useCallback(
+    (force = false) => {
+      const now = performance.now();
+      if (!force && now - lastPersistTsRef.current < 150) {
+        return;
+      }
+
+      const euler = new Euler().setFromQuaternion(camera.quaternion, 'YXZ');
+      yawPitchRef.current = {
+        yaw: euler.y,
+        pitch: euler.x,
+      };
+
+      const nextPlayerTransform: PlayerTransformState = {
+        position: {
+          x: Number(camera.position.x.toFixed(4)),
+          y: Number(camera.position.y.toFixed(4)),
+          z: Number(camera.position.z.toFixed(4)),
+        },
+        rotation: {
+          yaw: Number(euler.y.toFixed(4)),
+          pitch: Number(euler.x.toFixed(4)),
+        },
+        isFlying,
+      };
+
+      if (samePlayerTransform(nextPlayerTransform, lastPersistedTransformRef.current)) {
+        return;
+      }
+
+      lastPersistTsRef.current = now;
+      lastPersistedTransformRef.current = nextPlayerTransform;
+      setPlayerTransform(nextPlayerTransform);
+    },
+    [camera, isFlying, setPlayerTransform],
+  );
+
   useEffect(() => {
     camera.position.set(
       initialPlayerTransform.position.x,
@@ -416,6 +464,7 @@ function Scene({
     const onPointerUp = (event: PointerEvent) => {
       if (event.button === 2) {
         isFreeLookRef.current = false;
+        persistCurrentPlayerTransform(true);
       }
     };
 
@@ -428,7 +477,25 @@ function Scene({
       canvas.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointerup', onPointerUp);
     };
-  }, [camera, gl, isWorldPaused, placeVoxel, removeVoxel, selectedSlot]);
+  }, [camera, gl, isWorldPaused, persistCurrentPlayerTransform, placeVoxel, removeVoxel, selectedSlot]);
+
+  useEffect(() => {
+    const flushTransform = () => persistCurrentPlayerTransform(true);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flushTransform();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', flushTransform);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', flushTransform);
+      flushTransform();
+    };
+  }, [persistCurrentPlayerTransform]);
 
   useFrame(({ camera }) => {
     const raycaster = raycasterRef.current;
@@ -469,40 +536,7 @@ function Scene({
       setPreviewTarget(nextPreview);
     }
 
-    const nextPlayerTransform: PlayerTransformState = {
-      position: {
-        x: Number(camera.position.x.toFixed(4)),
-        y: Number(camera.position.y.toFixed(4)),
-        z: Number(camera.position.z.toFixed(4)),
-      },
-      rotation: {
-        yaw: Number(yawPitchRef.current.yaw.toFixed(4)),
-        pitch: Number(yawPitchRef.current.pitch.toFixed(4)),
-      },
-      isFlying,
-    };
-
-    const prevPlayerTransform = lastPersistedTransformRef.current;
-    const hasChanged =
-      nextPlayerTransform.position.x !== prevPlayerTransform.position.x ||
-      nextPlayerTransform.position.y !== prevPlayerTransform.position.y ||
-      nextPlayerTransform.position.z !== prevPlayerTransform.position.z ||
-      nextPlayerTransform.rotation.yaw !== prevPlayerTransform.rotation.yaw ||
-      nextPlayerTransform.rotation.pitch !== prevPlayerTransform.rotation.pitch ||
-      nextPlayerTransform.isFlying !== prevPlayerTransform.isFlying;
-
-    if (!hasChanged) {
-      return;
-    }
-
-    const now = performance.now();
-    if (now - lastPersistTsRef.current < 150) {
-      return;
-    }
-
-    lastPersistTsRef.current = now;
-    lastPersistedTransformRef.current = nextPlayerTransform;
-    setPlayerTransform(nextPlayerTransform);
+    persistCurrentPlayerTransform();
   });
 
   return (
@@ -549,6 +583,9 @@ function Scene({
               emissive={spec.emissive ?? '#000000'}
               metalness={spec.metalness ?? 0.05}
               roughness={spec.roughness ?? 0.88}
+              transparent={spec.transparent}
+              opacity={spec.opacity ?? 1}
+              depthWrite={spec.transparent ? false : undefined}
             />
             <meshStandardMaterial
               attach="material-1"
@@ -557,6 +594,9 @@ function Scene({
               emissive={spec.emissive ?? '#000000'}
               metalness={spec.metalness ?? 0.05}
               roughness={spec.roughness ?? 0.88}
+              transparent={spec.transparent}
+              opacity={spec.opacity ?? 1}
+              depthWrite={spec.transparent ? false : undefined}
             />
             <meshStandardMaterial
               attach="material-2"
@@ -565,6 +605,9 @@ function Scene({
               emissive={spec.emissive ?? '#000000'}
               metalness={spec.metalness ?? 0.05}
               roughness={spec.roughness ?? 0.88}
+              transparent={spec.transparent}
+              opacity={spec.opacity ?? 1}
+              depthWrite={spec.transparent ? false : undefined}
             />
             <meshStandardMaterial
               attach="material-3"
@@ -573,6 +616,9 @@ function Scene({
               emissive={spec.emissive ?? '#000000'}
               metalness={spec.metalness ?? 0.05}
               roughness={spec.roughness ?? 0.88}
+              transparent={spec.transparent}
+              opacity={spec.opacity ?? 1}
+              depthWrite={spec.transparent ? false : undefined}
             />
             <meshStandardMaterial
               attach="material-4"
@@ -581,6 +627,9 @@ function Scene({
               emissive={spec.emissive ?? '#000000'}
               metalness={spec.metalness ?? 0.05}
               roughness={spec.roughness ?? 0.88}
+              transparent={spec.transparent}
+              opacity={spec.opacity ?? 1}
+              depthWrite={spec.transparent ? false : undefined}
             />
             <meshStandardMaterial
               attach="material-5"
@@ -589,6 +638,9 @@ function Scene({
               emissive={spec.emissive ?? '#000000'}
               metalness={spec.metalness ?? 0.05}
               roughness={spec.roughness ?? 0.88}
+              transparent={spec.transparent}
+              opacity={spec.opacity ?? 1}
+              depthWrite={spec.transparent ? false : undefined}
             />
           </mesh>
         );

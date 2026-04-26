@@ -14,6 +14,8 @@
   emissive?: string;
   metalness?: number;
   roughness?: number;
+  transparent?: boolean;
+  opacity?: number;
 };
 
 export type WorldPackSpec = {
@@ -115,6 +117,15 @@ const cartoonBlockyV1: ResourcePackSpec = {
         emissive: '#7a4f16',
         roughness: 0.52,
         metalness: 0.18,
+      },
+      block_glass: {
+        textureUrl: '/resource-packs/cartoon-blocky-v1/world/block_glass.svg',
+        color: '#dff9ff',
+        emissive: '#2c7f92',
+        roughness: 0.18,
+        metalness: 0.02,
+        transparent: true,
+        opacity: 0.42,
       },
     },
   },

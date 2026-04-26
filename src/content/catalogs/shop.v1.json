@@ -12,6 +12,12 @@
       "type": "resource-lot",
       "priceCatCoins": 30,
       "payload": { "block_brick_red": 20 }
+    },
+    {
+      "id": "lot_glass_10",
+      "type": "resource-lot",
+      "priceCatCoins": 50,
+      "payload": { "block_glass": 10 }
     }
   ]
 }

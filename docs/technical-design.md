@@ -740,6 +740,8 @@ type ResourcePackSpec = {
 };
 ```
 
+`BlockMaterialSpec` может задавать `transparent` и `opacity` для материалов, которым нужна полупрозрачность (например, `block_glass`).
+
 ### 17.3. Реализация MVP
 - Реестр паков: `src/theme/resourcePacks.ts`.
 - Активный pack id: `app/store.ts` (`activeResourcePackId`).
@@ -794,3 +796,11 @@ type ResourcePackSpec = {
 - Таблица `loot_common` расширена дропом `block_coin`, поэтому монетный блок может выпадать из обычного яйца.
 - Build persistence дополнен сериализуемым `playerTransform`: после reload восстанавливаются позиция камеры, yaw/pitch и режим полета.
 - Build persistence дополнен синхронным LocalStorage-снимком после каждого изменения `world`; при старте он имеет приоритет над IndexedDB, если его `world.updatedAt` свежее.
+- Bootstrap выбирает LocalStorage-снимок вместо IndexedDB, если в нем больше пользовательских вокселей (вокселей не из стартового слоя `block_grass_dirt` на `y=0`), даже если IndexedDB имеет более свежий `updatedAt`.
+- Запись LocalStorage защищена от перезаписи построенного мира новым стартовым миром с другим `world.id`: старый snapshot сохраняется в rescue-ключ и основной snapshot не затирается.
+
+## Update 2026-04-26
+- В `items.resources.v1.json` добавлен `block_glass` (`Стеклянный блок`) с иконкой `block_glass.svg`.
+- В `shop.v1.json` добавлен лот `lot_glass_10`: payload `{ "block_glass": 10 }`, цена `50` котокоинов.
+- В `cartoon-blocky-v1` добавлен материал `block_glass` с `transparent: true` и `opacity: 0.42`; Build-рендер передает эти параметры в `meshStandardMaterial`, а текстура содержит тонкую темно-серую рамку по ребрам.
+- Витрина магазина поддерживает индивидуальный размер лота, поэтому стекло отображается как `10 блоков`, а не общий размер базовых лотов.

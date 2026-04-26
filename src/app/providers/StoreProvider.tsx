@@ -1,15 +1,37 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { normalizeWorldState, useAppStore } from '../store';
 import { getPlayer, upsertPlayer } from '../../persistence/repositories/playerRepo';
 import { getInventory, upsertInventory } from '../../persistence/repositories/inventoryRepo';
 import { getLatestWorld, upsertWorld } from '../../persistence/repositories/worldRepo';
 import { readLocalAppSnapshot, writeLocalAppSnapshot } from '../../persistence/localSnapshot';
+import type { WorldState } from '../../domains/world/model';
 
 const PLAYER_ID = 'player-1';
 const SAVE_DEBOUNCE_MS = 250;
 const WORLD_MIN_SIZE_Y = 24;
 
+function countUserVoxels(world: { voxels: Array<{ y: number; blockId: string | null }> }): number {
+  return world.voxels.filter((voxel) => voxel.y !== 0 || voxel.blockId !== 'block_grass_dirt').length;
+}
+
+function shouldRestoreLocalWorld(localWorld: WorldState, indexedWorld: WorldState | undefined): boolean {
+  if (!indexedWorld) return true;
+
+  const localUserVoxels = countUserVoxels(localWorld);
+  const indexedUserVoxels = countUserVoxels(indexedWorld);
+
+  if (localUserVoxels > indexedUserVoxels) return true;
+  if (localUserVoxels < indexedUserVoxels) return false;
+
+  if (localWorld.voxels.length > indexedWorld.voxels.length) return true;
+  if (localWorld.voxels.length < indexedWorld.voxels.length) return false;
+
+  return localWorld.updatedAt.localeCompare(indexedWorld.updatedAt) > 0;
+}
+
 export function StoreProvider({ children }: { children: ReactNode }) {
+  const [hasHydrated, setHasHydrated] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     let unsubscribe: (() => void) | undefined;
@@ -64,7 +86,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
         const shouldUseLocalSnapshot =
           Boolean(localSnapshot?.world) &&
-          (!world || localSnapshot!.world.updatedAt.localeCompare(world.updatedAt) > 0);
+          shouldRestoreLocalWorld(localSnapshot!.world, world);
         const latestWorld = shouldUseLocalSnapshot ? localSnapshot?.world : world;
 
         if (player || inventory || latestWorld || localSnapshot) {
@@ -89,6 +111,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
 
         isHydrated = true;
+        setHasHydrated(true);
         await flushPersist();
 
         if (cancelled) return;
@@ -114,6 +137,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         });
       } catch (error) {
         console.error('Failed to hydrate app state', error);
+        isHydrated = true;
+        setHasHydrated(true);
       }
     })();
 
@@ -154,5 +179,5 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  return <>{children}</>;
+  return hasHydrated ? <>{children}</> : null;
 }

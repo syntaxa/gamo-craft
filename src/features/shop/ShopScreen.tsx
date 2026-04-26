@@ -4,11 +4,10 @@ import { Button } from '../../shared/ui/Button';
 import { useAppStore } from '../../app/store';
 import { useResourcePack } from '../../theme/useResourcePack';
 
-const LOT_SIZE = 20;
-
 const SHOP_LOTS = [
-  { itemId: 'res_planks', label: 'Доски', price: 10 },
-  { itemId: 'block_brick_red', label: 'Кирпич', price: 30 },
+  { itemId: 'res_planks', label: 'Доски', price: 10, count: 20 },
+  { itemId: 'block_brick_red', label: 'Кирпич', price: 30, count: 20 },
+  { itemId: 'block_glass', label: 'Стекло', price: 50, count: 10 },
 ] as const;
 
 export function ShopScreen() {
@@ -16,9 +15,9 @@ export function ShopScreen() {
   const addInventoryItem = useAppStore((s) => s.addInventoryItem);
   const resourcePack = useResourcePack();
 
-  function buyLot(itemId: string, price: number) {
+  function buyLot(itemId: string, price: number, count: number) {
     if (!spend(price)) return;
-    addInventoryItem(itemId, LOT_SIZE);
+    addInventoryItem(itemId, count);
   }
 
   return (
@@ -31,8 +30,14 @@ export function ShopScreen() {
             const topTexture = spec.faceTextures?.top ?? spec.textureUrl;
             const sideTexture = spec.faceTextures?.side ?? spec.textureUrl;
             const sideRotation = spec.faceTextureRotationDeg?.side ?? 0;
+            const faceOpacity = spec.opacity ?? 1;
+            const topFillStyle: CSSProperties = {
+              backgroundImage: `url("${topTexture}")`,
+              opacity: faceOpacity,
+            };
             const sideFillStyle: CSSProperties = {
               backgroundImage: `url("${sideTexture}")`,
+              opacity: faceOpacity,
               transform: sideRotation ? `rotate(${sideRotation}deg) scale(1.42)` : undefined,
             };
 
@@ -41,7 +46,7 @@ export function ShopScreen() {
                 <div className="shop-lot-iso" aria-hidden>
                   <span className="shop-lot-shadow" />
                   <span className="shop-cube-face shop-cube-top">
-                    <span className="shop-cube-face-fill" style={{ backgroundImage: `url("${topTexture}")` }} />
+                    <span className="shop-cube-face-fill" style={topFillStyle} />
                   </span>
                   <span className="shop-cube-face shop-cube-left">
                     <span className="shop-cube-face-fill" style={sideFillStyle} />
@@ -51,8 +56,8 @@ export function ShopScreen() {
                   </span>
                 </div>
                 <div className="shop-lot-title">{lot.label}</div>
-                <div className="shop-lot-count">{LOT_SIZE} блоков</div>
-                <Button onClick={() => buyLot(lot.itemId, lot.price)}>
+                <div className="shop-lot-count">{lot.count} блоков</div>
+                <Button onClick={() => buyLot(lot.itemId, lot.price, lot.count)}>
                   <span className="shop-price-tag">
                     <span>{lot.price}</span>
                     <span className="shop-price-coin" aria-hidden />
