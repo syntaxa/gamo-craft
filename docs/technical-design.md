@@ -121,8 +121,8 @@
 ```ts
 export type PlayerId = string;
 export type ItemId = string;
-export type EggTypeId = 'egg_common' | 'egg_rare' | 'egg_epic';
-export type LessonProgramId = 'math-1' | 'orthography-1';
+export type EggTypeId = 'egg_common' | 'egg_rare' | 'egg_epic' | 'egg_meme';
+export type LessonProgramId = 'math-1' | 'math-bronze' | 'orthography-1';
 export type TxnId = string;
 export type SessionId = string;
 ```
@@ -152,9 +152,29 @@ export interface InventoryState {
   resources: Record<ItemId, number>;
   blocks: Record<ItemId, number>;
   cosmetics: Record<ItemId, number>;
+  posters: Record<ItemId, number>;
+  slots: InventorySlot[];
   updatedAt: string;
 }
+
+export interface InventorySlot {
+  id: string;
+  area: 'hotbar' | 'main';
+  itemId: ItemId | null;
+  count: number;
+}
 ```
+
+Минимальный runtime-контракт Minecraft-style операций:
+- `pickupStack`
+- `placeStack`
+- `swapStacks`
+- `mergeStacks`
+- `splitStack`
+- `deleteStack`
+- `assignHotbarSlot`
+
+Stack operations должны работать для блоков, ресурсов и poster-предметов. Hotbar является ссылкой/назначением на те же item stacks, а не отдельным независимым счетчиком.
 
 ## 3.4. Учебные сущности
 ```ts
@@ -164,8 +184,8 @@ export interface MathTask {
   a: number;
   b: number;
   answer: number;
-  maxValue: 20;
-  level: 'A' | 'B' | 'C';
+  maxValue: 20 | 40;
+  level: 'A' | 'B' | 'C' | 'bronze';
 }
 
 export interface OrthographyTask {
@@ -225,12 +245,27 @@ export interface WorldState {
   sizeZ: number;
   voxels: WorldCell[];
   decorations: Array<{ id: string; x: number; y: number; z: number }>;
+  posters: PosterPlacement[];
   playerTransform: {
     position: { x: number; y: number; z: number };
     rotation: { yaw: number; pitch: number };
     isFlying: boolean;
   };
+  playerPhysics: PlayerPhysicsState;
   updatedAt: string;
+}
+
+export interface PlayerPhysicsState {
+  velocityY: number;
+  isGrounded: boolean;
+}
+
+export interface PosterPlacement {
+  id: string;
+  itemId: ItemId;
+  anchor: { x: number; y: number; z: number };
+  faceNormal: { x: -1 | 0 | 1; y: 0; z: -1 | 0 | 1 };
+  sizeBlocks: { width: 2; height: 2 };
 }
 ```
 
@@ -265,10 +300,21 @@ export interface CurrencyTxn {
   "version": 1,
   "items": [
     { "id": "res_wood", "name": "Дерево", "icon": "wood.png", "kind": "resource" },
-    { "id": "block_brick_red", "name": "Красный кирпич", "icon": "brick_red.png", "kind": "block" }
+    { "id": "block_brick_red", "name": "Красный кирпич", "icon": "brick_red.png", "kind": "block" },
+    { "id": "block_coin", "name": "Монетный блок", "icon": "block_coin.png", "kind": "block" },
+    { "id": "block_glass", "name": "Стеклянный блок", "icon": "block_glass.svg", "kind": "block" },
+    {
+      "id": "poster_meme_cat_1",
+      "name": "Мемный кот",
+      "kind": "poster",
+      "image": "posters/meme_cat_1.png",
+      "sizeBlocks": { "width": 2, "height": 2 }
+    }
   ]
 }
 ```
+
+Картинки meme cats для poster items хранятся локально в resource-pack или content-assets и добавляются после предоставления ассетов владельцем проекта. Runtime-загрузка внешних изображений не входит в контракт.
 
 `items.cosmetics.v1.json`
 ```json
@@ -289,7 +335,8 @@ export interface CurrencyTxn {
   "eggs": [
     { "id": "egg_common", "priceCatCoins": 20, "lootTableId": "loot_common" },
     { "id": "egg_rare", "priceCatCoins": 50, "lootTableId": "loot_rare" },
-    { "id": "egg_epic", "priceCatCoins": 100, "lootTableId": "loot_epic" }
+    { "id": "egg_epic", "priceCatCoins": 100, "lootTableId": "loot_epic" },
+    { "id": "egg_meme", "priceCatCoins": 200, "lootTableId": "loot_meme_posters" }
   ]
 }
 ```
@@ -307,6 +354,12 @@ export interface CurrencyTxn {
         { "itemId": "block_cat_gold", "weight": 20, "duplicateCompensationCatCoins": 10 },
         { "itemId": "block_coin", "weight": 15, "duplicateCompensationCatCoins": 8 }
       ]
+    },
+    {
+      "id": "loot_meme_posters",
+      "entries": [
+        { "itemId": "poster_meme_cat_1", "weight": 100, "duplicateCompensationCatCoins": 20 }
+      ]
     }
   ]
 }
@@ -323,6 +376,12 @@ export interface CurrencyTxn {
       "type": "resource-pack",
       "priceCatCoins": 15,
       "payload": { "res_wood": 20, "block_brick_red": 10 }
+    },
+    {
+      "id": "lot_glass_10",
+      "type": "resource-pack",
+      "priceCatCoins": 50,
+      "payload": { "block_glass": 10 }
     }
   ]
 }
@@ -337,7 +396,8 @@ export interface CurrencyTxn {
   "levels": {
     "A": { "range": [1, 10], "operations": ["add", "sub"] },
     "B": { "range": [1, 20], "operations": ["add", "sub"] },
-    "C": { "range": [1, 20], "operations": ["add", "sub"], "mixed": true }
+    "C": { "range": [1, 20], "operations": ["add", "sub"], "mixed": true },
+    "bronze": { "range": [1, 40], "operations": ["add"], "displayName": "Математика - бронзовый" }
   },
   "lesson": {
     "minTasks": 5,
@@ -350,6 +410,8 @@ export interface CurrencyTxn {
   }
 }
 ```
+
+Для текущего 5-task UI `Математика - бронзовый` использует повышенную награду: `correctAnswer = 4`, `lessonAccuracy80 = 20`, максимум `40` котокоинов.
 
 `orthography-1.v1.json`
 ```json
@@ -379,7 +441,7 @@ export interface CurrencyTxn {
 ```
 
 ## 5. Application use-cases (публичные API)
-Статус 2026-04-26: этот раздел описывает целевой application-слой. В текущей MVP-реализации рабочая оркестрация находится в React-экранах и `src/app/store.ts`; файлы `src/application/useCases/*.ts` и `src/features/*/use*Controller.ts` пока являются scaffold и не используются продуктивным UI.
+Этот раздел описывает целевой application-слой. В текущей MVP-реализации рабочая оркестрация находится в React-экранах и `src/app/store.ts`; файлы `src/application/useCases/*.ts` и `src/features/*/use*Controller.ts` пока являются scaffold и не используются продуктивным UI.
 
 Активный runtime-контракт MVP:
 - `LessonScreen` генерирует и проверяет уроки через `src/domains/learning/service.ts`, затем начисляет валюту через `useAppStore.addCatCoins`.
@@ -477,13 +539,15 @@ declare function removeBlock(input: {
 
 ```ts
 type AppEvent =
-  | { type: 'lesson.started'; sessionId: string; programId: 'math-1' | 'orthography-1' }
+  | { type: 'lesson.started'; sessionId: string; programId: 'math-1' | 'math-bronze' | 'orthography-1' }
   | { type: 'lesson.completed'; sessionId: string; accuracy: number; rewardCatCoins: number }
   | { type: 'currency.changed'; delta: number; balance: number; txnType: string }
   | { type: 'shop.purchase.completed'; shopItemId: string }
   | { type: 'egg.opened'; eggTypeId: EggTypeId; rewardItemId: string; duplicate: boolean }
   | { type: 'world.block.placed'; x: number; y: number; z: number; blockItemId: string }
   | { type: 'world.block.removed'; x: number; y: number; z: number; blockItemId?: string }
+  | { type: 'world.poster.placed'; itemId: string; x: number; y: number; z: number }
+  | { type: 'world.poster.removed'; itemId: string; x: number; y: number; z: number }
   | { type: 'save.completed'; scope: 'player' | 'inventory' | 'world' | 'all' };
 ```
 
@@ -525,11 +589,15 @@ export class GamoDB extends Dexie {
   - покупка в магазине (`ShopScreen` + `spendCatCoins`/`addInventoryItem`);
   - открытие яйца (`EggsScreen` + `spendCatCoins`/`addBlockRewardItem`);
   - постановка блока (`BuildScreen` + `placeVoxel`);
-  - удаление блока (`BuildScreen` + `removeVoxel`).
-- После активации слоя `src/application/useCases` политика должна быть перенесена на функции `completeLesson`, `buyShopItem`, `openEgg`, `placeBlock`, `removeBlock`.
+  - удаление блока (`BuildScreen` + `removeVoxel`);
+  - размещение/удаление плаката.
+- После активации слоя `src/application/useCases` политика должна быть перенесена на функции `completeLesson`, `buyShopItem`, `openEgg`, `placeBlock`, `removeBlock`, `placePoster`, `removePoster`.
 - Build-режим сериализует в `world` также `playerTransform` (`position`, `rotation`, `isFlying`), чтобы восстановить состояние игрока после перезагрузки.
+- Build-режим сериализует `playerPhysics`, включая `velocityY` и `isGrounded`.
 - После каждого изменения `world` приложение синхронно записывает в `localStorage` снимок `player + inventory + world`, чтобы закрыть окно потери данных между изменением мира и завершением асинхронной записи IndexedDB.
 - При bootstrap приложение сравнивает `world.updatedAt` из IndexedDB и LocalStorage-снимка; если LocalStorage свежее, восстанавливаются `player`, `inventory` и `world` из одного локального снимка.
+- Bootstrap выбирает LocalStorage-снимок вместо IndexedDB, если в нем больше пользовательских вокселей, даже если IndexedDB имеет более свежий `updatedAt`.
+- Запись LocalStorage не должна затирать snapshot с пользовательскими вокселями новым стартовым миром с другим `world.id`; старый snapshot сохраняется под rescue-ключом.
 - Debounce для частых действий строительства: 500-1000ms.
 - Принудительный flush на `visibilitychange` (`hidden`).
 
@@ -541,6 +609,7 @@ export class GamoDB extends Dexie {
 4. Построить store.
 5. Проверить консистентность (баланс >= 0, неотрицательные количества).
 6. Если в legacy-сохранении нет `playerTransform`, использовать fallback spawn-point по умолчанию.
+7. Если в legacy-сохранении нет `playerPhysics`, использовать `velocityY = 0` и вычислить `isGrounded` по стартовой позиции.
 
 ## 7.4. Миграции
 Принцип:
@@ -563,6 +632,11 @@ this.version(2).stores({
 - Любой `itemId` из лута должен существовать в каталоге.
 - Любой `shopItem.payload` должен ссылаться только на существующие `itemId`.
 - Для задач вычитания выполняется `a >= b`.
+- Для `Математика - бронзовый` выполняется `operation === 'add'`, `maxValue === 40`, а карточка доступна без unlock prerequisites.
+- Для active poster item выбранная грань должна быть вертикальной (`faceNormal.y === 0`).
+- Для плаката достаточно одного supporting block face под курсором; итоговая область `2x2` не должна пересекать существующие poster/decor occupancy.
+- Невалидное размещение плаката показывает invalid wireframe и не списывает предмет из инвентаря.
+- Каждый frame Build-режима применяет gravity к `velocityY`, интегрирует вертикальное движение и выполняет collision resolution с твердыми блоками. Запрещена логика мгновенного переноса игрока на нижнюю поверхность при потере опоры.
 - Для `orthography-1` distractor-варианты проходят quality-filter:
   - генерация сначала по целевому `ruleId`, затем по ограниченному `allowedRuleChain` для этого правила;
   - каждый кандидат проходит `isRulePlausible(ruleId, correct, candidate)`;
@@ -578,6 +652,7 @@ class DomainError extends Error {
     | 'INVALID_LOOT_TABLE'
     | 'LESSON_ALREADY_REWARDED'
     | 'NO_RESOURCE'
+    | 'INVALID_POSTER_PLACEMENT'
     | 'INVALID_COORDINATE';
 }
 ```
@@ -597,14 +672,16 @@ interface PointerState {
 ```
 
 Контролы MVP (FPV):
-- Desktop: `WASD` (движение), удержание ПКМ + мышь (free camera view), ЛКМ выполняет действие активного слота hotbar.
-- Tablet: левый виртуальный джойстик (движение), правый свайп (обзор), кнопки `Поставить/Удалить`.
+- Desktop: `WASD` (движение), `Space` (одинарный прыжок), удержание ПКМ + мышь (free camera view), ЛКМ выполняет действие активного слота hotbar.
+- Tablet: левый виртуальный джойстик (движение), touch-кнопка прыжка, правый свайп (обзор), кнопки `Поставить/Удалить`.
+- Jump срабатывает только при `playerPhysics.isGrounded === true`.
 - При `window.blur` и `document.visibilitychange -> hidden` Build-режим ставится на паузу, а состояние клавиш принудительно сбрасывается (защита от «залипания» движения).
 - При клике/контекстном меню вне области `.build-stage` Build-режим также ставится на паузу с тем же сбросом клавиш.
 - Сброс клавиш реализуется без перемонтирования сцены: ввод движения «разоружается» до следующего `keydown` управляющей клавиши, поэтому позиция игрока не откатывается.
 - Режим строительства включается отдельной кнопкой HUD для снижения случайных действий.
 - Концепция центра-экрана/прицела не используется: постановка идет по позиции курсора/касания.
 - Превью постановки: тонкая рамка только по ребрам (без диагоналей), рассчитывается тем же raycast-контуром, что и фактическое действие слота.
+- Для active poster item Build preview рендерит `2x2` wireframe на вертикальной поверхности. Existing one-block placement preview остается для block items.
 - Hotbar: 9 слотов, где слот 1 = ластик, слоты 2-9 = ресурсы/пусто. По умолчанию выбирается слот с первым ресурсом; если ресурсов нет, активен пустой слот 2 и ЛКМ не выполняет действие.
 
 ## 10. UI/UX технические требования
@@ -615,6 +692,10 @@ interface PointerState {
 - Карточка награды после открытия яйца должна начинать fade-out через `2` секунды и автоматически скрываться.
 - Поддержка `prefers-reduced-motion`.
 - Hotbar должен быть доступен мышью и горячими клавишами `1..9`.
+- Full inventory UI использует Minecraft-style baseline: main storage grid, visible hotbar row, item icons, stack counts, selected/hover states, and large cells suitable for mouse and touch.
+- UI результата урока показывает earned currency в формате `value + coin icon`.
+- `EggsScreen` рендерит последний reward через классы витрины магазина: `shop-lot`, `shop-lot-iso`, `shop-cube-*`, `shop-lot-count`.
+- `ShopScreen` рендерит боковые грани preview через `side`-текстуру и применяет `faceTextureRotationDeg.side` из resource-pack.
 
 ## 11. Логирование и диагностика
 Минимальные события аналитики (локально в MVP, через консоль/таблицу meta):
@@ -624,6 +705,7 @@ interface PointerState {
 - `currency_spent`
 - `egg_open`
 - `build_place_block`
+- `build_place_poster`
 
 Формат записи:
 ```ts
@@ -638,17 +720,24 @@ interface AnalyticsEvent {
 ## 12. Тестовая стратегия
 ## 12.1. Unit
 - Генерация задач математики (границы 1..20).
+- Генерация задач `Математика - бронзовый`: только сложение, границы до `40`, повышенная награда до `40` котокоинов в текущем 5-task flow.
 - Генерация задач орфографии (`choice_3`) с инвариантом: ровно `1` правильный вариант и `2` distractor-варианта.
 - Расчет наград за урок и серии.
 - Roll лута по весам и дубликаты.
 - Инварианты экономики.
+- Minecraft-style inventory operations: pickup/place, swap, merge, split, delete slot, hotbar synchronization.
+- Jump/fall physics: grounded-only jump and continuous falling without teleport.
+- Poster placement validation: vertical face, one supporting block face, no overlap, no inventory consumption on invalid placement.
 
 ## 12.2. Component
 - Экран урока: прохождение 5 задач и получение результата.
 - Экран урока: повторное нажатие «Начать мини-урок» генерирует новый набор задач.
 - Экран орфографии: рендер `3` вариантов написания слова и проверка выбора корректного варианта.
+- Экран урока: карточка `Математика - бронзовый` доступна сразу и запускает сложение до `40`.
 - Экран магазина: покупка при достаточном/недостаточном балансе.
 - Экран яиц: корректное отображение результата открытия.
+- Экран яиц: `egg_meme` стоит `200` котокоинов и выдает poster item.
+- Экран инвентаря: базовые операции со стаками работают для блоков, ресурсов и poster items.
 
 ## 12.3. E2E
 Сценарий `happy path`:
@@ -716,10 +805,9 @@ interface AnalyticsEvent {
 
 ## Что уточнить перед кодингом (минимум)
 - Размер мира по умолчанию: 24x24, 32x32 или 48x48.
-- Нужна ли механика прыжка в MVP.
 - Чувствительность камеры для touch и mouse (пороги по умолчанию).
 
-## 17. Resource Pack contract (новое)
+## 17. Resource Pack contract
 ### 17.1. Цель
 Отвязать визуальные ассеты (мир + HUD) от геймплейной логики и обеспечить расширение через паки.
 
@@ -752,66 +840,36 @@ type ResourcePackSpec = {
 ```
 
 `BlockMaterialSpec` может задавать `transparent` и `opacity` для материалов, которым нужна полупрозрачность (например, `block_glass`).
+Для `block_glass` дефолтный материал использует `transparent: true`, `opacity: 0.42`, а текстура содержит тонкую темно-серую рамку по ребрам.
 
 ### 17.3. Реализация MVP
 - Реестр паков: `src/theme/resourcePacks.ts`.
 - Активный pack id: `app/store.ts` (`activeResourcePackId`).
 - Применение UI-темы: CSS variables через `applyResourcePack()`.
 - Рендер мира: загрузка текстур из пака и маппинг по `blockId` в `BuildScreen`.
+- `ShopScreen` рендерит боковые грани preview через `side`-текстуру и применяет `faceTextureRotationDeg.side` из resource-pack.
 
 ### 17.4. Дефолтный пак
 - `cartoon-blocky-v1`
 - Источники: Kenney `voxel pack` + `ui pack` (CC0).
 - Файлы ассетов: `public/resource-packs/cartoon-blocky-v1/*`.
+- Обязательные world assets: `block_coin.png`, `block_glass.svg`, текстуры граней `block_grass_dirt`.
 
 
 ## 18. Технические детали: твердые блоки
-- Новый block id: `block_grass_dirt` добавлен в каталог ресурсов.
+- Block id `block_grass_dirt` присутствует в каталоге ресурсов.
 - `createInitialWorld()` создает базовый слой вокселей `block_grass_dirt` по всем `x,z` на `y=0`.
 - В `BuildScreen` коллизии игрока выполняются перед применением шага движения.
 - Используется проверка пересечения player AABB с AABB каждого вокселя; при коллизии шаг по оси блокируется (с попыткой скольжения по свободной оси).
 - Блок `block_grass_dirt` использует раздельные текстуры граней в стиле Minecraft: `top=grass`, `bottom=dirt`, `side=grass+dirt`.
 - Hotbar отображает иконки блоков из активного resource-pack (берется `top`-текстура блока; fallback на базовую textureUrl).
+- Базовый размер мира по оси `Y` равен `24`, чтобы верхняя граница постановки блоков была `y < 24`.
+- Вертикальная физика хранит `velocityY` и `isGrounded`; прыжок доступен только из grounded-состояния, падение интегрируется по кадрам с gravity и collision resolution.
 
 ## 19. Реестр требований
 - Единый структурированный реестр требований: `docs/requirements-registry.md`.
 - Текущий контракт Build UI: `VirtualJoystick` рендерится только при `matchMedia('(pointer: coarse)')`.
-- Исправлена утечка ресурсов в Build: при `placeBlock` теперь списывается не только `blocks`, но и соответствующий `resources`-остаток.
-- Уточнение экономики инвентаря: награды из яиц добавляются только в `blocks` (без прироста `resources`).
-
-## Update 2026-04-04
-- Базовый seed `initialInventory` фиксирован: `resources = { block_brick_red: 24 }`, `blocks = { block_brick_red: 24 }`.
-- При `db.delete()` и следующем запуске применяется этот же стартовый seed.
-- `LessonScreen` хранит reward в состоянии результата и рендерит строку награды с классами `shop-price-tag` + `shop-price-coin`.
-- `EggsScreen` рендерит последний reward через классы витрины магазина: `shop-lot`, `shop-lot-iso`, `shop-cube-*`, `shop-lot-count`.
-- `EggsScreen` добавляет авто-скрытие карточки награды: запуск fade-out через `2` секунды, затем удаление из DOM.
-- `ShopScreen` рендерит боковые грани превью через `side`-текстуру и применяет `faceTextureRotationDeg.side` из resource-pack.
-- Базовый размер мира по оси `Y` увеличен до `24` (вместо `12`), чтобы поднять верхний предел постановки блоков.
-
-## Update 2026-04-05
-- Для `orthography-1` зафиксирован формат задачи `choice_3`: `3` варианта написания (`1` правильный + `2` с орфографическими ошибками).
-- В контракт программы добавлен базовый список орфограмм 7-9 лет: `zhi_shi`, `cha_sha`, `chu_shu`, `unstressed_vowel_root`, `paired_consonants`, `unpronounceable_consonants`, `hard_soft_sign`, `double_consonants`.
-- В тестовой стратегии добавлены unit/component проверки для орфографического формата `choice_3`.
-- Добавлен офлайн pipeline в `scripts/orthography/*.mjs`: `build-lexicon`, `validate-lexicon`, `build-program`, `sample-batch`.
-- Тестовый режим качества задач реализован через CLI-команду `orth:samples` с параметрами `--count`, `--seed`, `--level`, `--mode`, `--rule`.
-- JSON-отчеты тестовых пачек сохраняются в `tmp/orthography/samples/*.json`.
-- В генератор добавлен строгий фильтр distractor-вариантов: `allowedRuleChain` + `isRulePlausible` + отсев словарных слов.
-- `LessonScreen` поддерживает запуск орфографических мини-уроков через три карточки сложности (`A/B/C`) с фиксированным `count=3`.
-- Для орфографических карточек введена функция расчета награды `calculateOrthographyCardReward(baseReward, mistakes)`:
-  - `0` ошибок -> `100%` базовой награды;
-  - `1` ошибка -> `90%`;
-  - `2` ошибки -> `70%`;
-  - `3` ошибки -> `0`.
-- Генератор `generateOrthographyLesson` усилен лимитом попыток подбора задач, чтобы стабильно собирать целевой размер урока при строгой фильтрации distractor-вариантов.
-- В каталог ресурсов добавлен новый строительный предмет `block_coin` (`Монетный блок`) с текстурой `block_coin.png`.
-- Таблица `loot_common` расширена дропом `block_coin`, поэтому монетный блок может выпадать из обычного яйца.
-- Build persistence дополнен сериализуемым `playerTransform`: после reload восстанавливаются позиция камеры, yaw/pitch и режим полета.
-- Build persistence дополнен синхронным LocalStorage-снимком после каждого изменения `world`; при старте он имеет приоритет над IndexedDB, если его `world.updatedAt` свежее.
-- Bootstrap выбирает LocalStorage-снимок вместо IndexedDB, если в нем больше пользовательских вокселей (вокселей не из стартового слоя `block_grass_dirt` на `y=0`), даже если IndexedDB имеет более свежий `updatedAt`.
-- Запись LocalStorage защищена от перезаписи построенного мира новым стартовым миром с другим `world.id`: старый snapshot сохраняется в rescue-ключ и основной snapshot не затирается.
-
-## Update 2026-04-26
-- В `items.resources.v1.json` добавлен `block_glass` (`Стеклянный блок`) с иконкой `block_glass.svg`.
-- В `shop.v1.json` добавлен лот `lot_glass_10`: payload `{ "block_glass": 10 }`, цена `50` котокоинов.
-- В `cartoon-blocky-v1` добавлен материал `block_glass` с `transparent: true` и `opacity: 0.42`; Build-рендер передает эти параметры в `meshStandardMaterial`, а текстура содержит тонкую темно-серую рамку по ребрам.
-- Витрина магазина поддерживает индивидуальный размер лота, поэтому стекло отображается как `10 блоков`, а не общий размер базовых лотов.
+- При `placeBlock` списывается не только `blocks`, но и соответствующий `resources`-остаток.
+- Награды из обычных строительных яиц добавляются только в `blocks` без прироста `resources`; poster-награды добавляются в poster item kind.
+- Базовый seed `initialInventory`: `resources = { block_brick_red: 24 }`, `blocks = { block_brick_red: 24 }`, пустые poster/cosmetics collections и слотированное представление hotbar/main inventory.
+- При `db.delete()` и следующем запуске применяется тот же стартовый seed.

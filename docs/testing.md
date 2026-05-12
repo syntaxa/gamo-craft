@@ -3,7 +3,7 @@
 ## 1. Статус документа
 Документ актуализирован под текущую структуру проекта и может использоваться как основа для разработки автотестов.
 
-Статус 2026-04-26: базовая тестовая инфраструктура установлена. В `package.json` добавлены Vitest, Testing Library, Playwright, `jsdom`, `fake-indexeddb`, `@vitest/coverage-v8` и npm-скрипты `test:*`; `vite.config.ts` содержит конфигурацию Vitest, а `src/tests/setup.ts` настраивает `jsdom`, jest-dom matchers, fake IndexedDB и очистку browser storage.
+Базовая тестовая инфраструктура установлена: `package.json` содержит Vitest, Testing Library, Playwright, `jsdom`, `fake-indexeddb`, `@vitest/coverage-v8` и npm-скрипты `test:*`; `vite.config.ts` содержит конфигурацию Vitest, а `src/tests/setup.ts` настраивает `jsdom`, jest-dom matchers, fake IndexedDB и очистку browser storage.
 
 Первый unit-набор находится в `src/tests/unit` и покрывает инварианты `math-1`, `orthography-1`, каталогов, store-экономики/строительства, стартового мира и LocalStorage-снимка.
 
@@ -11,7 +11,7 @@ Component/integration набор находится в `src/tests/component` и 
 
 E2E smoke-набор находится в `src/tests/e2e` и запускается Playwright на desktop Chromium и tablet Chromium. Сейчас покрыты: навигация shell, `orthography-card-flow`, `glass-shop-flow` и `egg-economy-guardrail`. Полные e2e-сценарии `happy-path-mvp`, `persistence-reopen` и `inventory-management-flow` требуют дальнейшего расширения продукта/тестов.
 
-Архитектурный статус 2026-04-26: рабочая MVP-оркестрация находится в React-экранах и Zustand-store (`src/app/store.ts`). Файлы `src/application/useCases/*.ts` и `src/features/*/use*Controller.ts` являются scaffold под возможный будущий рефакторинг и не считаются активным продуктивным слоем. Тесты должны покрывать реальные пути исполнения: доменные сервисы, Zustand-store, UI-обработчики и e2e-сценарии. Unit-тесты для `application/useCases` добавляются только после переноса туда рабочей логики.
+Рабочая MVP-оркестрация находится в React-экранах и Zustand-store (`src/app/store.ts`). Файлы `src/application/useCases/*.ts` и `src/features/*/use*Controller.ts` являются scaffold под возможный будущий рефакторинг и не считаются активным продуктивным слоем. Тесты должны покрывать реальные пути исполнения: доменные сервисы, Zustand-store, UI-обработчики и e2e-сценарии. Unit-тесты для `application/useCases` добавляются только после переноса туда рабочей логики.
 
 `docs/requirements-registry.md` является каноническим источником требований для тестового покрытия. При заведении или изменении тестов нужно сначала проверить активные `REQ-*` в реестре и убедиться, что для каждого продуктового инварианта есть хотя бы один уровень покрытия: unit, component/integration, e2e, CI/контентная валидация или явно зафиксированная ручная проверка.
 
@@ -56,6 +56,11 @@ E2E smoke-набор находится в `src/tests/e2e` и запускает
 - overflow-инвентарь не теряет новые ресурсы, когда hotbar заполнен;
 - операции inventory management поддерживают swap, merge compatible stacks, split stack и child-safe delete slot;
 - `block_glass` есть в каталоге ресурсов, продается в магазине как `10` блоков за `50` котокоинов и ссылается на texture asset ресурс-пака.
+- Minecraft-style inventory supports baseline stack operations: pickup/place, swap, merge, split, delete slot, and hotbar synchronization with the same inventory data.
+- Build physics supports a grounded-only single jump and continuous falling; falling must not teleport the player to the next lower surface.
+- `egg_meme` costs `200` котокоинов and grants local poster items that can be stored in inventory.
+- Poster placement accepts only vertical faces, previews a `2x2` wireframe, requires one supporting block face, rejects overlap with existing posters, and does not consume inventory on invalid placement.
+- `Математика - бронзовый` is available immediately, generates addition tasks up to `40`, and can award up to `40` котокоинов in the current 5-task lesson flow.
 
 Цель покрытия:
 - доменные модули: >= 90% line coverage;
@@ -220,7 +225,7 @@ E2E smoke-набор находится в `src/tests/e2e` и запускает
 - `@playwright/test`;
 - `@vitest/coverage-v8`.
 
-Добавленные npm-скрипты:
+Npm-скрипты:
 - `test`: запуск unit + component;
 - `test:unit`;
 - `test:component`;
