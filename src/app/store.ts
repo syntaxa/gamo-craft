@@ -1,9 +1,15 @@
-﻿import { create } from 'zustand';
+import { create } from 'zustand';
 import type { PlayerProfile } from '../domains/player/model';
-import type { InventoryState } from '../domains/inventory/model';
-import type { PlayerTransformState, WorldCell, WorldState } from '../domains/world/model';
-import { createDefaultPlayerTransform, createInitialWorld } from '../domains/world/service';
+import type { InventoryItemKind, InventorySlot, InventoryState } from '../domains/inventory/model';
+import type { PlayerTransformState, PosterPlacement, WorldCell, WorldState } from '../domains/world/model';
+import {
+  canPlacePoster,
+  createDefaultPlayerTransform,
+  createInitialWorld,
+  placePosterInWorld,
+} from '../domains/world/service';
 import { defaultResourcePackId, resourcePackRegistry } from '../theme/resourcePacks';
+import posterItemsCatalog from '../content/catalogs/items.posters.v1.json';
 
 interface AppState {
   player: PlayerProfile;
@@ -15,14 +21,139 @@ interface AppState {
   spendCatCoins: (amount: number) => boolean;
   addInventoryItem: (itemId: string, count: number) => void;
   addBlockRewardItem: (itemId: string, count: number) => void;
+  addPosterItem: (itemId: string, count: number) => void;
   consumeBlockItem: (itemId: string, count?: number) => boolean;
+  consumePosterItem: (itemId: string, count?: number) => boolean;
   placeVoxel: (x: number, y: number, z: number, blockId: string) => boolean;
   removeVoxel: (x: number, y: number, z: number) => boolean;
+  placePoster: (placement: Omit<PosterPlacement, 'id'>) => boolean;
+  removePoster: (posterId: string) => boolean;
   setPlayerTransform: (playerTransform: PlayerTransformState) => void;
 }
 
+const POSTER_ITEM_IDS = new Set(posterItemsCatalog.items.map((item) => item.id));
+const HOTBAR_INVENTORY_SLOT_COUNT = 8;
+const MAIN_INVENTORY_SLOT_COUNT = 27;
+
 function isBlockItem(itemId: string): boolean {
   return itemId.startsWith('block_') || itemId === 'res_planks';
+}
+
+function isPosterItem(itemId: string): boolean {
+  return POSTER_ITEM_IDS.has(itemId);
+}
+
+function stackLimitFor(itemKind: InventoryItemKind, itemId: string): number {
+  if (itemKind === 'poster') {
+    return posterItemsCatalog.items.find((item) => item.id === itemId)?.stackLimit ?? 16;
+  }
+
+  return 64;
+}
+
+function sortSlots(slots: InventorySlot[]): InventorySlot[] {
+  return [...slots].sort((a, b) => {
+    if (a.area !== b.area) return a.area === 'hotbar' ? -1 : 1;
+    return a.index - b.index;
+  });
+}
+
+function findFreeSlot(slots: InventorySlot[]): Pick<InventorySlot, 'area' | 'index'> | null {
+  for (let index = 1; index <= HOTBAR_INVENTORY_SLOT_COUNT; index += 1) {
+    if (!slots.some((slot) => slot.area === 'hotbar' && slot.index === index)) {
+      return { area: 'hotbar', index };
+    }
+  }
+
+  for (let index = 0; index < MAIN_INVENTORY_SLOT_COUNT; index += 1) {
+    if (!slots.some((slot) => slot.area === 'main' && slot.index === index)) {
+      return { area: 'main', index };
+    }
+  }
+
+  return null;
+}
+
+function addToSlots(
+  slots: InventorySlot[],
+  itemKind: InventoryItemKind,
+  itemId: string,
+  count: number,
+): InventorySlot[] {
+  let remaining = count;
+  const limit = stackLimitFor(itemKind, itemId);
+  const nextSlots = sortSlots(slots).map((slot) => ({ ...slot }));
+
+  for (const slot of nextSlots) {
+    if (remaining <= 0) break;
+    if (slot.itemKind !== itemKind || slot.itemId !== itemId || slot.count >= limit) continue;
+
+    const addable = Math.min(remaining, limit - slot.count);
+    slot.count += addable;
+    remaining -= addable;
+  }
+
+  while (remaining > 0) {
+    const freeSlot = findFreeSlot(nextSlots);
+    if (!freeSlot) break;
+
+    const nextCount = Math.min(remaining, limit);
+    nextSlots.push({
+      id: `slot-${freeSlot.area}-${freeSlot.index}`,
+      area: freeSlot.area,
+      index: freeSlot.index,
+      itemKind,
+      itemId,
+      count: nextCount,
+    });
+    remaining -= nextCount;
+  }
+
+  return sortSlots(nextSlots);
+}
+
+function consumeFromSlots(
+  slots: InventorySlot[],
+  itemKind: InventoryItemKind,
+  itemId: string,
+  count: number,
+): InventorySlot[] | null {
+  const available = slots
+    .filter((slot) => slot.itemKind === itemKind && slot.itemId === itemId)
+    .reduce((acc, slot) => acc + slot.count, 0);
+
+  if (count <= 0 || available < count) return null;
+
+  let remaining = count;
+  const nextSlots: InventorySlot[] = [];
+  for (const slot of sortSlots(slots)) {
+    if (remaining > 0 && slot.itemKind === itemKind && slot.itemId === itemId) {
+      const consumed = Math.min(remaining, slot.count);
+      remaining -= consumed;
+      const nextCount = slot.count - consumed;
+      if (nextCount > 0) {
+        nextSlots.push({ ...slot, count: nextCount });
+      }
+      continue;
+    }
+
+    nextSlots.push(slot);
+  }
+
+  return nextSlots;
+}
+
+function seedInitialSlots(): InventorySlot[] {
+  return [
+    {
+      id: 'slot-hotbar-1',
+      area: 'hotbar',
+      index: 1,
+      itemKind: 'block',
+      itemId: 'block_brick_red',
+      count: 24,
+    },
+  ];
 }
 
 const initialPlayer: PlayerProfile = {
@@ -44,7 +175,9 @@ const initialInventory: InventoryState = {
   playerId: 'player-1',
   resources: { block_brick_red: 24 },
   blocks: { block_brick_red: 24 },
+  posters: {},
   cosmetics: {},
+  slots: seedInitialSlots(),
   updatedAt: new Date().toISOString(),
 };
 
@@ -97,38 +230,60 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   addInventoryItem: (itemId, count) =>
-    set((state) => ({
-      inventory: (() => {
-        const nextResources = {
-          ...state.inventory.resources,
-          [itemId]: (state.inventory.resources[itemId] ?? 0) + count,
-        };
-
-        const nextBlocks = { ...state.inventory.blocks };
-        if (isBlockItem(itemId)) {
-          nextBlocks[itemId] = (state.inventory.blocks[itemId] ?? 0) + count;
-        }
-
-        return {
-          ...state.inventory,
-          resources: nextResources,
-          blocks: nextBlocks,
-          updatedAt: new Date().toISOString(),
-        };
-      })(),
-    })),
-
-  addBlockRewardItem: (itemId, count) =>
     set((state) => {
+      const itemKind: InventoryItemKind = isBlockItem(itemId) ? 'block' : 'resource';
+      const nextResources = {
+        ...state.inventory.resources,
+        [itemId]: (state.inventory.resources[itemId] ?? 0) + count,
+      };
+
       const nextBlocks = { ...state.inventory.blocks };
-      if (isBlockItem(itemId)) {
+      if (itemKind === 'block') {
         nextBlocks[itemId] = (state.inventory.blocks[itemId] ?? 0) + count;
       }
 
       return {
         inventory: {
-          ...state.inventory,
+          ...normalizeInventoryState(state.inventory),
+          resources: nextResources,
           blocks: nextBlocks,
+          slots: addToSlots(normalizeInventoryState(state.inventory).slots, itemKind, itemId, count),
+          updatedAt: new Date().toISOString(),
+        },
+      };
+    }),
+
+  addBlockRewardItem: (itemId, count) =>
+    set((state) => {
+      if (!isBlockItem(itemId)) return state;
+      const inventory = normalizeInventoryState(state.inventory);
+
+      return {
+        inventory: {
+          ...inventory,
+          blocks: {
+            ...inventory.blocks,
+            [itemId]: (inventory.blocks[itemId] ?? 0) + count,
+          },
+          slots: addToSlots(inventory.slots, 'block', itemId, count),
+          updatedAt: new Date().toISOString(),
+        },
+      };
+    }),
+
+  addPosterItem: (itemId, count) =>
+    set((state) => {
+      if (!isPosterItem(itemId)) return state;
+      const inventory = normalizeInventoryState(state.inventory);
+
+      return {
+        inventory: {
+          ...inventory,
+          posters: {
+            ...inventory.posters,
+            [itemId]: (inventory.posters[itemId] ?? 0) + count,
+          },
+          slots: addToSlots(inventory.slots, 'poster', itemId, count),
           updatedAt: new Date().toISOString(),
         },
       };
@@ -137,21 +292,47 @@ export const useAppStore = create<AppState>((set, get) => ({
   consumeBlockItem: (itemId, count = 1) => {
     let ok = false;
     set((state) => {
-      const current = state.inventory.blocks[itemId] ?? 0;
-      if (count <= 0 || current < count) return state;
+      const inventory = normalizeInventoryState(state.inventory);
+      const current = inventory.blocks[itemId] ?? 0;
+      const nextSlots = consumeFromSlots(inventory.slots, 'block', itemId, count);
+      if (count <= 0 || current < count || !nextSlots) return state;
       ok = true;
-      const nextResourceCount = Math.max(0, (state.inventory.resources[itemId] ?? 0) - count);
+      const nextResourceCount = Math.max(0, (inventory.resources[itemId] ?? 0) - count);
       return {
         inventory: {
-          ...state.inventory,
+          ...inventory,
           blocks: {
-            ...state.inventory.blocks,
+            ...inventory.blocks,
             [itemId]: current - count,
           },
           resources: {
-            ...state.inventory.resources,
+            ...inventory.resources,
             [itemId]: nextResourceCount,
           },
+          slots: nextSlots,
+          updatedAt: new Date().toISOString(),
+        },
+      };
+    });
+    return ok;
+  },
+
+  consumePosterItem: (itemId, count = 1) => {
+    let ok = false;
+    set((state) => {
+      const inventory = normalizeInventoryState(state.inventory);
+      const current = inventory.posters[itemId] ?? 0;
+      const nextSlots = consumeFromSlots(inventory.slots, 'poster', itemId, count);
+      if (count <= 0 || current < count || !nextSlots) return state;
+      ok = true;
+      return {
+        inventory: {
+          ...inventory,
+          posters: {
+            ...inventory.posters,
+            [itemId]: current - count,
+          },
+          slots: nextSlots,
           updatedAt: new Date().toISOString(),
         },
       };
@@ -167,7 +348,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     set((state) => ({
       world: {
-        ...state.world,
+        ...normalizeWorldState(state.world),
         voxels: [...state.world.voxels, { x, y, z, blockId }],
         updatedAt: new Date().toISOString(),
       },
@@ -180,49 +361,125 @@ export const useAppStore = create<AppState>((set, get) => ({
     const idx = voxelIndex(world.voxels, x, y, z);
     if (idx === -1) return false;
     set((state) => {
+      const inventory = normalizeInventoryState(state.inventory);
       const next = [...state.world.voxels];
       const [removed] = next.splice(idx, 1);
       const removedBlockId = removed?.blockId ?? null;
 
-      const nextBlocks = { ...state.inventory.blocks };
-      const nextResources = { ...state.inventory.resources };
-
+      let nextInventory = inventory;
       if (removedBlockId) {
-        nextBlocks[removedBlockId] = (nextBlocks[removedBlockId] ?? 0) + 1;
-        nextResources[removedBlockId] = (nextResources[removedBlockId] ?? 0) + 1;
+        nextInventory = {
+          ...inventory,
+          blocks: {
+            ...inventory.blocks,
+            [removedBlockId]: (inventory.blocks[removedBlockId] ?? 0) + 1,
+          },
+          resources: {
+            ...inventory.resources,
+            [removedBlockId]: (inventory.resources[removedBlockId] ?? 0) + 1,
+          },
+          slots: addToSlots(inventory.slots, 'block', removedBlockId, 1),
+          updatedAt: new Date().toISOString(),
+        };
       }
 
       return {
         world: {
-          ...state.world,
+          ...normalizeWorldState(state.world),
           voxels: next,
           updatedAt: new Date().toISOString(),
         },
-        inventory: {
-          ...state.inventory,
-          blocks: nextBlocks,
-          resources: nextResources,
-          updatedAt: new Date().toISOString(),
-        },
+        inventory: nextInventory,
       };
     });
     return true;
   },
 
+  placePoster: (placement) => {
+    const { world, consumePosterItem } = get();
+    const normalizedWorld = normalizeWorldState(world);
+    if (!canPlacePoster(normalizedWorld, placement)) return false;
+    if (!consumePosterItem(placement.itemId, 1)) return false;
+
+    set(() => ({
+      world: placePosterInWorld(normalizedWorld, placement),
+    }));
+    return true;
+  },
+
+  removePoster: (posterId) => {
+    let ok = false;
+    set((state) => {
+      const world = normalizeWorldState(state.world);
+      const poster = world.posters.find((item) => item.id === posterId);
+      if (!poster) return state;
+
+      ok = true;
+      const inventory = normalizeInventoryState(state.inventory);
+
+      return {
+        world: {
+          ...world,
+          posters: world.posters.filter((item) => item.id !== posterId),
+          updatedAt: new Date().toISOString(),
+        },
+        inventory: {
+          ...inventory,
+          posters: {
+            ...inventory.posters,
+            [poster.itemId]: (inventory.posters[poster.itemId] ?? 0) + 1,
+          },
+          slots: addToSlots(inventory.slots, 'poster', poster.itemId, 1),
+          updatedAt: new Date().toISOString(),
+        },
+      };
+    });
+    return ok;
+  },
+
   setPlayerTransform: (playerTransform) =>
     set((state) => ({
       world: {
-        ...state.world,
+        ...normalizeWorldState(state.world),
         playerTransform,
         updatedAt: new Date().toISOString(),
       },
     })),
 }));
 
-export function normalizeWorldState(world: WorldState): WorldState {
+export function normalizeInventoryState(inventory: InventoryState): InventoryState {
+  const normalized = {
+    ...inventory,
+    posters: inventory.posters ?? {},
+    slots: inventory.slots ?? [],
+  };
+
+  if (normalized.slots.length > 0) {
+    return normalized;
+  }
+
+  let slots: InventorySlot[] = [];
+  for (const [itemId, count] of Object.entries(normalized.blocks)) {
+    if (count > 0) {
+      slots = addToSlots(slots, 'block', itemId, count);
+    }
+  }
+  for (const [itemId, count] of Object.entries(normalized.posters)) {
+    if (count > 0) {
+      slots = addToSlots(slots, 'poster', itemId, count);
+    }
+  }
+
   return {
-    ...world,
-    playerTransform: world.playerTransform ?? createDefaultPlayerTransform(),
+    ...normalized,
+    slots,
   };
 }
 
+export function normalizeWorldState(world: WorldState): WorldState {
+  return {
+    ...world,
+    posters: world.posters ?? [],
+    playerTransform: world.playerTransform ?? createDefaultPlayerTransform(),
+  };
+}

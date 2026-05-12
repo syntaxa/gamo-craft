@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EggsScreen } from '../../features/eggs/EggsScreen';
@@ -8,6 +8,11 @@ import { resetAppStore } from '../testUtils';
 describe('EggsScreen', () => {
   beforeEach(() => {
     resetAppStore();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it('opens an egg, grants a build block reward, then fades the reward card out', async () => {
@@ -38,5 +43,26 @@ describe('EggsScreen', () => {
 
     expect(screen.getByText('Недостаточно котокоинов')).toBeInTheDocument();
     expect(useAppStore.getState().player.currencyCatCoins).toBe(0);
+  });
+
+  it('opens a meme egg and grants a poster item into inventory slots', async () => {
+    const user = userEvent.setup();
+    resetAppStore({ player: { currencyCatCoins: 220 } });
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    render(<EggsScreen />);
+
+    await user.click(screen.getByRole('button', { name: 'Открыть мемное яйцо' }));
+
+    expect(useAppStore.getState().player.currencyCatCoins).toBe(20);
+    expect(useAppStore.getState().inventory.posters.poster_meme_cat_1).toBe(1);
+    expect(useAppStore.getState().inventory.slots).toContainEqual(
+      expect.objectContaining({
+        itemKind: 'poster',
+        itemId: 'poster_meme_cat_1',
+        count: 1,
+      }),
+    );
+    expect(screen.getByText('Мемный кот 1')).toBeInTheDocument();
   });
 });

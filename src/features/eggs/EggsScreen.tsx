@@ -1,22 +1,43 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../../shared/ui/Card';
 import { Button } from '../../shared/ui/Button';
 import { useAppStore } from '../../app/store';
 import { useResourcePack } from '../../theme/useResourcePack';
+import lootTablesCatalog from '../../content/catalogs/lootTables.v1.json';
+import posterItemsCatalog from '../../content/catalogs/items.posters.v1.json';
 
 type EggReward = {
   id: string;
   label: string;
   count: number;
   weight: number;
+  kind: 'block' | 'poster';
+  imageUrl?: string;
 };
 
+const posterById = new Map(posterItemsCatalog.items.map((item) => [item.id, item]));
+
 const commonEggRewards: EggReward[] = [
-  { id: 'block_glow_blue', label: 'Светящийся синий блок', count: 6, weight: 35 },
-  { id: 'block_rainbow', label: 'Радужный куб', count: 4, weight: 30 },
-  { id: 'block_cat_gold', label: 'Кот-золотой блок', count: 2, weight: 20 },
-  { id: 'block_coin', label: 'Монетный блок', count: 3, weight: 15 },
+  { id: 'block_glow_blue', label: 'Светящийся синий блок', count: 6, weight: 35, kind: 'block' },
+  { id: 'block_rainbow', label: 'Радужный куб', count: 4, weight: 30, kind: 'block' },
+  { id: 'block_cat_gold', label: 'Кот-золотой блок', count: 2, weight: 20, kind: 'block' },
+  { id: 'block_coin', label: 'Монетный блок', count: 3, weight: 15, kind: 'block' },
 ];
+
+const memeEggRewards: EggReward[] =
+  lootTablesCatalog.tables
+    .find((table) => table.id === 'loot_meme_posters')
+    ?.entries.map((entry) => {
+      const poster = posterById.get(entry.itemId);
+      return {
+        id: entry.itemId,
+        label: poster?.name ?? entry.itemId,
+        count: 1,
+        weight: entry.weight,
+        kind: 'poster' as const,
+        imageUrl: poster?.image,
+      };
+    }) ?? [];
 
 function rollReward(pool: EggReward[]): EggReward {
   const total = pool.reduce((acc, item) => acc + item.weight, 0);
@@ -32,6 +53,7 @@ function rollReward(pool: EggReward[]): EggReward {
 export function EggsScreen() {
   const spend = useAppStore((s) => s.spendCatCoins);
   const addBlockRewardItem = useAppStore((s) => s.addBlockRewardItem);
+  const addPosterItem = useAppStore((s) => s.addPosterItem);
   const resourcePack = useResourcePack();
   const [lastReward, setLastReward] = useState<EggReward | null>(null);
   const [isRewardFading, setIsRewardFading] = useState(false);
@@ -54,16 +76,25 @@ export function EggsScreen() {
     };
   }, [lastReward]);
 
-  function openCommonEgg() {
-    if (!spend(20)) {
+  function grantReward(reward: EggReward) {
+    if (reward.kind === 'poster') {
+      addPosterItem(reward.id, reward.count);
+      return;
+    }
+
+    addBlockRewardItem(reward.id, reward.count);
+  }
+
+  function openEgg(priceCatCoins: number, pool: EggReward[]) {
+    if (!spend(priceCatCoins)) {
       setErrorMessage('Недостаточно котокоинов');
       setIsRewardFading(false);
       setLastReward(null);
       return;
     }
 
-    const reward = rollReward(commonEggRewards);
-    addBlockRewardItem(reward.id, reward.count);
+    const reward = rollReward(pool);
+    grantReward(reward);
     setErrorMessage('');
     setIsRewardFading(false);
     setLastReward(reward);
@@ -71,6 +102,8 @@ export function EggsScreen() {
 
   const rewardTexture = useMemo(() => {
     if (!lastReward) return '';
+    if (lastReward.kind === 'poster') return lastReward.imageUrl ?? '';
+
     const spec = resourcePack.world.blocks[lastReward.id] ?? resourcePack.world.defaultBlock;
     return spec.faceTextures?.top ?? spec.faceTextures?.side ?? spec.textureUrl;
   }, [lastReward, resourcePack]);
@@ -79,21 +112,29 @@ export function EggsScreen() {
     <Card>
       <h2>Яйца с призами</h2>
       <p>Обычное яйцо: 20 котокоинов.</p>
-      <Button onClick={openCommonEgg}>Открыть обычное яйцо</Button>
+      <Button onClick={() => openEgg(20, commonEggRewards)}>Открыть обычное яйцо</Button>
+      <p>Мемное яйцо: 200 котокоинов.</p>
+      <Button onClick={() => openEgg(200, memeEggRewards)}>Открыть мемное яйцо</Button>
 
       {errorMessage ? <p style={{ marginTop: 12 }}>{errorMessage}</p> : null}
 
       {lastReward ? (
         <div className={`egg-reward ${isRewardFading ? 'egg-reward-fading' : ''}`} style={{ marginTop: 12 }}>
           <article className="shop-lot">
-            <div className="shop-lot-iso" aria-hidden>
-              <span className="shop-lot-shadow" />
-              <span className="shop-cube-face shop-cube-top" style={{ backgroundImage: `url("${rewardTexture}")` }} />
-              <span className="shop-cube-face shop-cube-left" style={{ backgroundImage: `url("${rewardTexture}")` }} />
-              <span className="shop-cube-face shop-cube-right" style={{ backgroundImage: `url("${rewardTexture}")` }} />
-            </div>
+            {lastReward.kind === 'poster' ? (
+              <div className="egg-poster-preview" aria-hidden style={{ backgroundImage: `url("${rewardTexture}")` }} />
+            ) : (
+              <div className="shop-lot-iso" aria-hidden>
+                <span className="shop-lot-shadow" />
+                <span className="shop-cube-face shop-cube-top" style={{ backgroundImage: `url("${rewardTexture}")` }} />
+                <span className="shop-cube-face shop-cube-left" style={{ backgroundImage: `url("${rewardTexture}")` }} />
+                <span className="shop-cube-face shop-cube-right" style={{ backgroundImage: `url("${rewardTexture}")` }} />
+              </div>
+            )}
             <div className="shop-lot-title">{lastReward.label}</div>
-            <div className="shop-lot-count">{lastReward.count} блоков</div>
+            <div className="shop-lot-count">
+              {lastReward.count} {lastReward.kind === 'poster' ? 'постер' : 'блоков'}
+            </div>
           </article>
           <p style={{ marginTop: 8 }}>Награда получена и доступна в режиме строительства.</p>
         </div>

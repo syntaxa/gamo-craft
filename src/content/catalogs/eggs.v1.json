@@ -3,6 +3,7 @@
   "eggs": [
     { "id": "egg_common", "priceCatCoins": 20, "lootTableId": "loot_common" },
     { "id": "egg_rare", "priceCatCoins": 50, "lootTableId": "loot_rare" },
-    { "id": "egg_epic", "priceCatCoins": 100, "lootTableId": "loot_epic" }
+    { "id": "egg_epic", "priceCatCoins": 100, "lootTableId": "loot_epic" },
+    { "id": "egg_meme", "priceCatCoins": 200, "lootTableId": "loot_meme_posters" }
   ]
 }

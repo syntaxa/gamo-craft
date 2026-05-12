@@ -87,6 +87,7 @@
   /content
     catalogs/
       items.resources.v1.json
+      items.posters.v1.json
       items.cosmetics.v1.json
       eggs.v1.json
       lootTables.v1.json
@@ -160,7 +161,9 @@ export interface InventoryState {
 export interface InventorySlot {
   id: string;
   area: 'hotbar' | 'main';
-  itemId: ItemId | null;
+  index: number;
+  itemKind: 'block' | 'poster' | 'resource' | 'cosmetic';
+  itemId: ItemId;
   count: number;
 }
 ```
@@ -307,14 +310,16 @@ export interface CurrencyTxn {
       "id": "poster_meme_cat_1",
       "name": "Мемный кот",
       "kind": "poster",
-      "image": "posters/meme_cat_1.png",
-      "sizeBlocks": { "width": 2, "height": 2 }
+      "image": "/assets/posters/transparent/poster_meme_cat_1.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
     }
   ]
 }
 ```
 
-Картинки meme cats для poster items хранятся локально в resource-pack или content-assets и добавляются после предоставления ассетов владельцем проекта. Runtime-загрузка внешних изображений не входит в контракт.
+Картинки meme cats для poster items хранятся локально в `public/assets/posters/transparent` и подключаются через `items.posters.v1.json`. Исходники набора могут лежать в `public/assets`, но runtime-каталог должен ссылаться на нормализованные PNG с прозрачным canvas. Пополнение набора выполняется добавлением нормализованного файла, записи poster item в каталог и при необходимости записи в `loot_meme_posters`. Runtime-загрузка внешних изображений не входит в контракт.
 
 `items.cosmetics.v1.json`
 ```json
@@ -636,6 +641,7 @@ this.version(2).stores({
 - Для active poster item выбранная грань должна быть вертикальной (`faceNormal.y === 0`).
 - Для плаката достаточно одного supporting block face под курсором; итоговая область `2x2` не должна пересекать существующие poster/decor occupancy.
 - Невалидное размещение плаката показывает invalid wireframe и не списывает предмет из инвентаря.
+- В Build world постер рендерится как тонкая основа с лицевой картинкой; прозрачные области poster image показывают основу постера, а не текстуру блока за ним.
 - Каждый frame Build-режима применяет gravity к `velocityY`, интегрирует вертикальное движение и выполняет collision resolution с твердыми блоками. Запрещена логика мгновенного переноса игрока на нижнюю поверхность при потере опоры.
 - Для `orthography-1` distractor-варианты проходят quality-filter:
   - генерация сначала по целевому `ruleId`, затем по ограниченному `allowedRuleChain` для этого правила;

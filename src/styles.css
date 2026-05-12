@@ -447,6 +447,19 @@ textarea {
   font-weight: 700;
 }
 
+.egg-poster-preview {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 10px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.82);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  border: 2px solid rgba(95, 67, 33, 0.35);
+  box-shadow: 0 8px 16px rgba(68, 44, 20, 0.14);
+}
+
 @media (min-width: 900px) {
   .layout-grid {
     grid-template-columns: 1.1fr 0.9fr;

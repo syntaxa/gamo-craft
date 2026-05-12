@@ -23,7 +23,18 @@ const inventory: InventoryState = {
   playerId: 'player-1',
   resources: { block_brick_red: 24 },
   blocks: { block_brick_red: 24 },
+  posters: {},
   cosmetics: {},
+  slots: [
+    {
+      id: 'slot-hotbar-1',
+      area: 'hotbar',
+      index: 1,
+      itemKind: 'block',
+      itemId: 'block_brick_red',
+      count: 24,
+    },
+  ],
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
 
@@ -66,6 +77,83 @@ describe('app store economy and build invariants', () => {
     expect(useAppStore.getState().inventory.blocks.block_brick_red).toBe(before);
     expect(useAppStore.getState().inventory.resources.block_brick_red).toBe(before);
     expect(useAppStore.getState().world.voxels).not.toContainEqual({ x: 1, y: 1, z: 1, blockId: 'block_brick_red' });
+  });
+
+  it('adds poster rewards into inventory slots and places posters from the hotbar like blocks', () => {
+    useAppStore.getState().addPosterItem('poster_meme_cat_1', 2);
+
+    expect(useAppStore.getState().inventory.posters.poster_meme_cat_1).toBe(2);
+    expect(useAppStore.getState().inventory.slots).toContainEqual(
+      expect.objectContaining({
+        area: 'hotbar',
+        itemKind: 'poster',
+        itemId: 'poster_meme_cat_1',
+        count: 2,
+      }),
+    );
+
+    useAppStore.setState((state) => ({
+      world: {
+        ...state.world,
+        voxels: [
+          ...state.world.voxels,
+          { x: 2, y: 1, z: 2, blockId: 'block_brick_red' },
+        ],
+      },
+    }));
+
+    expect(
+      useAppStore.getState().placePoster({
+        itemId: 'poster_meme_cat_1',
+        anchor: { x: 3, y: 1, z: 2 },
+        faceNormal: { x: 1, y: 0, z: 0 },
+        widthBlocks: 2,
+        heightBlocks: 2,
+      }),
+    ).toBe(true);
+
+    expect(useAppStore.getState().inventory.posters.poster_meme_cat_1).toBe(1);
+    expect(useAppStore.getState().world.posters).toContainEqual(
+      expect.objectContaining({ itemId: 'poster_meme_cat_1', anchor: { x: 3, y: 1, z: 2 } }),
+    );
+  });
+
+  it('removes a placed poster and returns it to poster inventory slots', () => {
+    useAppStore.getState().addPosterItem('poster_meme_cat_1', 1);
+    useAppStore.setState((state) => ({
+      world: {
+        ...state.world,
+        voxels: [
+          ...state.world.voxels,
+          { x: 2, y: 1, z: 2, blockId: 'block_brick_red' },
+        ],
+      },
+    }));
+
+    expect(
+      useAppStore.getState().placePoster({
+        itemId: 'poster_meme_cat_1',
+        anchor: { x: 3, y: 1, z: 2 },
+        faceNormal: { x: 1, y: 0, z: 0 },
+        widthBlocks: 2,
+        heightBlocks: 2,
+      }),
+    ).toBe(true);
+
+    const posterId = useAppStore.getState().world.posters[0].id;
+    expect(useAppStore.getState().inventory.posters.poster_meme_cat_1).toBe(0);
+
+    expect(useAppStore.getState().removePoster(posterId)).toBe(true);
+
+    expect(useAppStore.getState().world.posters).toEqual([]);
+    expect(useAppStore.getState().inventory.posters.poster_meme_cat_1).toBe(1);
+    expect(useAppStore.getState().inventory.slots).toContainEqual(
+      expect.objectContaining({
+        itemKind: 'poster',
+        itemId: 'poster_meme_cat_1',
+        count: 1,
+      }),
+    );
   });
 
   it('does not place a block without inventory or outside world bounds', () => {

@@ -22,7 +22,18 @@ export const testInventory: InventoryState = {
   playerId: 'player-1',
   resources: { block_brick_red: 24 },
   blocks: { block_brick_red: 24 },
+  posters: {},
   cosmetics: {},
+  slots: [
+    {
+      id: 'slot-hotbar-1',
+      area: 'hotbar',
+      index: 1,
+      itemKind: 'block',
+      itemId: 'block_brick_red',
+      count: 24,
+    },
+  ],
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
 

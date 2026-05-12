@@ -9,6 +9,22 @@
         { "itemId": "block_cat_gold", "weight": 20, "duplicateCompensationCatCoins": 10 },
         { "itemId": "block_coin", "weight": 15, "duplicateCompensationCatCoins": 8 }
       ]
+    },
+    {
+      "id": "loot_meme_posters",
+      "entries": [
+        { "itemId": "poster_meme_cat_1", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_2", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_3", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_4", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_5", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_6", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_7", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_8", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_9", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_10", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_11", "weight": 100, "duplicateCompensationCatCoins": 20 }
+      ]
     }
   ]
 }

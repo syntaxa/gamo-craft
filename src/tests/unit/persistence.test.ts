@@ -23,7 +23,18 @@ function makeSnapshot(worldId = 'world-1') {
     playerId: player.id,
     resources: { block_brick_red: 1 },
     blocks: { block_brick_red: 1 },
+    posters: {},
     cosmetics: {},
+    slots: [
+      {
+        id: 'slot-hotbar-1',
+        area: 'hotbar',
+        index: 1,
+        itemKind: 'block',
+        itemId: 'block_brick_red',
+        count: 1,
+      },
+    ],
     updatedAt: '2026-01-01T00:00:00.000Z',
   };
   const world = { ...createInitialWorld(player.id, 2, 4, 2), id: worldId };

@@ -140,13 +140,15 @@ interface Inventory {
   cosmetics: Record<string, number>;   // sticker_cat_1: 1
   blocks: Record<string, number>;      // brick_red: 14
   posters: Record<string, number>;     // poster_meme_cat_1: 1
-  slots?: InventorySlot[];             // full inventory + hotbar assignments
+  slots: InventorySlot[];              // full inventory + hotbar assignments
 }
 
 interface InventorySlot {
   id: string;
   area: 'hotbar' | 'main';
-  itemId: string | null;
+  index: number;
+  itemKind: 'block' | 'poster' | 'resource' | 'cosmetic';
+  itemId: string;
   count: number;
 }
 
@@ -239,6 +241,7 @@ interface WorldState {
 - Нельзя разместить плакат, если предмета нет в инвентаре.
 - Плакат размещается только на вертикальной поверхности, занимает `2x2` блока, требует один валидный опорный face и не может перекрывать другой плакат.
 - При активном poster item Build HUD показывает `2x2` wireframe preview валидного/невалидного размещения.
+- В мире плакат отображается как тонкая основа с изображением на лицевой стороне, чтобы прозрачные области картинки не просвечивали текстурой блока-опоры.
 - Прыжок разрешен только из grounded-состояния; двойной прыжок и прыжок в воздухе запрещены.
 - Падение игрока выполняется непрерывным физическим движением, без телепортации на нижнюю поверхность.
 - После bootstrap без сохранений и после reset игрок получает только `24` кирпича (`block_brick_red`) в `inventory.resources` и `inventory.blocks`.

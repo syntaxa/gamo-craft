@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "poster_meme_cat_1",
+      "name": "Мемный кот 1",
+      "kind": "poster",
+      "image": "/assets/posters/transparent/poster_meme_cat_1.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_2",
+      "name": "Мемный кот 2",
+      "kind": "poster",
+      "image": "/assets/posters/transparent/poster_meme_cat_2.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_3",
+      "name": "Мемный кот 3",
+      "kind": "poster",
+      "image": "/assets/posters/transparent/poster_meme_cat_3.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_4",
+      "name": "Мемный кот 4",
+      "kind": "poster",
+      "image": "/assets/posters/transparent/poster_meme_cat_4.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_5",
+      "name": "Мемный кот 5",
+      "kind": "poster",
+      "image": "/assets/posters/transparent/poster_meme_cat_5.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_6",
+      "name": "Мемный кот 6",
+      "kind": "poster",
+      "image": "/assets/posters/transparent/poster_meme_cat_6.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_7",
+      "name": "Мемный кот 7",
+      "kind": "poster",
+      "image": "/assets/posters/transparent/poster_meme_cat_7.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_8",
+      "name": "Мемный кот 8",
+      "kind": "poster",
+      "image": "/assets/posters/transparent/poster_meme_cat_8.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_9",
+      "name": "Мемный кот 9",
+      "kind": "poster",
+      "image": "/assets/posters/transparent/poster_meme_cat_9.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_10",
+      "name": "Мемный кот 10",
+      "kind": "poster",
+      "image": "/assets/posters/transparent/poster_meme_cat_10.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_11",
+      "name": "Мемный кот 11",
+      "kind": "poster",
+      "image": "/assets/posters/transparent/poster_meme_cat_11.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    }
+  ]
+}

@@ -20,6 +20,21 @@ export interface PlayerTransformState {
   isFlying: boolean;
 }
 
+export interface GridPosition {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface PosterPlacement {
+  id: string;
+  itemId: ItemId;
+  anchor: GridPosition;
+  faceNormal: GridPosition;
+  widthBlocks: number;
+  heightBlocks: number;
+}
+
 export interface WorldState {
   id: string;
   playerId: PlayerId;
@@ -28,6 +43,7 @@ export interface WorldState {
   sizeZ: number;
   voxels: WorldCell[];
   decorations: Array<{ id: string; x: number; y: number; z: number }>;
+  posters: PosterPlacement[];
   playerTransform: PlayerTransformState;
   updatedAt: string;
 }

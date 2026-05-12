@@ -18,19 +18,23 @@ import { VirtualJoystick } from './VirtualJoystick';
 import type { ResourcePackSpec } from '../../theme/resourcePacks';
 import { useResourcePack } from '../../theme/useResourcePack';
 import resourceItemsCatalog from '../../content/catalogs/items.resources.v1.json';
-import type { PlayerTransformState } from '../../domains/world/model';
+import posterItemsCatalog from '../../content/catalogs/items.posters.v1.json';
+import type { PlayerTransformState, PosterPlacement } from '../../domains/world/model';
+import { canPlacePoster } from '../../domains/world/service';
+import type { InventorySlot } from '../../domains/inventory/model';
 
 type ControlKey = 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down';
 type GridTarget = { x: number; y: number; z: number };
 type HitResult = {
-  kind: 'voxel';
+  kind: 'voxel' | 'poster';
   point: Vector3;
   faceNormal?: Vector3;
   voxel?: GridTarget;
+  posterId?: string;
 };
 type HotbarSlot =
   | { kind: 'eraser'; label: string }
-  | { kind: 'item'; itemId: string; count: number; label: string }
+  | { kind: 'item'; itemKind: 'block' | 'poster'; itemId: string; count: number; label: string; iconUrl?: string; widthBlocks?: number; heightBlocks?: number }
   | { kind: 'empty'; label: string };
 
 const keyMap: KeyboardControlsEntry<ControlKey>[] = [
@@ -65,6 +69,7 @@ function releaseStuckMovementKeys() {
 const PLAYER_HEIGHT = 1.62;
 const PLAYER_RADIUS = 0.32;
 const WORLD_RENDER_OFFSET = 12;
+const POSTER_THICKNESS = 0.08;
 
 function placeFromHit(hit: HitResult): GridTarget | null {
   if (!hit.voxel || !hit.faceNormal) return null;
@@ -78,9 +83,44 @@ function placeFromHit(hit: HitResult): GridTarget | null {
 
 function previewFromHit(hit: HitResult | null, selectedSlot: HotbarSlot): GridTarget | null {
   if (!hit) return null;
-  if (selectedSlot.kind === 'item') return placeFromHit(hit);
+  if (selectedSlot.kind === 'item' && selectedSlot.itemKind === 'block') return placeFromHit(hit);
   if (selectedSlot.kind === 'eraser') return hit.voxel ?? null;
   return null;
+}
+
+function posterPlacementFromHit(hit: HitResult | null, selectedSlot: HotbarSlot): Omit<PosterPlacement, 'id'> | null {
+  if (!hit || !hit.faceNormal || selectedSlot.kind !== 'item' || selectedSlot.itemKind !== 'poster') return null;
+
+  const target = placeFromHit(hit);
+  if (!target) return null;
+
+  return {
+    itemId: selectedSlot.itemId,
+    anchor: target,
+    faceNormal: {
+      x: Math.round(hit.faceNormal.x),
+      y: Math.round(hit.faceNormal.y),
+      z: Math.round(hit.faceNormal.z),
+    },
+    widthBlocks: selectedSlot.widthBlocks ?? 2,
+    heightBlocks: selectedSlot.heightBlocks ?? 2,
+  };
+}
+
+function samePosterPlacement(a: Omit<PosterPlacement, 'id'> | null, b: Omit<PosterPlacement, 'id'> | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.itemId === b.itemId &&
+    a.anchor.x === b.anchor.x &&
+    a.anchor.y === b.anchor.y &&
+    a.anchor.z === b.anchor.z &&
+    a.faceNormal.x === b.faceNormal.x &&
+    a.faceNormal.y === b.faceNormal.y &&
+    a.faceNormal.z === b.faceNormal.z &&
+    a.widthBlocks === b.widthBlocks &&
+    a.heightBlocks === b.heightBlocks
+  );
 }
 
 function sameTarget(a: GridTarget | null, b: GridTarget | null): boolean {
@@ -278,12 +318,17 @@ function Scene({
   resourcePack: ResourcePackSpec;
   initialPlayerTransform: PlayerTransformState;
 }) {
-  const voxels = useAppStore((s) => s.world.voxels);
+  const world = useAppStore((s) => s.world);
+  const voxels = world.voxels;
+  const posters = world.posters ?? [];
   const placeVoxel = useAppStore((s) => s.placeVoxel);
   const removeVoxel = useAppStore((s) => s.removeVoxel);
+  const placePoster = useAppStore((s) => s.placePoster);
+  const removePoster = useAppStore((s) => s.removePoster);
   const setPlayerTransform = useAppStore((s) => s.setPlayerTransform);
 
   const [previewTarget, setPreviewTarget] = useState<GridTarget | null>(null);
+  const [posterPreview, setPosterPreview] = useState<Omit<PosterPlacement, 'id'> | null>(null);
 
   const { camera, gl, scene } = useThree();
   const raycasterRef = useRef(new Raycaster());
@@ -297,8 +342,17 @@ function Scene({
   const lastMouseRef = useRef({ x: 0, y: 0 });
 
   const previewEdgesGeometry = useMemo(() => new EdgesGeometry(new BoxGeometry(1.02, 1.02, 1.02)), []);
+  const posterPreviewEdgesGeometry = useMemo(() => new EdgesGeometry(new BoxGeometry(2.02, 2.02, 0.04)), []);
   const previewEdgesMaterial = useMemo(
     () => new LineBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.85, depthTest: false }),
+    [],
+  );
+  const validPosterPreviewMaterial = useMemo(
+    () => new LineBasicMaterial({ color: '#8cff91', transparent: true, opacity: 0.95, depthTest: false }),
+    [],
+  );
+  const invalidPosterPreviewMaterial = useMemo(
+    () => new LineBasicMaterial({ color: '#ff6b6b', transparent: true, opacity: 0.95, depthTest: false }),
     [],
   );
 
@@ -316,6 +370,7 @@ function Scene({
       resourcePack.world.defaultBlock.textureUrl,
       ...Object.values(resourcePack.world.blocks).map((spec) => spec.textureUrl),
       ...faceUrls,
+      ...posterItemsCatalog.items.map((poster) => poster.image),
     ];
     return [...new Set(urls)];
   }, [resourcePack]);
@@ -441,9 +496,12 @@ function Scene({
   useEffect(() => {
     return () => {
       previewEdgesGeometry.dispose();
+      posterPreviewEdgesGeometry.dispose();
       previewEdgesMaterial.dispose();
+      validPosterPreviewMaterial.dispose();
+      invalidPosterPreviewMaterial.dispose();
     };
-  }, [previewEdgesGeometry, previewEdgesMaterial]);
+  }, [invalidPosterPreviewMaterial, posterPreviewEdgesGeometry, previewEdgesGeometry, previewEdgesMaterial, validPosterPreviewMaterial]);
 
   useEffect(() => {
     if (isWorldPaused) {
@@ -490,14 +548,25 @@ function Scene({
 
       if (event.button !== 0 || !currentHitRef.current) return;
 
-      if (selectedSlot.kind === 'item') {
+      if (selectedSlot.kind === 'item' && selectedSlot.itemKind === 'block') {
         const target = placeFromHit(currentHitRef.current);
         if (!target) return;
         placeVoxel(target.x, target.y, target.z, selectedSlot.itemId);
         return;
       }
 
+      if (selectedSlot.kind === 'item' && selectedSlot.itemKind === 'poster') {
+        const placement = posterPlacementFromHit(currentHitRef.current, selectedSlot);
+        if (!placement) return;
+        placePoster(placement);
+        return;
+      }
+
       if (selectedSlot.kind === 'eraser') {
+        if (currentHitRef.current.kind === 'poster' && currentHitRef.current.posterId) {
+          removePoster(currentHitRef.current.posterId);
+          return;
+        }
         if (currentHitRef.current.kind !== 'voxel' || !currentHitRef.current.voxel) return;
         const t = currentHitRef.current.voxel;
         removeVoxel(t.x, t.y, t.z);
@@ -520,7 +589,7 @@ function Scene({
       canvas.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointerup', onPointerUp);
     };
-  }, [camera, gl, isWorldPaused, persistCurrentPlayerTransform, placeVoxel, removeVoxel, selectedSlot]);
+  }, [camera, gl, isWorldPaused, persistCurrentPlayerTransform, placePoster, placeVoxel, removePoster, removeVoxel, selectedSlot]);
 
   useEffect(() => {
     const flushTransform = () => persistCurrentPlayerTransform(true);
@@ -546,7 +615,10 @@ function Scene({
 
     const hits = raycaster.intersectObjects(scene.children, true);
     const hit = hits.find((candidate) => {
-      const kind = candidate.object.userData?.kind as 'voxel' | undefined;
+      const kind = candidate.object.userData?.kind as 'voxel' | 'poster' | undefined;
+      if (selectedSlot.kind === 'eraser') {
+        return kind === 'voxel' || kind === 'poster';
+      }
       return kind === 'voxel';
     });
 
@@ -555,7 +627,7 @@ function Scene({
     if (!hit) {
       currentHitRef.current = null;
     } else {
-      const hitKind = hit.object.userData?.kind as 'voxel' | undefined;
+      const hitKind = hit.object.userData?.kind as 'voxel' | 'poster' | undefined;
 
       if (hitKind === 'voxel') {
         const voxel = {
@@ -569,6 +641,12 @@ function Scene({
           faceNormal: hit.face?.normal.clone(),
           voxel,
         };
+      } else if (hitKind === 'poster') {
+        currentHit = {
+          kind: 'poster',
+          point: hit.point.clone(),
+          posterId: hit.object.userData?.posterId as string,
+        };
       }
 
       currentHitRef.current = currentHit;
@@ -577,6 +655,11 @@ function Scene({
     const nextPreview = previewFromHit(currentHit, selectedSlot);
     if (!sameTarget(previewTarget, nextPreview)) {
       setPreviewTarget(nextPreview);
+    }
+
+    const nextPosterPreview = posterPlacementFromHit(currentHit, selectedSlot);
+    if (!samePosterPlacement(posterPreview, nextPosterPreview)) {
+      setPosterPreview(nextPosterPreview);
     }
 
     persistCurrentPlayerTransform();
@@ -689,6 +772,32 @@ function Scene({
         );
       })}
 
+      {posters.map((poster) => {
+        const posterSpec = posterItemsCatalog.items.find((item) => item.id === poster.itemId);
+        const texture = posterSpec ? textureByUrl[posterSpec.image] : null;
+        return (
+          <group key={poster.id}>
+            <mesh
+              position={posterBoardPosition(poster)}
+              rotation={[0, posterRotationY(poster), 0]}
+              userData={{ kind: 'poster', posterId: poster.id }}
+            >
+              <boxGeometry args={[poster.widthBlocks, poster.heightBlocks, POSTER_THICKNESS]} />
+              <meshStandardMaterial color="#f2ead8" roughness={0.82} metalness={0.03} />
+            </mesh>
+            <mesh
+              position={posterFrontPosition(poster)}
+              rotation={[0, posterRotationY(poster), 0]}
+              raycast={() => null}
+              renderOrder={6}
+            >
+              <planeGeometry args={[poster.widthBlocks, poster.heightBlocks]} />
+              <meshBasicMaterial map={texture} transparent alphaTest={0.08} depthWrite />
+            </mesh>
+          </group>
+        );
+      })}
+
       {previewTarget ? (
         <lineSegments
           geometry={previewEdgesGeometry}
@@ -699,29 +808,46 @@ function Scene({
         />
       ) : null}
 
+      {posterPreview ? (
+        <lineSegments
+          geometry={posterPreviewEdgesGeometry}
+          material={canPlacePoster(world, posterPreview) ? validPosterPreviewMaterial : invalidPosterPreviewMaterial}
+          position={posterPosition(posterPreview)}
+          rotation={[0, posterRotationY(posterPreview), 0]}
+          raycast={() => null}
+          renderOrder={11}
+        />
+      ) : null}
+
       <PlayerController isFlying={isFlying} isKeyboardInputArmed={isKeyboardInputArmed} isWorldPaused={isWorldPaused} voxels={voxels} />
     </>
   );
 }
 
-function makeHotbarSlots(
-  blockEntries: Array<[string, number]>,
-  nameByItemId: Record<string, string>,
-): HotbarSlot[] {
+function makeHotbarSlots(inventorySlots: InventorySlot[], nameByItemId: Record<string, string>): HotbarSlot[] {
   const slots: HotbarSlot[] = [{ kind: 'eraser', label: 'Ластик' }];
+  const slotByIndex = new Map(
+    inventorySlots
+      .filter((slot) => slot.area === 'hotbar' && slot.count > 0)
+      .map((slot) => [slot.index, slot]),
+  );
 
   for (let i = 0; i < 8; i += 1) {
-    const item = blockEntries[i];
+    const item = slotByIndex.get(i + 1);
     if (!item) {
       slots.push({ kind: 'empty', label: 'Пусто' });
       continue;
     }
-    const itemId = item[0];
+    const posterSpec = posterItemsCatalog.items.find((poster) => poster.id === item.itemId);
     slots.push({
       kind: 'item',
-      itemId,
-      count: item[1],
-      label: nameByItemId[itemId] ?? itemId,
+      itemKind: item.itemKind === 'poster' ? 'poster' : 'block',
+      itemId: item.itemId,
+      count: item.count,
+      label: nameByItemId[item.itemId] ?? item.itemId,
+      iconUrl: posterSpec?.image,
+      widthBlocks: posterSpec?.widthBlocks,
+      heightBlocks: posterSpec?.heightBlocks,
     });
   }
 
@@ -730,6 +856,7 @@ function makeHotbarSlots(
 
 function getSlotIconUrl(slot: HotbarSlot, resourcePack: ResourcePackSpec): string | null {
   if (slot.kind !== 'item') return null;
+  if (slot.itemKind === 'poster') return slot.iconUrl ?? null;
   const spec = resourcePack.world.blocks[slot.itemId] ?? resourcePack.world.defaultBlock;
   if (slot.itemId === 'block_grass_dirt') {
     return spec.faceTextures?.side ?? spec.textureUrl;
@@ -737,20 +864,65 @@ function getSlotIconUrl(slot: HotbarSlot, resourcePack: ResourcePackSpec): strin
   return spec.faceTextures?.top ?? spec.textureUrl;
 }
 
+function posterPosition(placement: Omit<PosterPlacement, 'id'>): [number, number, number] {
+  const normal = placement.faceNormal;
+  const widthOffset = (placement.widthBlocks - 1) / 2;
+  const y = placement.anchor.y + placement.heightBlocks / 2;
+
+  if (Math.abs(normal.x) > 0) {
+    return [
+      placement.anchor.x - WORLD_RENDER_OFFSET - normal.x * 0.5,
+      y,
+      placement.anchor.z - WORLD_RENDER_OFFSET + widthOffset,
+    ];
+  }
+
+  return [
+    placement.anchor.x - WORLD_RENDER_OFFSET + widthOffset,
+    y,
+    placement.anchor.z - WORLD_RENDER_OFFSET - normal.z * 0.5,
+  ];
+}
+
+function posterBoardPosition(placement: Omit<PosterPlacement, 'id'>): [number, number, number] {
+  const [x, y, z] = posterPosition(placement);
+  return [
+    x + placement.faceNormal.x * (POSTER_THICKNESS / 2),
+    y,
+    z + placement.faceNormal.z * (POSTER_THICKNESS / 2),
+  ];
+}
+
+function posterFrontPosition(placement: Omit<PosterPlacement, 'id'>): [number, number, number] {
+  const [x, y, z] = posterPosition(placement);
+  return [
+    x + placement.faceNormal.x * (POSTER_THICKNESS + 0.004),
+    y,
+    z + placement.faceNormal.z * (POSTER_THICKNESS + 0.004),
+  ];
+}
+
+function posterRotationY(placement: Omit<PosterPlacement, 'id'>): number {
+  const normal = placement.faceNormal;
+  if (normal.x > 0) return Math.PI / 2;
+  if (normal.x < 0) return -Math.PI / 2;
+  if (normal.z < 0) return Math.PI;
+  return 0;
+}
+
 export function BuildScreen() {
-  const blocks = useAppStore((s) => s.inventory.blocks);
+  const inventorySlots = useAppStore((s) => s.inventory.slots);
   const playerTransform = useAppStore((s) => s.world.playerTransform);
   const resourcePack = useResourcePack();
   const itemNameById = useMemo(() => {
-    const entries = resourceItemsCatalog.items.map((item) => [item.id, item.name] as const);
+    const entries = [
+      ...resourceItemsCatalog.items.map((item) => [item.id, item.name] as const),
+      ...posterItemsCatalog.items.map((item) => [item.id, item.name] as const),
+    ];
     return Object.fromEntries(entries);
   }, []);
 
-  const blockEntries = useMemo(
-    () => Object.entries(blocks).filter(([, count]) => count > 0),
-    [blocks],
-  );
-  const hotbarSlots = useMemo(() => makeHotbarSlots(blockEntries, itemNameById), [blockEntries, itemNameById]);
+  const hotbarSlots = useMemo(() => makeHotbarSlots(inventorySlots ?? [], itemNameById), [inventorySlots, itemNameById]);
 
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(1);
   const [isFlying, setIsFlying] = useState(playerTransform.isFlying);
