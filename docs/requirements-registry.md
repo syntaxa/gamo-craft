@@ -5,6 +5,58 @@
 
 Все требования реестра имеют статус `ACTIVE`, если явно не указано иное.
 
+## Учет реализации
+Реестр разделяет два вида статуса:
+- `Статус требования` показывает актуальность требования для продукта: по умолчанию `ACTIVE`.
+- `Статус реализации` показывает, что найдено в текущем коде и тестах.
+
+Статусы реализации:
+- `IMPLEMENTED` — требование реализовано в коде; для критичного поведения есть тест или явная ссылка на источник реализации.
+- `PARTIAL` — реализована только часть требования или нет достаточного покрытия для полного утверждения.
+- `NOT_IMPLEMENTED` — в коде и тестах не найдено реализации, либо текущая реализация противоречит требованию.
+- `UNKNOWN` — требование продуктового/качественного характера не удалось надежно подтвердить по коду и тестам.
+
+Требования, не перечисленные в матрице ниже, считаются `UNKNOWN` до отдельной проверки.
+
+### Матрица реализации
+| Статус | Требования | Доказательства |
+| --- | --- | --- |
+| IMPLEMENTED | `REQ-PLAT-001`, `REQ-TECH-001` | React + TypeScript + Vite приложение: `package.json`, `src/main.tsx`, `src/app/App.tsx`. |
+| IMPLEMENTED | `REQ-TECH-002` | `package.json` содержит `engines` для Node `>=24.14.0` и npm `>=11.11.0`. |
+| IMPLEMENTED | `REQ-TECH-003` | `package.json` содержит `lint` и `build`; актуальная проверка выполняется командами `npm run lint` и `npm run build`. |
+| IMPLEMENTED | `REQ-TECH-004` | Политика синхронизации требований описана в `docs/requirements-change-policy.md`; текущий реестр содержит матрицу реализации. |
+| IMPLEMENTED | `REQ-TECH-005`, `REQ-TECH-006`, `REQ-TECH-007` | `package.json` scripts `orth:build`, `orth:validate`, `orth:program`, `orth:samples`; `scripts/orthography/*`; `src/domains/learning/generators/orthography.ts`; `src/tests/unit/learning.test.ts`. |
+| IMPLEMENTED | `REQ-INPUT-001` | `src/features/build/BuildScreen.tsx`: `KeyboardControls` для `WASD`, удержание ПКМ для обзора, ЛКМ по выбранному слоту. |
+| IMPLEMENTED | `REQ-INPUT-002`, `REQ-INPUT-003` | `src/features/build/VirtualJoystick.tsx` показывает touch-control только при `(pointer: coarse)`. |
+| IMPLEMENTED | `REQ-INPUT-004`, `REQ-INPUT-005` | `src/features/build/BuildScreen.tsx`: pause/release на blur/visibility/pointer outside; `E`/`Esc` открывают и закрывают полный инвентарь с паузой управления. |
+| IMPLEMENTED | `REQ-LEARN-001`, `REQ-LEARN-002`, `REQ-LEARN-003`, `REQ-LEARN-004` | `src/domains/learning/service.ts`, `src/features/lesson/LessonScreen.tsx`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
+| IMPLEMENTED | `REQ-LEARN-005`, `REQ-LEARN-006`, `REQ-LEARN-007`, `REQ-LEARN-008` | `src/content/learning/orthography-1.v1.json`, `src/domains/learning/generators/orthography.ts`, `src/tests/unit/learning.test.ts`. |
+| IMPLEMENTED | `REQ-LEARN-009`, `REQ-LEARN-010`, `REQ-LEARN-011`, `REQ-LEARN-012`, `REQ-LEARN-013` | `src/features/lesson/LessonScreen.tsx`, `src/tests/component/lesson.test.tsx`, `src/tests/e2e/app-smoke.spec.ts`. |
+| IMPLEMENTED | `REQ-ECO-001`, `REQ-ECO-002` | `src/app/store.ts`, `src/features/shop/ShopScreen.tsx`, `src/features/eggs/EggsScreen.tsx`, `src/tests/component/shop.test.tsx`, `src/tests/component/eggs.test.tsx`. |
+| IMPLEMENTED | `REQ-ECO-003` | `src/app/store.ts:addBlockRewardItem`; `src/tests/unit/appStore.test.ts`; `src/tests/component/eggs.test.tsx`. |
+| IMPLEMENTED | `REQ-ECO-004`, `REQ-ECO-005` | `src/features/lesson/LessonScreen.tsx`, `src/domains/learning/service.ts`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
+| IMPLEMENTED | `REQ-ECO-006` | `src/features/shop/ShopScreen.tsx`, `src/content/catalogs/shop.v1.json`, `src/tests/unit/catalogs.test.ts`, `src/tests/component/shop.test.tsx`, `src/tests/e2e/app-smoke.spec.ts`. |
+| IMPLEMENTED | `REQ-EGG-001`, `REQ-EGG-002`, `REQ-EGG-003` | `src/features/eggs/EggsScreen.tsx`, `src/content/catalogs/lootTables.v1.json`, `src/tests/component/eggs.test.tsx`, `src/tests/unit/appStore.test.ts`. |
+| IMPLEMENTED | `REQ-EGG-007`, `REQ-EGG-008` | `src/content/catalogs/eggs.v1.json`, `src/content/catalogs/items.posters.v1.json`, `src/content/catalogs/lootTables.v1.json`, `src/features/eggs/EggsScreen.tsx`, `src/tests/unit/catalogs.test.ts`, `src/tests/component/eggs.test.tsx`. |
+| IMPLEMENTED | `REQ-WORLD-001`, `REQ-WORLD-002` | `src/domains/world/service.ts:createInitialWorld`, `src/features/build/BuildScreen.tsx`, `src/tests/unit/world.test.ts`. |
+| IMPLEMENTED | `REQ-WORLD-003`, `REQ-WORLD-004` | `src/features/build/BuildScreen.tsx`: `collidesWithVoxel` и осевое скольжение при коллизии. |
+| IMPLEMENTED | `REQ-WORLD-005`, `REQ-WORLD-006`, `REQ-WORLD-007` | `src/features/build/BuildScreen.tsx`: `makeHotbarSlots`, `getSlotIconUrl`, hotbar render. |
+| IMPLEMENTED | `REQ-WORLD-008`, `REQ-WORLD-009` | `src/app/store.ts:placeVoxel/removeVoxel`, `src/tests/unit/appStore.test.ts`. |
+| IMPLEMENTED | `REQ-WORLD-010`, `REQ-WORLD-011` | `src/app/store.ts`: стартовый inventory `24` `block_brick_red`, `WORLD_SIZE_Y = 24`; `src/tests/unit/appStore.test.ts`, `src/tests/testUtils.ts`. |
+| IMPLEMENTED | `REQ-WORLD-012`, `REQ-WORLD-013` | `src/features/build/BuildScreen.tsx:setPlayerTransform`, `src/app/providers/StoreProvider.tsx`, `src/persistence/localSnapshot.ts`, `src/tests/unit/persistence.test.ts`. |
+| IMPLEMENTED | `REQ-WORLD-014`, `REQ-WORLD-021`, `REQ-WORLD-022` | `src/app/providers/StoreProvider.tsx:shouldRestoreLocalWorld`, `src/persistence/localSnapshot.ts`, `src/tests/unit/persistence.test.ts`. |
+| IMPLEMENTED | `REQ-WORLD-015`, `REQ-VIS-010`, `REQ-VIS-011`, `REQ-VIS-012` | `src/content/catalogs/items.resources.v1.json`, `src/theme/resourcePacks.ts`, `public/resource-packs/cartoon-blocky-v1/world/block_coin.png`, `public/resource-packs/cartoon-blocky-v1/world/block_glass.svg`, `src/tests/unit/catalogs.test.ts`. |
+| IMPLEMENTED | `REQ-WORLD-016`, `REQ-WORLD-017`, `REQ-WORLD-020` | `src/app/store.ts`, `src/features/build/BuildScreen.tsx`, `src/tests/unit/appStore.test.ts`. |
+| IMPLEMENTED | `REQ-WORLD-018`, `REQ-WORLD-019`, `REQ-WORLD-025` | `src/domains/inventory/slotActions.ts`, `src/features/build/BuildScreen.tsx`, `src/tests/unit/inventorySlotActions.test.ts`. |
+| IMPLEMENTED | `REQ-WORLD-026`, `REQ-WORLD-027`, `REQ-WORLD-028`, `REQ-WORLD-029`, `REQ-VIS-014` | `src/content/catalogs/items.posters.v1.json`, `src/domains/world/service.ts`, `src/features/build/BuildScreen.tsx`, `src/tests/unit/world.test.ts`, `src/tests/unit/appStore.test.ts`. |
+| IMPLEMENTED | `REQ-UI-001`, `REQ-UI-002`, `REQ-UI-003` | `src/features/lesson/LessonScreen.tsx`, `src/shared/ui/CurrencyBadge.tsx`, `src/styles.css`, `src/tests/component/lesson.test.tsx`. |
+| IMPLEMENTED | `REQ-UI-004`, `REQ-UI-005` | `src/features/build/BuildScreen.tsx`, `src/styles.css`, `src/tests/unit/inventorySlotActions.test.ts`. |
+| IMPLEMENTED | `REQ-VIS-001`, `REQ-VIS-002`, `REQ-VIS-004`, `REQ-VIS-005`, `REQ-VIS-006`, `REQ-VIS-007`, `REQ-VIS-008`, `REQ-VIS-009` | `src/theme/resourcePacks.ts`, `src/theme/applyResourcePack.ts`, `src/features/build/BuildScreen.tsx`, `src/styles.css`. |
+| PARTIAL | `REQ-PROD-002`, `REQ-PLAT-002`, `REQ-VIS-003` | Основной цикл и desktop/tablet-ориентированные экраны есть, но нет полного приемочного покрытия для всей продуктовой петли, Android-планшета и юридической проверки всех ассетов. |
+| NOT_IMPLEMENTED | `REQ-INPUT-006`, `REQ-WORLD-023`, `REQ-WORLD-024`, `REQ-VIS-013` | В `src/features/build/BuildScreen.tsx` `Space` в non-flying режиме не выполняет одинарный прыжок; падение сейчас нормализуется к поверхности через `placePlayerOnNearestSurface`, без непрерывной gravity-driven анимации. |
+| NOT_IMPLEMENTED | `REQ-LEARN-014`, `REQ-LEARN-015`, `REQ-LEARN-016`, `REQ-ECO-007` | Поиск по `src` не находит отдельной карточки/программы `Математика - бронзовый`, генерации сложения до `40` и повышенной формулы награды. |
+| UNKNOWN | `REQ-PROD-001`, `REQ-PROD-003` | Возраст аудитории и тон UX являются продуктовыми критериями; текущий код и тесты не дают надежной автоматической проверки. |
+
 ## 1. Продукт и аудитория
 1. `REQ-PROD-001` Игра предназначена для детей 6-9 лет (основная аудитория).
 2. `REQ-PROD-002` Основной цикл: обучение -> награда -> трата -> строительство.
