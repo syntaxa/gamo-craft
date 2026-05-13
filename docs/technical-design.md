@@ -171,6 +171,7 @@ export interface InventorySlot {
 Минимальный runtime-контракт Minecraft-style операций:
 - `pickupStack`
 - `placeStack`
+- `dragStack`
 - `swapStacks`
 - `mergeStacks`
 - `splitStack`
@@ -698,7 +699,7 @@ interface PointerState {
 - Карточка награды после открытия яйца должна начинать fade-out через `2` секунды и автоматически скрываться.
 - Поддержка `prefers-reduced-motion`.
 - Hotbar должен быть доступен мышью и горячими клавишами `1..9`.
-- Full inventory UI использует Minecraft-style baseline: main storage grid, visible hotbar row, item icons, stack counts, selected/hover states, and large cells suitable for mouse and touch.
+- Full inventory UI использует Minecraft-style baseline: main storage grid, visible hotbar row, item icons, stack counts, selected/hover states, drag-and-drop movement for whole stacks, visible carried-stack feedback under the pointer for drag/split operations, and large cells suitable for mouse and touch.
 - UI результата урока показывает earned currency в формате `value + coin icon`.
 - `EggsScreen` рендерит последний reward через классы витрины магазина: `shop-lot`, `shop-lot-iso`, `shop-cube-*`, `shop-lot-count`.
 - `ShopScreen` рендерит боковые грани preview через `side`-текстуру и применяет `faceTextureRotationDeg.side` из resource-pack.
@@ -731,7 +732,7 @@ interface AnalyticsEvent {
 - Расчет наград за урок и серии.
 - Roll лута по весам и дубликаты.
 - Инварианты экономики.
-- Minecraft-style inventory operations: pickup/place, swap, merge, split, delete slot, hotbar synchronization.
+- Minecraft-style inventory operations: pickup/place, drag-and-drop whole-stack movement, swap, merge, split, delete slot, hotbar synchronization, and visible carried-stack feedback for drag/split operations.
 - Jump/fall physics: grounded-only jump and continuous falling without teleport.
 - Poster placement validation: vertical face, one supporting block face, no overlap, no inventory consumption on invalid placement.
 

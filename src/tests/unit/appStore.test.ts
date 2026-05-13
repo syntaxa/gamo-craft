@@ -156,6 +156,113 @@ describe('app store economy and build invariants', () => {
     );
   });
 
+  it('overflows new rewards from full hotbar into main inventory slots', () => {
+    const hotbarFull = Array.from({ length: 8 }, (_, idx) => ({
+      id: `slot-hotbar-${idx + 1}`,
+      area: 'hotbar' as const,
+      index: idx + 1,
+      itemKind: 'block' as const,
+      itemId: `block_fill_${idx + 1}`,
+      count: 64,
+    }));
+
+    useAppStore.setState((state) => ({
+      inventory: {
+        ...state.inventory,
+        slots: hotbarFull,
+        blocks: Object.fromEntries(hotbarFull.map((slot) => [slot.itemId, slot.count])),
+        resources: Object.fromEntries(hotbarFull.map((slot) => [slot.itemId, slot.count])),
+      },
+    }));
+
+    useAppStore.getState().addBlockRewardItem('block_coin', 3);
+
+    expect(useAppStore.getState().inventory.slots).toContainEqual(
+      expect.objectContaining({
+        area: 'main',
+        index: 0,
+        itemKind: 'block',
+        itemId: 'block_coin',
+        count: 3,
+      }),
+    );
+  });
+
+  it('returns removed block to hotbar first when compatible stack exists', () => {
+    useAppStore.setState((state) => ({
+      inventory: {
+        ...state.inventory,
+        slots: [
+          {
+            id: 'slot-hotbar-1',
+            area: 'hotbar',
+            index: 1,
+            itemKind: 'block',
+            itemId: 'block_brick_red',
+            count: 63,
+          },
+          {
+            id: 'slot-main-0',
+            area: 'main',
+            index: 0,
+            itemKind: 'block',
+            itemId: 'block_brick_red',
+            count: 10,
+          },
+        ],
+        blocks: { block_brick_red: 73 },
+        resources: { block_brick_red: 73 },
+      },
+      world: {
+        ...state.world,
+        voxels: [{ x: 5, y: 1, z: 5, blockId: 'block_brick_red' }],
+      },
+    }));
+
+    expect(useAppStore.getState().removeVoxel(5, 1, 5)).toBe(true);
+
+    expect(useAppStore.getState().inventory.slots).toContainEqual(
+      expect.objectContaining({
+        area: 'hotbar',
+        index: 1,
+        itemKind: 'block',
+        itemId: 'block_brick_red',
+        count: 64,
+      }),
+    );
+  });
+
+  it('recalculates item totals when inventory slots are reassigned', () => {
+    const store = useAppStore.getState() as ReturnType<typeof useAppStore.getState> & {
+      setInventorySlots?: (slots: InventoryState['slots']) => void;
+    };
+
+    expect(store.setInventorySlots).toBeTypeOf('function');
+
+    store.setInventorySlots?.([
+      {
+        id: 'slot-hotbar-1',
+        area: 'hotbar',
+        index: 1,
+        itemKind: 'block',
+        itemId: 'block_brick_red',
+        count: 7,
+      },
+      {
+        id: 'slot-main-0',
+        area: 'main',
+        index: 0,
+        itemKind: 'poster',
+        itemId: 'poster_meme_cat_1',
+        count: 2,
+      },
+    ]);
+
+    expect(useAppStore.getState().inventory.blocks).toEqual({ block_brick_red: 7 });
+    expect(useAppStore.getState().inventory.resources).toEqual({ block_brick_red: 7 });
+    expect(useAppStore.getState().inventory.posters).toEqual({ poster_meme_cat_1: 2 });
+  });
+
   it('does not place a block without inventory or outside world bounds', () => {
     expect(useAppStore.getState().placeVoxel(1, 1, 1, 'block_glass')).toBe(false);
     expect(useAppStore.getState().placeVoxel(24, 1, 1, 'block_brick_red')).toBe(false);

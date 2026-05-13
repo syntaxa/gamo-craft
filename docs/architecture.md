@@ -51,7 +51,7 @@
 4. **Inventory & Catalog Module**
 - Каталоги: ресурсы, яйца, косметика.
 - Инвентарь игрока: количество ресурсов, коллекция наград.
-- Minecraft-style инвентарь: full inventory grid + hotbar на единых данных, операции pickup/place/swap/merge/split/delete для стеков.
+- Minecraft-style инвентарь: full inventory grid + hotbar на единых данных, операции pickup/place/drag-and-drop/swap/merge/split/delete для стеков и видимый carried-stack feedback под курсором при переносе.
 - Placeable poster items как обычные предметы инвентаря.
 
 5. **Egg Loot Module**
@@ -288,7 +288,7 @@ interface WorldState {
   - Hotbar в стиле Minecraft: слот 1 фиксирован под ластик (удаление), слоты 2-9 под ресурсы.
   - По умолчанию активируется слот с первым ресурсом (обычно слот 2); если ресурсов нет, активен пустой слот 2 и ЛКМ не выполняет действие.
   - При удалении блока ластиком ресурс возвращается в соответствующий слот инвентаря.
-  - Full inventory использует Minecraft-style baseline: main grid, hotbar row, stack counts, selected/hover states, pickup/place/swap/merge/split/delete.
+  - Full inventory использует Minecraft-style baseline: main grid, hotbar row, stack counts, selected/hover states, drag-and-drop для переноса целых стеков, pickup/place/swap/merge/split/delete и видимый carried-stack feedback под курсором.
   - Превью позиции установки показывается тонкой рамкой только по ребрам блока (без диагоналей).
   - Рамка учитывает \"прилипание\" к грани блока: показывает точную клетку, где появится новый блок.
   - Для активного плаката превью показывает область `2x2` на вертикальной поверхности и запрещает перекрытие существующих плакатов.
@@ -357,7 +357,7 @@ interface WorldState {
 - F1. Хранение ресурсов, блоков, косметики.
 - F2. Экран инвентаря/коллекции.
 - F3. Применение наград из яиц в FPV-строительстве (выбор блока, установка в мире).
-- F4. Minecraft-style операции со стаками: pickup/place/swap/merge/split/delete и синхронизация hotbar с full inventory.
+- F4. Minecraft-style операции со стаками: pickup/place/drag-and-drop/swap/merge/split/delete, видимый carried-stack feedback под курсором и синхронизация hotbar с full inventory.
 - F5. Poster items как обычные элементы инвентаря со всеми базовыми операциями.
 - F6. Post-MVP: применение косметики на аватар.
 

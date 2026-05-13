@@ -29,6 +29,7 @@ interface AppState {
   placePoster: (placement: Omit<PosterPlacement, 'id'>) => boolean;
   removePoster: (posterId: string) => boolean;
   setPlayerTransform: (playerTransform: PlayerTransformState) => void;
+  setInventorySlots: (slots: InventorySlot[]) => void;
 }
 
 const POSTER_ITEM_IDS = new Set(posterItemsCatalog.items.map((item) => item.id));
@@ -79,12 +80,20 @@ function addToSlots(
   itemKind: InventoryItemKind,
   itemId: string,
   count: number,
+  preferredArea: 'hotbar' | 'main' | null = null,
 ): InventorySlot[] {
   let remaining = count;
   const limit = stackLimitFor(itemKind, itemId);
   const nextSlots = sortSlots(slots).map((slot) => ({ ...slot }));
 
-  for (const slot of nextSlots) {
+  const mergeOrder = preferredArea
+    ? [
+        ...nextSlots.filter((slot) => slot.area === preferredArea),
+        ...nextSlots.filter((slot) => slot.area !== preferredArea),
+      ]
+    : nextSlots;
+
+  for (const slot of mergeOrder) {
     if (remaining <= 0) break;
     if (slot.itemKind !== itemKind || slot.itemId !== itemId || slot.count >= limit) continue;
 
@@ -180,6 +189,29 @@ const initialInventory: InventoryState = {
   slots: seedInitialSlots(),
   updatedAt: new Date().toISOString(),
 };
+
+function recalculateInventoryFromSlots(inventory: InventoryState, slots: InventorySlot[]): InventoryState {
+  const nextSlots = sortSlots(slots.filter((slot) => slot.count > 0).map((slot) => ({ ...slot })));
+  const blocks: Record<string, number> = {};
+  const posters: Record<string, number> = {};
+
+  for (const slot of nextSlots) {
+    if (slot.itemKind === 'block') {
+      blocks[slot.itemId] = (blocks[slot.itemId] ?? 0) + slot.count;
+    } else if (slot.itemKind === 'poster') {
+      posters[slot.itemId] = (posters[slot.itemId] ?? 0) + slot.count;
+    }
+  }
+
+  return {
+    ...inventory,
+    resources: blocks,
+    blocks,
+    posters,
+    slots: nextSlots,
+    updatedAt: new Date().toISOString(),
+  };
+}
 
 function inBounds(world: WorldState, x: number, y: number, z: number): boolean {
   return x >= 0 && y >= 0 && z >= 0 && x < world.sizeX && y < world.sizeY && z < world.sizeZ;
@@ -378,7 +410,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             ...inventory.resources,
             [removedBlockId]: (inventory.resources[removedBlockId] ?? 0) + 1,
           },
-          slots: addToSlots(inventory.slots, 'block', removedBlockId, 1),
+          slots: addToSlots(inventory.slots, 'block', removedBlockId, 1, 'hotbar'),
           updatedAt: new Date().toISOString(),
         };
       }
@@ -444,6 +476,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         playerTransform,
         updatedAt: new Date().toISOString(),
       },
+    })),
+
+  setInventorySlots: (slots) =>
+    set((state) => ({
+      inventory: recalculateInventoryFromSlots(normalizeInventoryState(state.inventory), slots),
     })),
 }));
 

@@ -460,6 +460,168 @@ textarea {
   box-shadow: 0 8px 16px rgba(68, 44, 20, 0.14);
 }
 
+.inventory-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.inventory-panel {
+  width: min(720px, 95%);
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 245, 138, 0.5);
+  background: rgba(31, 31, 36, 0.94);
+  color: #ffffff;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.35);
+}
+
+.inventory-cursor {
+  min-height: 22px;
+  font-size: 16px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.inventory-grid,
+.inventory-hotbar-grid {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.inventory-hotbar-grid {
+  margin-top: 8px;
+}
+
+.inventory-slot {
+  position: relative;
+  min-height: 54px;
+  border: 2px solid rgba(24, 56, 12, 0.85);
+  border-radius: 8px;
+  background: rgba(20, 28, 22, 0.72);
+  cursor: pointer;
+}
+
+.inventory-slot:hover {
+  border-color: #fff58a;
+}
+
+.inventory-slot.is-drag-source {
+  opacity: 0.42;
+  border-style: dashed;
+}
+
+.inventory-slot-icon {
+  position: absolute;
+  inset: 8px;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.inventory-slot-count {
+  position: absolute;
+  right: 5px;
+  bottom: 3px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.75);
+}
+
+.inventory-carried-stack {
+  position: fixed;
+  z-index: 30;
+  width: 54px;
+  height: 54px;
+  pointer-events: none;
+  border: 2px solid #fff58a;
+  border-radius: 8px;
+  background: rgba(20, 28, 22, 0.86);
+  box-shadow:
+    0 0 0 2px rgba(255, 245, 138, 0.22),
+    0 8px 18px rgba(0, 0, 0, 0.45);
+  transform: translate(0, 0);
+}
+
+.inventory-carried-icon {
+  position: absolute;
+  inset: 7px;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.inventory-carried-count {
+  position: absolute;
+  right: 5px;
+  bottom: 2px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+.inventory-delete-slot {
+  width: 54px;
+  height: 54px;
+  margin-top: 10px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255, 135, 135, 0.76);
+  border-radius: 8px;
+  background: rgba(94, 24, 24, 0.72);
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+}
+
+.inventory-delete-slot.is-confirming {
+  border-color: #fff58a;
+  background: rgba(132, 36, 24, 0.92);
+  box-shadow: 0 0 0 2px rgba(255, 245, 138, 0.22);
+}
+
+.inventory-delete-icon {
+  width: 24px;
+  height: 27px;
+  border: 3px solid rgba(255, 255, 255, 0.88);
+  border-top: 0;
+  border-radius: 0 0 5px 5px;
+  position: relative;
+}
+
+.inventory-delete-icon::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: -8px;
+  width: 31px;
+  height: 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.inventory-delete-badge {
+  position: absolute;
+  right: 4px;
+  bottom: 2px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
+}
+
 @media (min-width: 900px) {
   .layout-grid {
     grid-template-columns: 1.1fr 0.9fr;

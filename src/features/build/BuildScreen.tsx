@@ -22,6 +22,13 @@ import posterItemsCatalog from '../../content/catalogs/items.posters.v1.json';
 import type { PlayerTransformState, PosterPlacement } from '../../domains/world/model';
 import { canPlacePoster } from '../../domains/world/service';
 import type { InventorySlot } from '../../domains/inventory/model';
+import {
+  applyInventoryAction,
+  deleteCarriedInventoryStack,
+  deleteInventoryStack,
+  moveInventoryStack,
+  type InventorySlotAddress,
+} from '../../domains/inventory/slotActions';
 
 type ControlKey = 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down';
 type GridTarget = { x: number; y: number; z: number };
@@ -36,6 +43,19 @@ type HotbarSlot =
   | { kind: 'eraser'; label: string }
   | { kind: 'item'; itemKind: 'block' | 'poster'; itemId: string; count: number; label: string; iconUrl?: string; widthBlocks?: number; heightBlocks?: number }
   | { kind: 'empty'; label: string };
+type InventoryDragState = {
+  source: InventorySlotAddress;
+  slot: InventorySlot;
+  startX: number;
+  startY: number;
+  x: number;
+  y: number;
+  hasMoved: boolean;
+};
+type PendingDeleteState = {
+  source: InventorySlotAddress | null;
+  slot: InventorySlot;
+};
 
 const keyMap: KeyboardControlsEntry<ControlKey>[] = [
   { name: 'forward', keys: ['KeyW', 'ArrowUp'] },
@@ -913,6 +933,7 @@ function posterRotationY(placement: Omit<PosterPlacement, 'id'>): number {
 export function BuildScreen() {
   const inventorySlots = useAppStore((s) => s.inventory.slots);
   const playerTransform = useAppStore((s) => s.world.playerTransform);
+  const setInventorySlots = useAppStore((s) => s.setInventorySlots);
   const resourcePack = useResourcePack();
   const itemNameById = useMemo(() => {
     const entries = [
@@ -928,8 +949,14 @@ export function BuildScreen() {
   const [isFlying, setIsFlying] = useState(playerTransform.isFlying);
   const [isWorldPaused, setIsWorldPaused] = useState(false);
   const [isKeyboardInputArmed, setIsKeyboardInputArmed] = useState(true);
+  const [isInventoryOpen, setIsInventoryOpen] = useState(false);
+  const [cursorSlot, setCursorSlot] = useState<InventorySlot | null>(null);
+  const [dragState, setDragState] = useState<InventoryDragState | null>(null);
+  const [carriedPointer, setCarriedPointer] = useState({ x: 0, y: 0 });
+  const [pendingDelete, setPendingDelete] = useState<PendingDeleteState | null>(null);
   const lastSpacePressRef = useRef(0);
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const suppressSlotClickRef = useRef(false);
   const pauseWorld = useCallback(() => {
     setIsWorldPaused(true);
     setIsKeyboardInputArmed(false);
@@ -939,6 +966,19 @@ export function BuildScreen() {
     setIsWorldPaused(false);
     releaseStuckMovementKeys();
   }, []);
+  const closeInventory = useCallback(() => {
+    if (cursorSlot) {
+      const result = applyInventoryAction(inventorySlots, cursorSlot, cursorSlot.area, cursorSlot.index);
+      setInventorySlots(result.slots);
+      setCursorSlot(result.cursor);
+    } else {
+      setCursorSlot(null);
+    }
+    setDragState(null);
+    setPendingDelete(null);
+    setIsInventoryOpen(false);
+    resumeWorld();
+  }, [cursorSlot, inventorySlots, resumeWorld, setInventorySlots]);
 
   useEffect(() => {
     const onWindowBlur = () => {
@@ -968,6 +1008,10 @@ export function BuildScreen() {
     };
 
     const onPointerDownAnywhere = (event: PointerEvent) => {
+      if (isInventoryOpen) {
+        pauseWorld();
+        return;
+      }
       if (isInsideStage(event.target)) {
         resumeWorld();
         return;
@@ -986,12 +1030,27 @@ export function BuildScreen() {
       window.removeEventListener('pointerdown', onPointerDownAnywhere, true);
       window.removeEventListener('contextmenu', onContextMenuAnywhere);
     };
-  }, [pauseWorld, resumeWorld]);
+  }, [isInventoryOpen, pauseWorld, resumeWorld]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (MOVEMENT_KEY_CODES.has(event.code)) {
         setIsKeyboardInputArmed(true);
+      }
+
+      if (event.code === 'KeyE' && !event.repeat) {
+        if (isInventoryOpen) {
+          closeInventory();
+        } else {
+          setIsInventoryOpen(true);
+          pauseWorld();
+        }
+        return;
+      }
+
+      if (event.code === 'Escape' && !event.repeat && isInventoryOpen) {
+        closeInventory();
+        return;
       }
 
       if (event.code === 'Space' && !event.repeat) {
@@ -1013,9 +1072,118 @@ export function BuildScreen() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [closeInventory, isInventoryOpen, pauseWorld]);
 
   const selectedSlot = hotbarSlots[selectedSlotIndex] ?? hotbarSlots[1];
+
+  const inventorySlotToHotbarSlot = (slot: InventorySlot, label: string): HotbarSlot => ({
+    kind: 'item',
+    itemKind: slot.itemKind === 'poster' ? 'poster' : 'block',
+    itemId: slot.itemId,
+    count: slot.count,
+    label,
+    iconUrl: posterItemsCatalog.items.find((poster) => poster.id === slot.itemId)?.image,
+  });
+
+  const findDropTarget = (clientX: number, clientY: number): InventorySlotAddress | null => {
+    const element = document.elementFromPoint(clientX, clientY);
+    if (element?.closest('[data-inventory-delete-slot]')) {
+      return { area: 'main', index: -1 };
+    }
+    const slotElement = element?.closest<HTMLElement>('[data-inventory-area][data-inventory-index]');
+    if (!slotElement) return null;
+    const area = slotElement.dataset.inventoryArea;
+    const index = Number(slotElement.dataset.inventoryIndex);
+    if ((area !== 'hotbar' && area !== 'main') || !Number.isInteger(index)) return null;
+    return { area, index };
+  };
+
+  const renderInventorySlot = (area: 'hotbar' | 'main', index: number) => {
+    const address = { area, index };
+    const slot = inventorySlots.find((item) => item.area === area && item.index === index);
+    const label = slot ? (itemNameById[slot.itemId] ?? slot.itemId) : '-';
+    const iconUrl = slot ? getSlotIconUrl(inventorySlotToHotbarSlot(slot, label), resourcePack) : null;
+    const isDragSource =
+      dragState?.source.area === area &&
+      dragState.source.index === index &&
+      dragState.hasMoved;
+
+    const applyAction = (splitMode = false, pointer?: { clientX: number; clientY: number }) => {
+      if (pointer) {
+        setCarriedPointer({ x: pointer.clientX, y: pointer.clientY });
+      }
+      const result = applyInventoryAction(inventorySlots, cursorSlot, area, index, splitMode);
+      setInventorySlots(result.slots);
+      setCursorSlot(result.cursor);
+      setPendingDelete(null);
+    };
+
+    return (
+      <button
+        key={`${area}-${index}`}
+        type="button"
+        className={`inventory-slot ${isDragSource ? 'is-drag-source' : ''}`}
+        data-inventory-area={area}
+        data-inventory-index={index}
+        onClick={(e) => {
+          if (suppressSlotClickRef.current) {
+            suppressSlotClickRef.current = false;
+            return;
+          }
+          applyAction(false, e);
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          applyAction(true, e);
+        }}
+        onPointerDown={(e) => {
+          if (e.button !== 0 || !slot || cursorSlot) return;
+          setDragState({
+            source: address,
+            slot,
+            startX: e.clientX,
+            startY: e.clientY,
+            x: e.clientX,
+            y: e.clientY,
+            hasMoved: false,
+          });
+          setCarriedPointer({ x: e.clientX, y: e.clientY });
+          e.currentTarget.setPointerCapture(e.pointerId);
+        }}
+        onPointerMove={(e) => {
+          if (!dragState || dragState.source.area !== area || dragState.source.index !== index) return;
+          const hasMoved =
+            dragState.hasMoved ||
+            Math.abs(e.clientX - dragState.startX) > 4 ||
+            Math.abs(e.clientY - dragState.startY) > 4;
+          setDragState({ ...dragState, x: e.clientX, y: e.clientY, hasMoved });
+          setCarriedPointer({ x: e.clientX, y: e.clientY });
+        }}
+        onPointerUp={(e) => {
+          if (!dragState || dragState.source.area !== area || dragState.source.index !== index) return;
+          if (dragState.hasMoved) {
+            suppressSlotClickRef.current = true;
+            const target = findDropTarget(e.clientX, e.clientY);
+            if (target?.index === -1) {
+              setPendingDelete({ source: dragState.source, slot: dragState.slot });
+            } else if (target) {
+              setInventorySlots(moveInventoryStack(inventorySlots, dragState.source, target));
+              setPendingDelete(null);
+            }
+          }
+          setDragState(null);
+        }}
+        title={slot ? `${label}: ${slot.count}` : 'Пусто'}
+      >
+        {iconUrl ? <span className="inventory-slot-icon" aria-hidden style={{ backgroundImage: `url("${iconUrl}")` }} /> : null}
+        {slot ? <span className="inventory-slot-count">{slot.count}</span> : null}
+      </button>
+    );
+  };
+
+  const carriedSlot = dragState?.hasMoved ? dragState.slot : cursorSlot;
+  const carriedLabel = carriedSlot ? (itemNameById[carriedSlot.itemId] ?? carriedSlot.itemId) : '';
+  const carriedIconUrl = carriedSlot ? getSlotIconUrl(inventorySlotToHotbarSlot(carriedSlot, carriedLabel), resourcePack) : null;
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
@@ -1029,7 +1197,10 @@ export function BuildScreen() {
           overflow: 'hidden',
           position: 'relative',
         }}
-        onPointerDownCapture={resumeWorld}
+        onPointerDownCapture={(event) => {
+          if (event.target instanceof Element && event.target.closest('.inventory-overlay')) return;
+          resumeWorld();
+        }}
         onFocusCapture={resumeWorld}
         onContextMenu={(e) => e.preventDefault()}
       >
@@ -1084,6 +1255,75 @@ export function BuildScreen() {
             );
           })}
         </div>
+
+        {isInventoryOpen ? (
+          <div
+            className="inventory-overlay"
+            role="dialog"
+            aria-label="Полный инвентарь"
+            onPointerMove={(e) => {
+              if (cursorSlot && !dragState) {
+                setCarriedPointer({ x: e.clientX, y: e.clientY });
+              }
+            }}
+          >
+            <div className="inventory-panel">
+              <div className="inventory-cursor" aria-live="polite">
+                {cursorSlot ? `${itemNameById[cursorSlot.itemId] ?? cursorSlot.itemId} x${cursorSlot.count}` : ' '}
+              </div>
+              <div className="inventory-grid">
+                {Array.from({ length: 27 }, (_, index) => renderInventorySlot('main', index))}
+              </div>
+              <div className="inventory-hotbar-grid">
+                {Array.from({ length: 8 }, (_, index) => renderInventorySlot('hotbar', index + 1))}
+              </div>
+              <button
+                type="button"
+                className={`inventory-delete-slot ${pendingDelete ? 'is-confirming' : ''}`}
+                data-inventory-delete-slot
+                onClick={() => {
+                  if (pendingDelete?.source) {
+                    setInventorySlots(deleteInventoryStack(inventorySlots, pendingDelete.source));
+                    setPendingDelete(null);
+                    return;
+                  }
+                  if (pendingDelete && cursorSlot) {
+                    const result = deleteCarriedInventoryStack(inventorySlots);
+                    setInventorySlots(result.slots);
+                    setCursorSlot(result.cursor);
+                    setPendingDelete(null);
+                    return;
+                  }
+                  if (cursorSlot) {
+                    setPendingDelete({ source: null, slot: cursorSlot });
+                  }
+                }}
+                onPointerUp={(e) => {
+                  if (!dragState?.hasMoved) return;
+                  suppressSlotClickRef.current = true;
+                  setPendingDelete({ source: dragState.source, slot: dragState.slot });
+                  setDragState(null);
+                  setCarriedPointer({ x: e.clientX, y: e.clientY });
+                }}
+                onContextMenu={(e) => e.preventDefault()}
+                title={pendingDelete ? 'Нажмите еще раз, чтобы подтвердить удаление' : 'Перетащите или положите сюда стек для удаления'}
+              >
+                <span className="inventory-delete-icon" aria-hidden />
+                {pendingDelete ? <span className="inventory-delete-badge">{pendingDelete.slot.count}</span> : null}
+              </button>
+            </div>
+            {carriedSlot ? (
+              <div
+                className="inventory-carried-stack"
+                aria-hidden
+                style={{ left: carriedPointer.x + 12, top: carriedPointer.y + 12 }}
+              >
+                {carriedIconUrl ? <span className="inventory-carried-icon" style={{ backgroundImage: `url("${carriedIconUrl}")` }} /> : null}
+                <span className="inventory-carried-count">{carriedSlot.count}</span>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <BuildHUD isFlying={isFlying} packName={resourcePack.displayName} />
