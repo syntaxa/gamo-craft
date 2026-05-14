@@ -1,8 +1,14 @@
 import { makeId } from '../../shared/lib/id';
 import { nowIso } from '../../shared/lib/time';
-import type { GridPosition, PlayerTransformState, PosterPlacement, WorldState } from './model';
+import type { GridPosition, PlayerPhysicsState, PlayerTransformState, PosterPlacement, WorldState } from './model';
 
 const DEFAULT_PLAYER_EYE_Y = 2.62;
+const PLAYER_HEIGHT = 1.62;
+const PLAYER_RADIUS = 0.32;
+const WORLD_RENDER_OFFSET = 12;
+const GRAVITY = -20;
+const JUMP_VELOCITY = 7.2;
+const MAX_FALL_SPEED = -28;
 
 export function createDefaultPlayerTransform(): PlayerTransformState {
   return {
@@ -16,6 +22,13 @@ export function createDefaultPlayerTransform(): PlayerTransformState {
       pitch: 0,
     },
     isFlying: false,
+  };
+}
+
+export function createDefaultPlayerPhysics(): PlayerPhysicsState {
+  return {
+    velocityY: 0,
+    isGrounded: true,
   };
 }
 
@@ -42,7 +55,103 @@ export function createInitialWorld(
     decorations: [],
     posters: [],
     playerTransform: createDefaultPlayerTransform(),
+    playerPhysics: createDefaultPlayerPhysics(),
     updatedAt: nowIso(),
+  };
+}
+
+function horizontallyOverlapsPlayer(
+  position: GridPosition,
+  voxel: GridPosition,
+): boolean {
+  const minX = position.x - PLAYER_RADIUS;
+  const maxX = position.x + PLAYER_RADIUS;
+  const minZ = position.z - PLAYER_RADIUS;
+  const maxZ = position.z + PLAYER_RADIUS;
+  const centerX = voxel.x - WORLD_RENDER_OFFSET;
+  const centerZ = voxel.z - WORLD_RENDER_OFFSET;
+
+  return (
+    maxX > centerX - 0.5 &&
+    minX < centerX + 0.5 &&
+    maxZ > centerZ - 0.5 &&
+    minZ < centerZ + 0.5
+  );
+}
+
+function findLandingEyeY(
+  position: GridPosition,
+  nextY: number,
+  voxels: Array<GridPosition>,
+): number | null {
+  const currentFootY = position.y - PLAYER_HEIGHT;
+  const nextFootY = nextY - PLAYER_HEIGHT;
+  let landingEyeY: number | null = null;
+
+  for (const voxel of voxels) {
+    if (!horizontallyOverlapsPlayer(position, voxel)) continue;
+
+    const surfaceY = voxel.y + 1;
+    if (currentFootY >= surfaceY && nextFootY <= surfaceY) {
+      const eyeY = surfaceY + PLAYER_HEIGHT;
+      if (landingEyeY === null || eyeY > landingEyeY) {
+        landingEyeY = eyeY;
+      }
+    }
+  }
+
+  return landingEyeY;
+}
+
+export function stepPlayerVerticalPhysics({
+  position,
+  physics,
+  voxels,
+  deltaSeconds,
+  jumpRequested,
+  isFlying,
+}: {
+  position: GridPosition;
+  physics: PlayerPhysicsState;
+  voxels: Array<GridPosition>;
+  deltaSeconds: number;
+  jumpRequested: boolean;
+  isFlying: boolean;
+}): { position: GridPosition; physics: PlayerPhysicsState } {
+  if (isFlying) {
+    return {
+      position,
+      physics: { velocityY: 0, isGrounded: false },
+    };
+  }
+
+  let velocityY = physics.velocityY;
+  let isGrounded = physics.isGrounded;
+
+  if (jumpRequested && isGrounded) {
+    velocityY = JUMP_VELOCITY;
+    isGrounded = false;
+  }
+
+  velocityY = Math.max(velocityY + GRAVITY * deltaSeconds, MAX_FALL_SPEED);
+  const nextY = position.y + velocityY * deltaSeconds;
+
+  if (velocityY <= 0) {
+    const landingEyeY = findLandingEyeY(position, nextY, voxels);
+    if (landingEyeY !== null) {
+      return {
+        position: { ...position, y: landingEyeY },
+        physics: { velocityY: 0, isGrounded: true },
+      };
+    }
+  }
+
+  return {
+    position: { ...position, y: nextY },
+    physics: {
+      velocityY,
+      isGrounded: false,
+    },
   };
 }
 

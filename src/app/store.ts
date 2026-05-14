@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import type { PlayerProfile } from '../domains/player/model';
 import type { InventoryItemKind, InventorySlot, InventoryState } from '../domains/inventory/model';
-import type { PlayerTransformState, PosterPlacement, WorldCell, WorldState } from '../domains/world/model';
+import type { PlayerPhysicsState, PlayerTransformState, PosterPlacement, WorldCell, WorldState } from '../domains/world/model';
 import {
   canPlacePoster,
+  createDefaultPlayerPhysics,
   createDefaultPlayerTransform,
   createInitialWorld,
   placePosterInWorld,
@@ -29,6 +30,7 @@ interface AppState {
   placePoster: (placement: Omit<PosterPlacement, 'id'>) => boolean;
   removePoster: (posterId: string) => boolean;
   setPlayerTransform: (playerTransform: PlayerTransformState) => void;
+  setPlayerPhysics: (playerPhysics: PlayerPhysicsState) => void;
   setInventorySlots: (slots: InventorySlot[]) => void;
 }
 
@@ -478,6 +480,15 @@ export const useAppStore = create<AppState>((set, get) => ({
       },
     })),
 
+  setPlayerPhysics: (playerPhysics) =>
+    set((state) => ({
+      world: {
+        ...normalizeWorldState(state.world),
+        playerPhysics,
+        updatedAt: new Date().toISOString(),
+      },
+    })),
+
   setInventorySlots: (slots) =>
     set((state) => ({
       inventory: recalculateInventoryFromSlots(normalizeInventoryState(state.inventory), slots),
@@ -518,5 +529,6 @@ export function normalizeWorldState(world: WorldState): WorldState {
     ...world,
     posters: world.posters ?? [],
     playerTransform: world.playerTransform ?? createDefaultPlayerTransform(),
+    playerPhysics: world.playerPhysics ?? createDefaultPlayerPhysics(),
   };
 }

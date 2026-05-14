@@ -20,6 +20,11 @@ export interface PlayerTransformState {
   isFlying: boolean;
 }
 
+export interface PlayerPhysicsState {
+  velocityY: number;
+  isGrounded: boolean;
+}
+
 export interface GridPosition {
   x: number;
   y: number;
@@ -45,5 +50,6 @@ export interface WorldState {
   decorations: Array<{ id: string; x: number; y: number; z: number }>;
   posters: PosterPlacement[];
   playerTransform: PlayerTransformState;
+  playerPhysics: PlayerPhysicsState;
   updatedAt: string;
 }

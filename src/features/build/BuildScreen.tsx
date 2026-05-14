@@ -19,8 +19,8 @@ import type { ResourcePackSpec } from '../../theme/resourcePacks';
 import { useResourcePack } from '../../theme/useResourcePack';
 import resourceItemsCatalog from '../../content/catalogs/items.resources.v1.json';
 import posterItemsCatalog from '../../content/catalogs/items.posters.v1.json';
-import type { PlayerTransformState, PosterPlacement } from '../../domains/world/model';
-import { canPlacePoster } from '../../domains/world/service';
+import type { PlayerPhysicsState, PlayerTransformState, PosterPlacement } from '../../domains/world/model';
+import { canPlacePoster, stepPlayerVerticalPhysics } from '../../domains/world/service';
 import type { InventorySlot } from '../../domains/inventory/model';
 import {
   applyInventoryAction,
@@ -180,47 +180,6 @@ function collidesWithVoxel(position: Vector3, voxels: Array<{ x: number; y: numb
   });
 }
 
-function findStandingEyeY(position: Vector3, voxels: Array<{ x: number; y: number; z: number }>): number | null {
-  const minX = position.x - PLAYER_RADIUS;
-  const maxX = position.x + PLAYER_RADIUS;
-  const footY = position.y - PLAYER_HEIGHT;
-  const minZ = position.z - PLAYER_RADIUS;
-  const maxZ = position.z + PLAYER_RADIUS;
-  let highestSurfaceY: number | null = null;
-
-  for (const voxel of voxels) {
-    const cx = voxel.x - WORLD_RENDER_OFFSET;
-    const cz = voxel.z - WORLD_RENDER_OFFSET;
-
-    const voxelMinX = cx - 0.5;
-    const voxelMaxX = cx + 0.5;
-    const voxelMinZ = cz - 0.5;
-    const voxelMaxZ = cz + 0.5;
-    const horizontallyOverlaps =
-      maxX > voxelMinX &&
-      minX < voxelMaxX &&
-      maxZ > voxelMinZ &&
-      minZ < voxelMaxZ;
-
-    if (!horizontallyOverlaps) continue;
-
-    const surfaceY = voxel.y + 1;
-    if (surfaceY > footY + 0.05) continue;
-    if (highestSurfaceY === null || surfaceY > highestSurfaceY) {
-      highestSurfaceY = surfaceY;
-    }
-  }
-
-  return highestSurfaceY === null ? null : highestSurfaceY + PLAYER_HEIGHT;
-}
-
-function placePlayerOnNearestSurface(position: Vector3, voxels: Array<{ x: number; y: number; z: number }>): void {
-  const standingEyeY = findStandingEyeY(position, voxels);
-  if (standingEyeY !== null) {
-    position.y = standingEyeY;
-  }
-}
-
 function samePlayerTransform(a: PlayerTransformState, b: PlayerTransformState): boolean {
   return (
     a.position.x === b.position.x &&
@@ -232,27 +191,41 @@ function samePlayerTransform(a: PlayerTransformState, b: PlayerTransformState): 
   );
 }
 
+function samePlayerPhysics(a: PlayerPhysicsState, b: PlayerPhysicsState): boolean {
+  return a.velocityY === b.velocityY && a.isGrounded === b.isGrounded;
+}
+
 function PlayerController({
   isFlying,
   isKeyboardInputArmed,
   isWorldPaused,
+  jumpRequestId,
   voxels,
 }: {
   isFlying: boolean;
   isKeyboardInputArmed: boolean;
   isWorldPaused: boolean;
+  jumpRequestId: number;
   voxels: Array<{ x: number; y: number; z: number }>;
 }) {
   const [, getKeys] = useKeyboardControls<ControlKey>();
+  const playerPhysics = useAppStore((s) => s.world.playerPhysics);
+  const setPlayerPhysics = useAppStore((s) => s.setPlayerPhysics);
   const forwardVec = useRef(new Vector3());
   const rightVec = useRef(new Vector3());
   const moveVec = useRef(new Vector3());
+  const physicsRef = useRef<PlayerPhysicsState>(playerPhysics);
+  const lastPersistedPhysicsRef = useRef<PlayerPhysicsState>(playerPhysics);
+  const lastPhysicsPersistTsRef = useRef(0);
+  const handledJumpRequestIdRef = useRef(jumpRequestId);
+
+  useEffect(() => {
+    physicsRef.current = playerPhysics;
+    lastPersistedPhysicsRef.current = playerPhysics;
+  }, [playerPhysics]);
 
   useFrame(({ camera }, delta) => {
     if (isWorldPaused || !isKeyboardInputArmed) {
-      if (!isFlying) {
-        placePlayerOnNearestSurface(camera.position, voxels);
-      }
       return;
     }
 
@@ -316,7 +289,34 @@ function PlayerController({
     }
 
     if (!isFlying) {
-      placePlayerOnNearestSurface(camera.position, voxels);
+      const jumpRequested = jumpRequestId !== handledJumpRequestIdRef.current;
+      handledJumpRequestIdRef.current = jumpRequestId;
+      const nextVertical = stepPlayerVerticalPhysics({
+        position: {
+          x: camera.position.x,
+          y: camera.position.y,
+          z: camera.position.z,
+        },
+        physics: physicsRef.current,
+        voxels,
+        deltaSeconds: Math.min(delta, 0.05),
+        jumpRequested,
+        isFlying,
+      });
+      camera.position.set(nextVertical.position.x, nextVertical.position.y, nextVertical.position.z);
+      physicsRef.current = nextVertical.physics;
+    } else if (!samePlayerPhysics(physicsRef.current, { velocityY: 0, isGrounded: false })) {
+      physicsRef.current = { velocityY: 0, isGrounded: false };
+    }
+
+    const now = performance.now();
+    if (
+      now - lastPhysicsPersistTsRef.current > 250 &&
+      !samePlayerPhysics(physicsRef.current, lastPersistedPhysicsRef.current)
+    ) {
+      lastPhysicsPersistTsRef.current = now;
+      lastPersistedPhysicsRef.current = physicsRef.current;
+      setPlayerPhysics(physicsRef.current);
     }
   });
 
@@ -328,6 +328,7 @@ function Scene({
   isFlying,
   isKeyboardInputArmed,
   isWorldPaused,
+  jumpRequestId,
   resourcePack,
   initialPlayerTransform,
 }: {
@@ -335,6 +336,7 @@ function Scene({
   isFlying: boolean;
   isKeyboardInputArmed: boolean;
   isWorldPaused: boolean;
+  jumpRequestId: number;
   resourcePack: ResourcePackSpec;
   initialPlayerTransform: PlayerTransformState;
 }) {
@@ -839,7 +841,13 @@ function Scene({
         />
       ) : null}
 
-      <PlayerController isFlying={isFlying} isKeyboardInputArmed={isKeyboardInputArmed} isWorldPaused={isWorldPaused} voxels={voxels} />
+      <PlayerController
+        isFlying={isFlying}
+        isKeyboardInputArmed={isKeyboardInputArmed}
+        isWorldPaused={isWorldPaused}
+        jumpRequestId={jumpRequestId}
+        voxels={voxels}
+      />
     </>
   );
 }
@@ -954,6 +962,7 @@ export function BuildScreen() {
   const [dragState, setDragState] = useState<InventoryDragState | null>(null);
   const [carriedPointer, setCarriedPointer] = useState({ x: 0, y: 0 });
   const [pendingDelete, setPendingDelete] = useState<PendingDeleteState | null>(null);
+  const [jumpRequestId, setJumpRequestId] = useState(0);
   const lastSpacePressRef = useRef(0);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const suppressSlotClickRef = useRef(false);
@@ -965,6 +974,9 @@ export function BuildScreen() {
   const resumeWorld = useCallback(() => {
     setIsWorldPaused(false);
     releaseStuckMovementKeys();
+  }, []);
+  const requestJump = useCallback(() => {
+    setJumpRequestId((prev) => prev + 1);
   }, []);
   const closeInventory = useCallback(() => {
     if (cursorSlot) {
@@ -1054,6 +1066,9 @@ export function BuildScreen() {
       }
 
       if (event.code === 'Space' && !event.repeat) {
+        if (!isFlying) {
+          requestJump();
+        }
         const now = Date.now();
         if (now - lastSpacePressRef.current <= 300) {
           setIsFlying((prev) => !prev);
@@ -1072,7 +1087,7 @@ export function BuildScreen() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [closeInventory, isInventoryOpen, pauseWorld]);
+  }, [closeInventory, isFlying, isInventoryOpen, pauseWorld, requestJump]);
 
   const selectedSlot = hotbarSlots[selectedSlotIndex] ?? hotbarSlots[1];
 
@@ -1220,12 +1235,13 @@ export function BuildScreen() {
               isFlying={isFlying}
               isKeyboardInputArmed={isKeyboardInputArmed}
               isWorldPaused={isWorldPaused}
+              jumpRequestId={jumpRequestId}
               resourcePack={resourcePack}
               initialPlayerTransform={playerTransform}
             />
           </Canvas>
         </KeyboardControls>
-        <VirtualJoystick />
+        <VirtualJoystick onJump={requestJump} />
 
         <div className="hotbar" aria-label="Инвентарь">
           {hotbarSlots.map((slot, idx) => {
