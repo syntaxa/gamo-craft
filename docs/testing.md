@@ -59,7 +59,7 @@ E2E smoke-набор находится в `src/tests/e2e` и запускает
 - Minecraft-style inventory supports baseline stack operations: pickup/place, swap, merge, split, delete slot, and hotbar synchronization with the same inventory data.
 - Build physics supports a grounded-only single jump and continuous falling; falling must not teleport the player to the next lower surface.
 - `egg_meme` costs `200` котокоинов and grants local poster items that can be stored in inventory.
-- Poster placement accepts only vertical faces, previews a `2x2` wireframe, requires one supporting block face, rejects overlap with existing posters, and does not consume inventory on invalid placement.
+- Poster placement accepts only vertical faces, previews a `2x2` wireframe, requires one supporting block face, rejects overlap with existing posters, decor, or solid blocks, and does not consume inventory on invalid placement.
 - `Математика - бронзовый` is available immediately, generates addition tasks up to `40`, and can award up to `40` котокоинов in the current 5-task lesson flow.
 
 Цель покрытия:

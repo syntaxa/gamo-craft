@@ -640,7 +640,7 @@ this.version(2).stores({
 - Для задач вычитания выполняется `a >= b`.
 - Для `Математика - бронзовый` выполняется `operation === 'add'`, `maxValue === 40`, а карточка доступна без unlock prerequisites.
 - Для active poster item выбранная грань должна быть вертикальной (`faceNormal.y === 0`).
-- Для плаката достаточно одного supporting block face под курсором; итоговая область `2x2` не должна пересекать существующие poster/decor occupancy.
+- Для плаката достаточно одного supporting block face под курсором; итоговая область `2x2` не должна пересекать существующие poster/decor occupancy или твердые блоки мира.
 - Невалидное размещение плаката показывает invalid wireframe и не списывает предмет из инвентаря.
 - В Build world постер рендерится как тонкая основа с лицевой картинкой; прозрачные области poster image показывают основу постера, а не текстуру блока за ним.
 - Каждый frame Build-режима применяет gravity к `velocityY`, интегрирует вертикальное движение и выполняет collision resolution с твердыми блоками. Запрещена логика мгновенного переноса игрока на нижнюю поверхность при потере опоры.
@@ -734,7 +734,7 @@ interface AnalyticsEvent {
 - Инварианты экономики.
 - Minecraft-style inventory operations: pickup/place, drag-and-drop whole-stack movement, swap, merge, split, delete slot, hotbar synchronization, and visible carried-stack feedback for drag/split operations.
 - Jump/fall physics: grounded-only jump and continuous falling without teleport.
-- Poster placement validation: vertical face, one supporting block face, no overlap, no inventory consumption on invalid placement.
+- Poster placement validation: vertical face, one supporting block face, no overlap with existing posters, decor, or solid blocks, no inventory consumption on invalid placement.
 
 ## 12.2. Component
 - Экран урока: прохождение 5 задач и получение результата.

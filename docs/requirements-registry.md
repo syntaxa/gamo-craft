@@ -133,7 +133,7 @@
 26. `REQ-WORLD-026` Poster rewards are inventory items and must support all ordinary inventory operations defined for Minecraft-style inventory items.
 27. `REQ-WORLD-027` A poster is a placeable world item with visual size `2x2` blocks and may be placed only on vertical surfaces.
 28. `REQ-WORLD-028` Poster placement requires one valid supporting vertical block face under the placement cursor; it does not require four supporting blocks behind the whole `2x2` area.
-29. `REQ-WORLD-029` Posters cannot be placed over other posters or overlapping poster/decor occupancy.
+29. `REQ-WORLD-029` Posters cannot be placed over other posters or overlapping occupied world cells, including decor and solid blocks.
 
 ## 6. UI и визуалы
 1. `REQ-UI-001` Lesson cards in the Learning catalog must fill available horizontal space using a responsive multi-column layout.
