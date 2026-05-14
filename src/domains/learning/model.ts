@@ -1,6 +1,7 @@
 import type { LessonProgramId, PlayerId, SessionId } from '../../shared/types/common';
 
 export type LessonLevel = 'A' | 'B' | 'C';
+export type MathLessonLevel = LessonLevel | 'bronze';
 
 export interface MathTask {
   id: string;
@@ -8,8 +9,8 @@ export interface MathTask {
   a: number;
   b: number;
   answer: number;
-  maxValue: 20;
-  level: LessonLevel;
+  maxValue: 20 | 40;
+  level: MathLessonLevel;
 }
 
 export type OrthographyRuleId =

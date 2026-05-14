@@ -2,9 +2,11 @@
 import { Card } from '../../shared/ui/Card';
 import { Button } from '../../shared/ui/Button';
 import {
+  calculateMathLessonReward,
   calculateOrthographyCardReward,
   evaluateLesson,
   evaluateOrthographyLesson,
+  generateBronzeMathLesson,
   generateMathLesson,
   generateOrthographyLesson,
 } from '../../domains/learning/service';
@@ -24,7 +26,7 @@ type DoneState = {
 } | null;
 
 type RunState =
-  | { type: 'math' }
+  | { type: 'math'; title: string; description: string; rewardMode: 'basic' | 'bronze' }
   | {
       type: 'orthography';
       title: string;
@@ -43,6 +45,12 @@ const MATH_CARD = {
   title: 'Математика до 20',
   description: 'сложение и вычитание',
   reward: 20,
+};
+
+const BRONZE_MATH_CARD = {
+  title: 'Математика - бронзовый',
+  description: 'только сложение до 40',
+  reward: 50,
 };
 
 function buildOrthographyLesson(level: LessonLevel): ReturnType<typeof generateOrthographyLesson> {
@@ -79,7 +87,8 @@ export function LessonScreen() {
     rewardClaimedRef.current = true;
 
     const result = evaluateLesson(tasks, answers);
-    const reward = result.correct * 2 + (result.accuracy >= 0.8 ? 10 : 0);
+    const rewardMode = running?.type === 'math' ? running.rewardMode : 'basic';
+    const reward = calculateMathLessonReward(result, rewardMode);
     const items = tasks.map((task) => {
       const answer = answers[task.id];
       const isCorrect = answer === task.answer;
@@ -123,7 +132,27 @@ export function LessonScreen() {
   function startMathLesson() {
     rewardClaimedRef.current = false;
     setTasks(generateMathLesson(level, 5));
-    setRunning({ type: 'math' });
+    setRunning({
+      type: 'math',
+      title: MATH_CARD.title,
+      description: 'Сложение и вычитание. За правильные ответы даются котокоины.',
+      rewardMode: 'basic',
+    });
+    setDone(null);
+    setAnswers({});
+    setOrthTasks([]);
+    setOrthAnswers({});
+  }
+
+  function startBronzeMathLesson() {
+    rewardClaimedRef.current = false;
+    setTasks(generateBronzeMathLesson(5));
+    setRunning({
+      type: 'math',
+      title: BRONZE_MATH_CARD.title,
+      description: 'Только сложение до 40. Бронзовая карточка дает повышенную награду.',
+      rewardMode: 'bronze',
+    });
     setDone(null);
     setAnswers({});
     setOrthTasks([]);
@@ -155,8 +184,8 @@ export function LessonScreen() {
           </header>
         ) : running.type === 'math' ? (
           <header className="lesson-head">
-            <h2>Математика до 20</h2>
-            <p>Сложение и вычитание. За правильные ответы даются котокоины.</p>
+            <h2>{running.title}</h2>
+            <p>{running.description}</p>
           </header>
         ) : (
           <header className="lesson-head">
@@ -212,6 +241,22 @@ export function LessonScreen() {
                     CAT
                   </span>
                   <span>{MATH_CARD.reward}</span>
+                </div>
+              </div>
+            </article>
+
+            <article className="lesson-program-card">
+              <h3>{BRONZE_MATH_CARD.title}</h3>
+              <p className="lesson-card-description">{BRONZE_MATH_CARD.description}</p>
+              <div className="lesson-card-footer">
+                <Button className="lesson-cta" onClick={startBronzeMathLesson}>
+                  Войти в урок
+                </Button>
+                <div className="lesson-card-reward">
+                  <span className="coin lesson-card-coin" aria-hidden>
+                    CAT
+                  </span>
+                  <span>{BRONZE_MATH_CARD.reward}</span>
                 </div>
               </div>
             </article>

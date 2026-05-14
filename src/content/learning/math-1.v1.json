@@ -4,7 +4,8 @@
   "levels": {
     "A": { "range": [1, 10], "operations": ["add", "sub"] },
     "B": { "range": [1, 20], "operations": ["add", "sub"] },
-    "C": { "range": [1, 20], "operations": ["add", "sub"], "mixed": true }
+    "C": { "range": [1, 20], "operations": ["add", "sub"], "mixed": true },
+    "bronze": { "range": [1, 40], "operations": ["add"], "displayName": "Математика - бронзовый" }
   },
   "lesson": {
     "minTasks": 5,
@@ -12,7 +13,9 @@
     "reward": {
       "correctAnswer": 2,
       "streak5": 5,
-      "lessonAccuracy80": 10
+      "lessonAccuracy80": 10,
+      "bronzeCorrectAnswer": 4,
+      "bronzeLessonAccuracy80": 30
     }
   }
 }

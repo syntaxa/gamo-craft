@@ -5,9 +5,11 @@ import {
   generateOrthographyLesson,
 } from '../../domains/learning/generators/orthography';
 import {
+  calculateMathLessonReward,
   calculateOrthographyCardReward,
   evaluateLesson,
   evaluateOrthographyLesson,
+  generateBronzeMathLesson,
   generateMathLesson,
 } from '../../domains/learning/service';
 
@@ -38,6 +40,26 @@ describe('math-1 lesson generation', () => {
     });
 
     expect(result).toEqual({ correct: 1, total: 2, accuracy: 0.5 });
+  });
+
+  it('generates bronze math as addition up to 40 and calculates the boosted reward', () => {
+    const tasks = generateBronzeMathLesson(20);
+
+    expect(tasks).toHaveLength(20);
+    for (const task of tasks) {
+      expect(task.operation).toBe('add');
+      expect(task.maxValue).toBe(40);
+      expect(task.level).toBe('bronze');
+      expect(task.a).toBeGreaterThanOrEqual(1);
+      expect(task.b).toBeGreaterThanOrEqual(1);
+      expect(task.answer).toBe(task.a + task.b);
+      expect(task.answer).toBeLessThanOrEqual(40);
+    }
+
+    expect(calculateMathLessonReward({ correct: 5, accuracy: 1 }, 'bronze')).toBe(50);
+    expect(calculateMathLessonReward({ correct: 4, accuracy: 0.8 }, 'bronze')).toBe(46);
+    expect(calculateMathLessonReward({ correct: 3, accuracy: 0.6 }, 'bronze')).toBe(12);
+    expect(calculateMathLessonReward({ correct: 5, accuracy: 1 }, 'basic')).toBe(20);
   });
 });
 

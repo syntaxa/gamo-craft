@@ -9,6 +9,10 @@ export function generateMathLesson(level: LessonLevel, count = 5): MathTask[] {
   );
 }
 
+export function generateBronzeMathLesson(count = 5): MathTask[] {
+  return Array.from({ length: count }, () => generateAddTask('bronze'));
+}
+
 export function evaluateLesson(
   tasks: MathTask[],
   answers: Record<string, number>,
@@ -17,6 +21,15 @@ export function evaluateLesson(
   const total = tasks.length;
   const accuracy = total > 0 ? correct / total : 0;
   return { correct, total, accuracy };
+}
+
+export function calculateMathLessonReward(
+  result: Pick<ReturnType<typeof evaluateLesson>, 'correct' | 'accuracy'>,
+  mode: 'basic' | 'bronze',
+): number {
+  const correctAnswerReward = mode === 'bronze' ? 4 : 2;
+  const accuracyBonus = mode === 'bronze' ? 30 : 10;
+  return result.correct * correctAnswerReward + (result.accuracy >= 0.8 ? accuracyBonus : 0);
 }
 
 export function calculateOrthographyCardReward(baseReward: number, mistakes: number): number {

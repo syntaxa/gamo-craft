@@ -1,9 +1,9 @@
 ﻿import { makeId } from '../../../shared/lib/id';
 import { randomInt } from '../../../shared/lib/rng';
-import type { MathTask } from '../model';
+import type { MathLessonLevel, MathTask } from '../model';
 
-export function generateAddTask(level: 'A' | 'B' | 'C'): MathTask {
-  const max = level === 'A' ? 10 : 20;
+export function generateAddTask(level: MathLessonLevel): MathTask {
+  const max = level === 'A' ? 10 : level === 'bronze' ? 40 : 20;
   const a = randomInt(1, max - 1);
   const b = randomInt(1, max - a);
   return {
@@ -12,7 +12,7 @@ export function generateAddTask(level: 'A' | 'B' | 'C'): MathTask {
     a,
     b,
     answer: a + b,
-    maxValue: 20,
+    maxValue: level === 'bronze' ? 40 : 20,
     level,
   };
 }

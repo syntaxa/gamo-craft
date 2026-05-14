@@ -53,8 +53,8 @@
 | IMPLEMENTED | `REQ-UI-004`, `REQ-UI-005` | `src/features/build/BuildScreen.tsx`, `src/styles.css`, `src/tests/unit/inventorySlotActions.test.ts`. |
 | IMPLEMENTED | `REQ-VIS-001`, `REQ-VIS-002`, `REQ-VIS-004`, `REQ-VIS-005`, `REQ-VIS-006`, `REQ-VIS-007`, `REQ-VIS-008`, `REQ-VIS-009` | `src/theme/resourcePacks.ts`, `src/theme/applyResourcePack.ts`, `src/features/build/BuildScreen.tsx`, `src/styles.css`. |
 | PARTIAL | `REQ-PROD-002`, `REQ-PLAT-002`, `REQ-VIS-003` | Основной цикл и desktop/tablet-ориентированные экраны есть, но нет полного приемочного покрытия для всей продуктовой петли, Android-планшета и юридической проверки всех ассетов. |
-| IMPLEMENTED | `REQ-INPUT-006`, `REQ-WORLD-023`, `REQ-WORLD-024`, `REQ-VIS-013` | `src/domains/world/service.ts:stepPlayerVerticalPhysics` implements grounded-only jump and frame-by-frame gravity-driven falling; `src/features/build/BuildScreen.tsx` calls physics per frame and handles `Space` plus touch jump; `src/tests/unit/world.test.ts` covers initial physics, air-jump rejection, and continuous falling until landing. |
-| NOT_IMPLEMENTED | `REQ-LEARN-014`, `REQ-LEARN-015`, `REQ-LEARN-016`, `REQ-ECO-007` | Поиск по `src` не находит отдельной карточки/программы `Математика - бронзовый`, генерации сложения до `40` и повышенной формулы награды. |
+| IMPLEMENTED | `REQ-INPUT-006`, `REQ-WORLD-023`, `REQ-WORLD-024`, `REQ-VIS-013` | `src/domains/world/service.ts:stepPlayerVerticalPhysics` реализует grounded-only jump и покадровое gravity-driven падение; `src/features/build/BuildScreen.tsx` вызывает физику в кадре, обрабатывает `Space` и touch-кнопку прыжка; `src/tests/unit/world.test.ts` покрывает стартовую физику, запрет air-jump и непрерывное падение до приземления. |
+| IMPLEMENTED | `REQ-LEARN-014`, `REQ-LEARN-015`, `REQ-LEARN-016`, `REQ-ECO-007` | `src/features/lesson/LessonScreen.tsx`, `src/domains/learning/service.ts`, `src/domains/learning/generators/mathAdd.ts`, `src/content/learning/math-1.v1.json`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
 | UNKNOWN | `REQ-PROD-001`, `REQ-PROD-003` | Возраст аудитории и тон UX являются продуктовыми критериями; текущий код и тесты не дают надежной автоматической проверки. |
 
 ## 1. Продукт и аудитория
@@ -97,7 +97,7 @@
 4. `REQ-ECO-004` Orthography card base rewards are fixed to `20`/`40`/`80` cat coins for easy/medium/hard.
 5. `REQ-ECO-005` Orthography card reward penalties depend on mistakes count: `0` mistakes -> `100%` reward; `1` mistake -> `-10%`; `2` mistakes -> `-30%`; `3` mistakes -> `0` reward.
 6. `REQ-ECO-006` Shop must sell `10` `block_glass` blocks for `50` cat coins.
-7. `REQ-ECO-007` `Математика - бронзовый` rewards are twice the current maximum reward of the hardest existing math lesson: current implementation target is up to `40` cat coins per 5-task mini-lesson via `4` cat coins per correct answer plus `20` cat coins bonus at `80%+` accuracy.
+7. `REQ-ECO-007` `Математика - бронзовый` rewards are increased above the hardest existing math lesson: current implementation target is up to `50` cat coins per 5-task mini-lesson via `4` cat coins per correct answer plus `30` cat coins bonus at `80%+` accuracy.
 8. `REQ-EGG-001` После открытия яйца награда должна отображаться визуально карточкой блока в стиле витрины магазина (изометрический preview + количество).
 9. `REQ-EGG-002` После отображения награды из яйца карточка лута должна запускать плавное исчезновение через `2` секунды и убираться с экрана.
 10. `REQ-EGG-003` Common egg loot table must include `block_coin` (`Монетный блок`) so the block can be obtained from eggs and used in build mode.

@@ -42,6 +42,34 @@ describe('LessonScreen', () => {
     expect(screen.queryByRole('button', { name: 'Проверить' })).not.toBeInTheDocument();
   });
 
+  it('starts the bronze math card with addition up to 40 and grants the boosted reward', async () => {
+    const user = userEvent.setup();
+    render(<LessonScreen />);
+
+    const bronzeCard = screen.getByText('Математика - бронзовый').closest('article');
+    expect(bronzeCard).not.toBeNull();
+    expect(within(bronzeCard as HTMLElement).getByText('50')).toBeInTheDocument();
+    await user.click(within(bronzeCard as HTMLElement).getByRole('button', { name: 'Войти в урок' }));
+
+    expect(screen.getByRole('heading', { name: 'Математика - бронзовый' })).toBeInTheDocument();
+    const inputs = screen.getAllByLabelText(/Ответ для примера/);
+    const expressions = document.querySelectorAll('.lesson-expr');
+    expect(inputs).toHaveLength(5);
+
+    for (let index = 0; index < inputs.length; index += 1) {
+      const expression = expressions[index]!.textContent ?? '';
+      expect(expression).toContain('+');
+      expect(expression).not.toContain('-');
+      await user.type(inputs[index]!, String(solveExpression(expression)));
+    }
+
+    await user.click(screen.getByRole('button', { name: 'Проверить' }));
+
+    expect(screen.getByText(/Верно: 5\/5/)).toBeInTheDocument();
+    expect(screen.getByText('50')).toBeInTheDocument();
+    expect(useAppStore.getState().player.currencyCatCoins).toBe(150);
+  });
+
   it('starts an orthography card with three choice_3 tasks and applies reward penalties', async () => {
     const user = userEvent.setup();
     render(<LessonScreen />);
