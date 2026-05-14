@@ -93,4 +93,20 @@ describe('world domain', () => {
       }),
     ).toBe(false);
   });
+
+  it('rejects poster placement through solid world blocks', () => {
+    const world = createInitialWorld('player-1', 6, 6, 6);
+    world.voxels.push({ x: 2, y: 1, z: 2, blockId: 'block_brick_red' });
+    world.voxels.push({ x: 3, y: 2, z: 2, blockId: 'block_brick_red' });
+
+    expect(
+      canPlacePoster(world, {
+        itemId: 'poster_meme_cat_1',
+        anchor: { x: 3, y: 1, z: 2 },
+        faceNormal: { x: 1, y: 0, z: 0 },
+        widthBlocks: 2,
+        heightBlocks: 2,
+      }),
+    ).toBe(false);
+  });
 });

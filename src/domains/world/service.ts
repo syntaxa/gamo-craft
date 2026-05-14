@@ -107,6 +107,13 @@ function overlapsDecor(world: WorldState, placement: Omit<PosterPlacement, 'id'>
   return world.decorations.some((decor) => nextCells.some((cell) => samePosition(cell, decor)));
 }
 
+function overlapsSolidVoxel(world: WorldState, placement: Omit<PosterPlacement, 'id'>): boolean {
+  const nextCells = getPosterCells(placement);
+  return world.voxels.some(
+    (voxel) => voxel.blockId !== null && nextCells.some((cell) => samePosition(cell, voxel)),
+  );
+}
+
 export function canPlacePoster(world: WorldState, placement: Omit<PosterPlacement, 'id'>): boolean {
   const isVerticalFace = placement.faceNormal.y === 0 && (placement.faceNormal.x !== 0 || placement.faceNormal.z !== 0);
   if (!isVerticalFace) return false;
@@ -114,6 +121,7 @@ export function canPlacePoster(world: WorldState, placement: Omit<PosterPlacemen
   if (!getPosterCells(placement).every((cell) => inWorldBounds(world, cell))) return false;
   if (overlapsExistingPoster(world, placement)) return false;
   if (overlapsDecor(world, placement)) return false;
+  if (overlapsSolidVoxel(world, placement)) return false;
 
   return true;
 }
