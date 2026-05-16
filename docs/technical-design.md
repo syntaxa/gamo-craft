@@ -320,7 +320,7 @@ export interface CurrencyTxn {
 }
 ```
 
-Картинки meme cats для poster items хранятся локально в `public/assets/posters/transparent` и подключаются через `items.posters.v1.json`. Исходники набора могут лежать в `public/assets`, но runtime-каталог должен ссылаться на нормализованные PNG с прозрачным canvas. Пополнение набора выполняется добавлением нормализованного файла, записи poster item в каталог и при необходимости записи в `loot_meme_posters`. Runtime-загрузка внешних изображений не входит в контракт.
+Картинки meme cats для poster items хранятся локально в `public/assets/posters/transparent` и подключаются через `items.posters.v1.json`. Новые исходники для импорта помещаются в staging-папку `public/assets/posters/toadd`; после успешного переноса в runtime-набор исходные файлы удаляются из `toadd`. Runtime-каталог должен ссылаться на нормализованные PNG с прозрачным canvas. Пополнение набора выполняется добавлением нормализованного файла, записи poster item в каталог и при необходимости записи в `loot_meme_posters`. Runtime-загрузка внешних изображений не входит в контракт.
 
 `items.cosmetics.v1.json`
 ```json
