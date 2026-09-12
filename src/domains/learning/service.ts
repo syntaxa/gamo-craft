@@ -37,7 +37,7 @@ export function calculateMathLessonReward(
   result: Pick<ReturnType<typeof evaluateLesson>, 'correct' | 'accuracy'>,
   mode: 'basic' | 'bronze' | 'silver',
 ): number {
-  const correctAnswerReward = mode === 'bronze' ? 4 : mode === 'silver' ? 10 : 2;
+  const correctAnswerReward = mode === 'bronze' ? 4 : mode === 'silver' ? 20 : 2;
   const accuracyBonus = mode === 'bronze' ? 30 : mode === 'silver' ? 50 : 10;
   return result.correct * correctAnswerReward + (result.accuracy >= 0.8 ? accuracyBonus : 0);
 }

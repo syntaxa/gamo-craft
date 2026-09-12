@@ -62,7 +62,7 @@ E2E smoke-набор находится в `src/tests/e2e` и запускает
 - `egg_sbear` costs `400` котокоинов and grants local poster items of category `sbearadventure` that can be stored in inventory.
 - Poster placement accepts only vertical faces, previews a `2x2` wireframe, requires one supporting block face, rejects overlap with existing posters, decor, or solid blocks, and does not consume inventory on invalid placement.
 - `Математика - бронзовый` is available immediately, generates addition tasks up to `40`, and can award up to `50` котокоинов in the current 5-task lesson flow.
-- `Математика - серебряный` is available immediately, generates only multiplication and division tasks in the range up to `20` (operands `2..9`, product/dividend `<= 20`, exact division), alternates operations, and can award up to `100` котокоинов in the current 5-task lesson flow.
+- `Математика - серебряный` is available immediately, generates only multiplication and division tasks in the range up to `20` (operands `2..9`, product/dividend `<= 20`, exact division), alternates operations, and can award up to `150` котокоинов in the current 5-task lesson flow.
 - `Учим слова - Легендарно` is available immediately, generates `5` `letter_gap` tasks (a word with one hidden letter as a `stem` with `_` gap, `6` unique letter options per task), and scales the reward with correct answers up to `150` котокоинов (`150` for `5/5`, `120` for `4/5`, `90` for `3/5`, `0` for `0/5`).
 
 Цель покрытия:
@@ -73,7 +73,7 @@ E2E smoke-набор находится в `src/tests/e2e` и запускает
 Тестируем React-экраны с реальным Zustand-store и реальными доменными модулями. До переноса логики в `src/application/useCases` UI-сценарии проверяются через фактический путь `screen -> store/domain`:
 - `LessonScreen`: прохождение математического мини-урока, результат, начисление валюты один раз;
 - `LessonScreen`: карточки `Учим слова - Легко/Средне/Сложно`, генерация `3` заданий `choice_3`, расчет награды `20/40/80` со штрафами за ошибки;
-- `LessonScreen`: карточка `Математика - серебряный` запускает урок умножения/деления до `20` (знаки `×` и `:`), решается 5 задач, начисляется награда `100` котокоинов;
+- `LessonScreen`: карточка `Математика - серебряный` запускает урок умножения/деления до `20` (знаки `×` и `:`), решается 5 задач, начисляется награда `150` котокоинов;
 - `LessonScreen`: карточка `Учим слова - Легендарно` запускает урок `letter_gap` из `5` заданий по `6` вариантов букв в каждом, начисляется награда в пределах `100..250` котокоинов;
 - `EggsScreen`: покупка яйца, выдача FPV-награды, визуальный результат, fade-out карточки лута через 2 секунды;
 - `BuildScreen`: выбор блока, установка/удаление, расход и возврат инвентаря;
@@ -114,6 +114,11 @@ E2E smoke-набор находится в `src/tests/e2e` и запускает
 - закрытие/открытие контекста;
 - проверка восстановления из IndexedDB;
 - отдельная проверка: блок, поставленный непосредственно перед закрытием вкладки, восстанавливается из LocalStorage-снимка, если IndexedDB не успела записаться.
+
+6. `egg-flow` (`src/tests/e2e/egg-flow.spec.ts`)
+- открытие `Super bear` яйца при достаточном балансе: списывается `400` котокоинов, постер категории `sbearadventure` попадает в инвентарь (постеры + слот);
+- открытие котового яйца: списывается `200` котокоинов, мемный постер попадает в инвентарь;
+- открытие яйца без средств: баланс не меняется, показывается `Недостаточно котокоинов`.
 
 5. `orthography-card-flow`
 - открыть `Учим слова - Легко`;

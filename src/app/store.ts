@@ -21,8 +21,8 @@ interface AppState {
   addCatCoins: (amount: number) => void;
   spendCatCoins: (amount: number) => boolean;
   addInventoryItem: (itemId: string, count: number) => void;
-  addBlockRewardItem: (itemId: string, count: number) => void;
-  addPosterItem: (itemId: string, count: number) => void;
+  addBlockRewardItem: (itemId: string, count: number) => boolean;
+  addPosterItem: (itemId: string, count: number) => boolean;
   consumeBlockItem: (itemId: string, count?: number) => boolean;
   consumePosterItem: (itemId: string, count?: number) => boolean;
   placeVoxel: (x: number, y: number, z: number, blockId: string) => boolean;
@@ -59,6 +59,12 @@ function sortSlots(slots: InventorySlot[]): InventorySlot[] {
     if (a.area !== b.area) return a.area === 'hotbar' ? -1 : 1;
     return a.index - b.index;
   });
+}
+
+function sumItemCount(slots: InventorySlot[], itemKind: InventoryItemKind, itemId: string): number {
+  return slots
+    .filter((slot) => slot.itemKind === itemKind && slot.itemId === itemId)
+    .reduce((acc, slot) => acc + slot.count, 0);
 }
 
 function findFreeSlot(slots: InventorySlot[]): Pick<InventorySlot, 'area' | 'index'> | null {
@@ -287,41 +293,55 @@ export const useAppStore = create<AppState>((set, get) => ({
       };
     }),
 
-  addBlockRewardItem: (itemId, count) =>
+  addBlockRewardItem: (itemId, count) => {
+    let ok = false;
     set((state) => {
       if (!isBlockItem(itemId)) return state;
       const inventory = normalizeInventoryState(state.inventory);
+      const before = sumItemCount(inventory.slots, 'block', itemId);
+      const nextSlots = addToSlots(inventory.slots, 'block', itemId, count);
+      ok = before + count <= sumItemCount(nextSlots, 'block', itemId);
+      const nextBlockCount = ok ? (inventory.blocks[itemId] ?? 0) + count : (inventory.blocks[itemId] ?? 0);
 
       return {
         inventory: {
           ...inventory,
           blocks: {
             ...inventory.blocks,
-            [itemId]: (inventory.blocks[itemId] ?? 0) + count,
+            [itemId]: nextBlockCount,
           },
-          slots: addToSlots(inventory.slots, 'block', itemId, count),
+          slots: nextSlots,
           updatedAt: new Date().toISOString(),
         },
       };
-    }),
+    });
+    return ok;
+  },
 
-  addPosterItem: (itemId, count) =>
+  addPosterItem: (itemId, count) => {
+    let ok = false;
     set((state) => {
       if (!isPosterItem(itemId)) return state;
       const inventory = normalizeInventoryState(state.inventory);
+      const before = sumItemCount(inventory.slots, 'poster', itemId);
+      const nextSlots = addToSlots(inventory.slots, 'poster', itemId, count);
+      ok = before + count <= sumItemCount(nextSlots, 'poster', itemId);
+      const nextPosterCount = ok ? (inventory.posters[itemId] ?? 0) + count : (inventory.posters[itemId] ?? 0);
 
       return {
         inventory: {
           ...inventory,
           posters: {
             ...inventory.posters,
-            [itemId]: (inventory.posters[itemId] ?? 0) + count,
+            [itemId]: nextPosterCount,
           },
-          slots: addToSlots(inventory.slots, 'poster', itemId, count),
+          slots: nextSlots,
           updatedAt: new Date().toISOString(),
         },
       };
-    }),
+    });
+    return ok;
+  },
 
   consumeBlockItem: (itemId, count = 1) => {
     let ok = false;

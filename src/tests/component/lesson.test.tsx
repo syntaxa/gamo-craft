@@ -80,7 +80,7 @@ describe('LessonScreen', () => {
 
     const silverCard = screen.getByText('Математика - серебряный').closest('article');
     expect(silverCard).not.toBeNull();
-    expect(within(silverCard as HTMLElement).getByText('100')).toBeInTheDocument();
+    expect(within(silverCard as HTMLElement).getByText('150')).toBeInTheDocument();
     await user.click(within(silverCard as HTMLElement).getByRole('button', { name: 'Войти в урок' }));
 
     expect(screen.getByRole('heading', { name: 'Математика - серебряный' })).toBeInTheDocument();
@@ -97,8 +97,8 @@ describe('LessonScreen', () => {
     await user.click(screen.getByRole('button', { name: 'Проверить' }));
 
     expect(screen.getByText(/Верно: 5\/5/)).toBeInTheDocument();
-    expect(screen.getByText('100')).toBeInTheDocument();
-    expect(useAppStore.getState().player.currencyCatCoins).toBe(200);
+    expect(screen.getByText('150')).toBeInTheDocument();
+    expect(useAppStore.getState().player.currencyCatCoins).toBe(250);
   });
 
   it('starts an orthography card with three choice_3 tasks and applies reward penalties', async () => {

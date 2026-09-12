@@ -58,6 +58,7 @@ function rollReward(pool: EggReward[]): EggReward {
 
 export function EggsScreen() {
   const spend = useAppStore((s) => s.spendCatCoins);
+  const addCatCoins = useAppStore((s) => s.addCatCoins);
   const addBlockRewardItem = useAppStore((s) => s.addBlockRewardItem);
   const addPosterItem = useAppStore((s) => s.addPosterItem);
   const resourcePack = useResourcePack();
@@ -82,13 +83,12 @@ export function EggsScreen() {
     };
   }, [lastReward]);
 
-  function grantReward(reward: EggReward) {
+  function grantReward(reward: EggReward): boolean {
     if (reward.kind === 'poster') {
-      addPosterItem(reward.id, reward.count);
-      return;
+      return addPosterItem(reward.id, reward.count);
     }
 
-    addBlockRewardItem(reward.id, reward.count);
+    return addBlockRewardItem(reward.id, reward.count);
   }
 
   function openEgg(priceCatCoins: number, pool: EggReward[]) {
@@ -100,7 +100,13 @@ export function EggsScreen() {
     }
 
     const reward = rollReward(pool);
-    grantReward(reward);
+    if (!reward || !grantReward(reward)) {
+      addCatCoins(priceCatCoins);
+      setErrorMessage('В инвентаре нет места — награда не выдана, котокоины возвращены');
+      setIsRewardFading(false);
+      setLastReward(null);
+      return;
+    }
     setErrorMessage('');
     setIsRewardFading(false);
     setLastReward(reward);

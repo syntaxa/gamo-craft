@@ -39,6 +39,7 @@
 | IMPLEMENTED | `REQ-EGG-001`, `REQ-EGG-002`, `REQ-EGG-003` | `src/features/eggs/EggsScreen.tsx`, `src/content/catalogs/lootTables.v1.json`, `src/tests/component/eggs.test.tsx`, `src/tests/unit/appStore.test.ts`. |
 | IMPLEMENTED | `REQ-EGG-007`, `REQ-EGG-008` | `src/content/catalogs/eggs.v1.json`, `src/content/catalogs/items.posters.v1.json`, `src/content/catalogs/lootTables.v1.json`, `src/features/eggs/EggsScreen.tsx`, `src/tests/unit/catalogs.test.ts`, `src/tests/component/eggs.test.tsx`. |
 | IMPLEMENTED | `REQ-EGG-009` | `src/content/catalogs/eggs.v1.json`, `src/content/catalogs/lootTables.v1.json`, `src/features/eggs/EggsScreen.tsx`, `src/tests/component/eggs.test.tsx`. |
+| IMPLEMENTED | `REQ-EGG-010` | `src/app/store.ts:addPosterItem/addBlockRewardItem` (возвращают признак выдачи), `src/features/eggs/EggsScreen.tsx:openEgg` (рефанд + сообщение), `src/tests/component/eggs.test.tsx`, `src/tests/e2e/egg-flow.spec.ts`. |
 | IMPLEMENTED | `REQ-WORLD-001`, `REQ-WORLD-002` | `src/domains/world/service.ts:createInitialWorld`, `src/features/build/BuildScreen.tsx`, `src/tests/unit/world.test.ts`. |
 | IMPLEMENTED | `REQ-WORLD-003`, `REQ-WORLD-004` | `src/features/build/BuildScreen.tsx`: `collidesWithVoxel` и осевое скольжение при коллизии. |
 | IMPLEMENTED | `REQ-WORLD-005`, `REQ-WORLD-006`, `REQ-WORLD-007` | `src/features/build/BuildScreen.tsx`: `makeHotbarSlots`, `getSlotIconUrl`, hotbar render. |
@@ -105,7 +106,7 @@
 5. `REQ-ECO-005` Orthography card reward penalties depend on mistakes count: `0` mistakes -> `100%` reward; `1` mistake -> `-10%`; `2` mistakes -> `-30%`; `3` mistakes -> `0` reward.
 6. `REQ-ECO-006` Shop must sell `10` `block_glass` blocks for `50` cat coins.
 7. `REQ-ECO-007` `Математика - бронзовый` rewards are increased above the hardest existing math lesson: current implementation target is up to `50` cat coins per 5-task mini-lesson via `4` cat coins per correct answer plus `30` cat coins bonus at `80%+` accuracy.
-8. `REQ-ECO-008` `Математика - серебряный` rewards are increased above the bronze level: `10` cat coins per correct answer plus `50` cat coins bonus at `80%+` accuracy, максимум `100` котокоинов за 5-задачный мини-урок.
+8. `REQ-ECO-008` `Математика - серебряный` rewards are increased above the bronze level: `20` cat coins per correct answer plus `50` cat coins bonus at `80%+` accuracy, максимум `150` котокоинов за 5-задачный мини-урок.
 9. `REQ-ECO-009` `Учим слова - Легендарно` reward scales proportionally with the number of correct answers in a 5-task mini-lesson: `150` cat coins for `5/5`, `120` for `4/5`, `90` for `3/5`, `60` for `2/5`, `30` for `1/5`, `0` for `0/5`.
 8. `REQ-EGG-001` После открытия яйца награда должна отображаться визуально карточкой блока в стиле витрины магазина (изометрический preview + количество).
 9. `REQ-EGG-002` После отображения награды из яйца карточка лута должна запускать плавное исчезновение через `2` секунды и убираться с экрана.
@@ -113,6 +114,7 @@
 11. `REQ-EGG-007` A new expensive egg type `egg_meme` (`Котовое яйцо`) must be available for `200` cat coins.
 12. `REQ-EGG-008` `egg_meme` rewards must be poster items with meme cat images of category `cats` from a curated local asset set provided to the project; the game must not load external meme images at runtime.
 13. `REQ-EGG-009` A new expensive egg type `egg_sbear` (`Super bear`) must be available for `400` cat coins and reward poster items of category `sbearadventure`.
+14. `REQ-EGG-010` Если награда из яйца не помещается в инвентарь (нет свободных слотов или стек достиг лимита), котокоины должны возвращаться игроку и отображаться сообщение; награда не должна теряться молча.
 
 ## 5. Мир, строительство и инвентарь
 1. `REQ-WORLD-001` Мир в MVP — воксельный.

@@ -79,4 +79,37 @@ describe('EggsScreen', () => {
     expect(useAppStore.getState().inventory.posters.poster_meme_cat_21).toBe(1);
     expect(screen.getByText('Super bear adventure 21')).toBeInTheDocument();
   });
+
+  it('refunds coins and shows an error when the Super bear egg reward cannot fit in the inventory', async () => {
+    const user = userEvent.setup();
+    const fullSlots = [
+      ...Array.from({ length: 8 }, (_, i) => ({
+        id: `slot-hotbar-${i + 1}`,
+        area: 'hotbar',
+        index: i + 1,
+        itemKind: 'block',
+        itemId: 'block_brick_red',
+        count: 64,
+      })),
+      ...Array.from({ length: 27 }, (_, i) => ({
+        id: `slot-main-${i}`,
+        area: 'main',
+        index: i,
+        itemKind: 'block',
+        itemId: 'block_brick_red',
+        count: 64,
+      })),
+    ] as never;
+    resetAppStore({ player: { currencyCatCoins: 420 }, inventory: { slots: fullSlots } });
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    render(<EggsScreen />);
+
+    await user.click(screen.getByRole('button', { name: 'Открыть яйцо Super bear' }));
+
+    expect(useAppStore.getState().player.currencyCatCoins).toBe(420);
+    expect(useAppStore.getState().inventory.posters.poster_meme_cat_21).toBe(0);
+    expect(useAppStore.getState().inventory.slots.filter((slot) => slot.itemKind === 'poster')).toHaveLength(0);
+    expect(screen.getByText('В инвентаре нет места — награда не выдана, котокоины возвращены')).toBeInTheDocument();
+  });
 });

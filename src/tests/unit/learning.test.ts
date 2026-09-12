@@ -92,10 +92,10 @@ describe('math-1 lesson generation', () => {
     }
   });
 
-  it('calculates the silver math reward up to 100 coins with accuracy bonus at 80%+', () => {
-    expect(calculateMathLessonReward({ correct: 5, accuracy: 1 }, 'silver')).toBe(100);
-    expect(calculateMathLessonReward({ correct: 4, accuracy: 0.8 }, 'silver')).toBe(90);
-    expect(calculateMathLessonReward({ correct: 3, accuracy: 0.6 }, 'silver')).toBe(30);
+  it('calculates the silver math reward up to 150 coins with accuracy bonus at 80%+', () => {
+    expect(calculateMathLessonReward({ correct: 5, accuracy: 1 }, 'silver')).toBe(150);
+    expect(calculateMathLessonReward({ correct: 4, accuracy: 0.8 }, 'silver')).toBe(130);
+    expect(calculateMathLessonReward({ correct: 3, accuracy: 0.6 }, 'silver')).toBe(60);
   });
 });
 

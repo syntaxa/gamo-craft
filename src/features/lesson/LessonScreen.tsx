@@ -65,7 +65,7 @@ const BRONZE_MATH_CARD = {
 const SILVER_MATH_CARD = {
   title: 'Математика - серебряный',
   description: 'умножение и деление до 20',
-  reward: 100,
+  reward: 150,
 };
 
 const LEGENDARY_WORD_CARD = {
