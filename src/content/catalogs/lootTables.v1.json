@@ -44,7 +44,13 @@
         { "itemId": "poster_meme_cat_24", "weight": 100, "duplicateCompensationCatCoins": 20 },
         { "itemId": "poster_meme_cat_25", "weight": 100, "duplicateCompensationCatCoins": 20 },
         { "itemId": "poster_meme_cat_26", "weight": 100, "duplicateCompensationCatCoins": 20 },
-        { "itemId": "poster_meme_cat_27", "weight": 100, "duplicateCompensationCatCoins": 20 }
+        { "itemId": "poster_meme_cat_27", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_28", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_29", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_30", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_31", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_32", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_33", "weight": 100, "duplicateCompensationCatCoins": 20 }
       ]
     }
   ]

@@ -270,6 +270,66 @@
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_28",
+      "name": "Super bear adventure 28",
+      "kind": "poster",
+      "category": "sbearadventure",
+      "image": "/assets/posters/transparent/poster_meme_cat_28.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_29",
+      "name": "Super bear adventure 29",
+      "kind": "poster",
+      "category": "sbearadventure",
+      "image": "/assets/posters/transparent/poster_meme_cat_29.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_30",
+      "name": "Super bear adventure 30",
+      "kind": "poster",
+      "category": "sbearadventure",
+      "image": "/assets/posters/transparent/poster_meme_cat_30.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_31",
+      "name": "Super bear adventure 31",
+      "kind": "poster",
+      "category": "sbearadventure",
+      "image": "/assets/posters/transparent/poster_meme_cat_31.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_32",
+      "name": "Super bear adventure 32",
+      "kind": "poster",
+      "category": "sbearadventure",
+      "image": "/assets/posters/transparent/poster_meme_cat_32.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_33",
+      "name": "Super bear adventure 33",
+      "kind": "poster",
+      "category": "sbearadventure",
+      "image": "/assets/posters/transparent/poster_meme_cat_33.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
     }
   ]
 }

@@ -80,7 +80,7 @@ test('Super bear egg reward lands in inventory slots', async ({ page }) => {
   expect(persisted).not.toBeNull();
   expect(persisted!.coins).toBe(100);
 
-  const sbearPosterIds = Array.from({ length: 7 }, (_, i) => `poster_meme_cat_${21 + i}`);
+  const sbearPosterIds = Array.from({ length: 13 }, (_, i) => `poster_meme_cat_${21 + i}`);
   const wonPosters = sbearPosterIds.filter((id) => (persisted!.posters?.[id] ?? 0) > 0);
   expect(wonPosters).toHaveLength(1);
   expect(persisted!.slots).toContainEqual(
