@@ -38,6 +38,7 @@
 | IMPLEMENTED | `REQ-ECO-006` | `src/features/shop/ShopScreen.tsx`, `src/content/catalogs/shop.v1.json`, `src/tests/unit/catalogs.test.ts`, `src/tests/component/shop.test.tsx`, `src/tests/e2e/app-smoke.spec.ts`. |
 | IMPLEMENTED | `REQ-EGG-001`, `REQ-EGG-002`, `REQ-EGG-003` | `src/features/eggs/EggsScreen.tsx`, `src/content/catalogs/lootTables.v1.json`, `src/tests/component/eggs.test.tsx`, `src/tests/unit/appStore.test.ts`. |
 | IMPLEMENTED | `REQ-EGG-007`, `REQ-EGG-008` | `src/content/catalogs/eggs.v1.json`, `src/content/catalogs/items.posters.v1.json`, `src/content/catalogs/lootTables.v1.json`, `src/features/eggs/EggsScreen.tsx`, `src/tests/unit/catalogs.test.ts`, `src/tests/component/eggs.test.tsx`. |
+| IMPLEMENTED | `REQ-EGG-009` | `src/content/catalogs/eggs.v1.json`, `src/content/catalogs/lootTables.v1.json`, `src/features/eggs/EggsScreen.tsx`, `src/tests/component/eggs.test.tsx`. |
 | IMPLEMENTED | `REQ-WORLD-001`, `REQ-WORLD-002` | `src/domains/world/service.ts:createInitialWorld`, `src/features/build/BuildScreen.tsx`, `src/tests/unit/world.test.ts`. |
 | IMPLEMENTED | `REQ-WORLD-003`, `REQ-WORLD-004` | `src/features/build/BuildScreen.tsx`: `collidesWithVoxel` и осевое скольжение при коллизии. |
 | IMPLEMENTED | `REQ-WORLD-005`, `REQ-WORLD-006`, `REQ-WORLD-007` | `src/features/build/BuildScreen.tsx`: `makeHotbarSlots`, `getSlotIconUrl`, hotbar render. |
@@ -53,8 +54,10 @@
 | IMPLEMENTED | `REQ-UI-004`, `REQ-UI-005` | `src/features/build/BuildScreen.tsx`, `src/styles.css`, `src/tests/unit/inventorySlotActions.test.ts`. |
 | IMPLEMENTED | `REQ-VIS-001`, `REQ-VIS-002`, `REQ-VIS-004`, `REQ-VIS-005`, `REQ-VIS-006`, `REQ-VIS-007`, `REQ-VIS-008`, `REQ-VIS-009` | `src/theme/resourcePacks.ts`, `src/theme/applyResourcePack.ts`, `src/features/build/BuildScreen.tsx`, `src/styles.css`. |
 | PARTIAL | `REQ-PROD-002`, `REQ-PLAT-002`, `REQ-VIS-003` | Основной цикл и desktop/tablet-ориентированные экраны есть, но нет полного приемочного покрытия для всей продуктовой петли, Android-планшета и юридической проверки всех ассетов. |
-| IMPLEMENTED | `REQ-INPUT-006`, `REQ-WORLD-023`, `REQ-WORLD-024`, `REQ-VIS-013` | `src/domains/world/service.ts:stepPlayerVerticalPhysics` реализует grounded-only jump и покадровое gravity-driven падение; `src/features/build/BuildScreen.tsx` вызывает физику в кадре, обрабатывает `Space` и touch-кнопку прыжка; `src/tests/unit/world.test.ts` покрывает стартовую физику, запрет air-jump и непрерывное падение до приземления. |
+| IMPLEMENTED | `REQ-INPUT-006`, `REQ-WORLD-023`, `REQ-WORLD-024`, `REQ-VIS-013` | `src/domains/world/service.ts:stepPlayerVerticalPhysics` реализует grounded-only jump, покадровое gravity-driven падение, посадку на верхние грани и остановку подъема о нижние грани твердых блоков; `src/features/build/BuildScreen.tsx` вызывает физику в кадре, обрабатывает `Space` и touch-кнопку прыжка; `src/tests/unit/world.test.ts` покрывает стартовую физику, запрет air-jump, непрерывное падение до приземления, посадку на подвешенный блок и запрет входа в подвешенный блок снизу. |
 | IMPLEMENTED | `REQ-LEARN-014`, `REQ-LEARN-015`, `REQ-LEARN-016`, `REQ-ECO-007` | `src/features/lesson/LessonScreen.tsx`, `src/domains/learning/service.ts`, `src/domains/learning/generators/mathAdd.ts`, `src/content/learning/math-1.v1.json`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
+| IMPLEMENTED | `REQ-LEARN-017`, `REQ-LEARN-018`, `REQ-ECO-008` | `src/features/lesson/LessonScreen.tsx`, `src/domains/learning/service.ts`, `src/domains/learning/generators/mathSilver.ts`, `src/content/learning/math-1.v1.json`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
+| IMPLEMENTED | `REQ-LEARN-019`, `REQ-LEARN-020`, `REQ-ECO-009` | `src/features/lesson/LessonScreen.tsx`, `src/domains/learning/service.ts`, `src/domains/learning/generators/orthography.ts`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
 | UNKNOWN | `REQ-PROD-001`, `REQ-PROD-003` | Возраст аудитории и тон UX являются продуктовыми критериями; текущий код и тесты не дают надежной автоматической проверки. |
 
 ## 1. Продукт и аудитория
@@ -89,6 +92,10 @@
 14. `REQ-LEARN-014` Learning screen must include a math level/card `Математика - бронзовый`, available immediately without unlock prerequisites.
 15. `REQ-LEARN-015` `Математика - бронзовый` contains only addition tasks with operands/results in the range up to `40`.
 16. `REQ-LEARN-016` `Математика - бронзовый` uses the same mini-lesson size pattern as basic math (`5-10` tasks; current UI may start with `5` tasks).
+17. `REQ-LEARN-017` Learning screen must include a math level/card `Математика - серебряный`, available immediately without unlock prerequisites.
+18. `REQ-LEARN-018` `Математика - серебряный` contains only multiplication (`mul`) and division (`div`) tasks with numbers in the range up to `20`: operands `2..9`, product/dividend `<= 20`, division is always exact.
+19. `REQ-LEARN-019` Learning screen must include an orthography card `Учим слова - Легендарно`, available immediately without unlock prerequisites.
+20. `REQ-LEARN-020` `Учим слова - Легендарно` uses task format `letter_gap`: a word with exactly one hidden letter shown as a `stem` with `_` gap, exactly `6` letter options per task (`1` correct + `5` distractors), and a mini-lesson of exactly `5` tasks.
 
 ## 4. Экономика и яйца
 1. `REQ-ECO-001` Игровая валюта: кото-монетки.
@@ -98,11 +105,14 @@
 5. `REQ-ECO-005` Orthography card reward penalties depend on mistakes count: `0` mistakes -> `100%` reward; `1` mistake -> `-10%`; `2` mistakes -> `-30%`; `3` mistakes -> `0` reward.
 6. `REQ-ECO-006` Shop must sell `10` `block_glass` blocks for `50` cat coins.
 7. `REQ-ECO-007` `Математика - бронзовый` rewards are increased above the hardest existing math lesson: current implementation target is up to `50` cat coins per 5-task mini-lesson via `4` cat coins per correct answer plus `30` cat coins bonus at `80%+` accuracy.
+8. `REQ-ECO-008` `Математика - серебряный` rewards are increased above the bronze level: `10` cat coins per correct answer plus `50` cat coins bonus at `80%+` accuracy, максимум `100` котокоинов за 5-задачный мини-урок.
+9. `REQ-ECO-009` `Учим слова - Легендарно` reward scales proportionally with the number of correct answers in a 5-task mini-lesson: `150` cat coins for `5/5`, `120` for `4/5`, `90` for `3/5`, `60` for `2/5`, `30` for `1/5`, `0` for `0/5`.
 8. `REQ-EGG-001` После открытия яйца награда должна отображаться визуально карточкой блока в стиле витрины магазина (изометрический preview + количество).
 9. `REQ-EGG-002` После отображения награды из яйца карточка лута должна запускать плавное исчезновение через `2` секунды и убираться с экрана.
 10. `REQ-EGG-003` Common egg loot table must include `block_coin` (`Монетный блок`) so the block can be obtained from eggs and used in build mode.
-11. `REQ-EGG-007` A new expensive egg type `egg_meme` (`Мемное яйцо`) must be available for `200` cat coins.
-12. `REQ-EGG-008` `egg_meme` rewards must be poster items with meme cat images from a curated local asset set provided to the project; the game must not load external meme images at runtime.
+11. `REQ-EGG-007` A new expensive egg type `egg_meme` (`Котовое яйцо`) must be available for `200` cat coins.
+12. `REQ-EGG-008` `egg_meme` rewards must be poster items with meme cat images of category `cats` from a curated local asset set provided to the project; the game must not load external meme images at runtime.
+13. `REQ-EGG-009` A new expensive egg type `egg_sbear` (`Super bear`) must be available for `400` cat coins and reward poster items of category `sbearadventure`.
 
 ## 5. Мир, строительство и инвентарь
 1. `REQ-WORLD-001` Мир в MVP — воксельный.

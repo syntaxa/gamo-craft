@@ -45,14 +45,14 @@ describe('EggsScreen', () => {
     expect(useAppStore.getState().player.currencyCatCoins).toBe(0);
   });
 
-  it('opens a meme egg and grants a poster item into inventory slots', async () => {
+  it('opens a cat egg and grants a poster item into inventory slots', async () => {
     const user = userEvent.setup();
     resetAppStore({ player: { currencyCatCoins: 220 } });
     vi.spyOn(Math, 'random').mockReturnValue(0);
 
     render(<EggsScreen />);
 
-    await user.click(screen.getByRole('button', { name: 'Открыть мемное яйцо' }));
+    await user.click(screen.getByRole('button', { name: 'Открыть котовое яйцо' }));
 
     expect(useAppStore.getState().player.currencyCatCoins).toBe(20);
     expect(useAppStore.getState().inventory.posters.poster_meme_cat_1).toBe(1);
@@ -64,5 +64,19 @@ describe('EggsScreen', () => {
       }),
     );
     expect(screen.getByText('Мемный кот 1')).toBeInTheDocument();
+  });
+
+  it('opens a Super bear egg and grants a sbearadventure poster item into inventory slots', async () => {
+    const user = userEvent.setup();
+    resetAppStore({ player: { currencyCatCoins: 420 } });
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    render(<EggsScreen />);
+
+    await user.click(screen.getByRole('button', { name: 'Открыть яйцо Super bear' }));
+
+    expect(useAppStore.getState().player.currencyCatCoins).toBe(20);
+    expect(useAppStore.getState().inventory.posters.poster_meme_cat_21).toBe(1);
+    expect(screen.getByText('Super bear adventure 21')).toBeInTheDocument();
   });
 });

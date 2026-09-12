@@ -23,7 +23,28 @@
         { "itemId": "poster_meme_cat_8", "weight": 100, "duplicateCompensationCatCoins": 20 },
         { "itemId": "poster_meme_cat_9", "weight": 100, "duplicateCompensationCatCoins": 20 },
         { "itemId": "poster_meme_cat_10", "weight": 100, "duplicateCompensationCatCoins": 20 },
-        { "itemId": "poster_meme_cat_11", "weight": 100, "duplicateCompensationCatCoins": 20 }
+        { "itemId": "poster_meme_cat_11", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_12", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_13", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_14", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_15", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_16", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_17", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_18", "weight": 100, "duplicateCompensationCatCoins": 20 },
+{ "itemId": "poster_meme_cat_19", "weight": 100, "duplicateCompensationCatCoins": 20 },
+{ "itemId": "poster_meme_cat_20", "weight": 100, "duplicateCompensationCatCoins": 20 }
+      ]
+    },
+    {
+      "id": "loot_sbear_posters",
+      "entries": [
+        { "itemId": "poster_meme_cat_21", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_22", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_23", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_24", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_25", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_26", "weight": 100, "duplicateCompensationCatCoins": 20 },
+        { "itemId": "poster_meme_cat_27", "weight": 100, "duplicateCompensationCatCoins": 20 }
       ]
     }
   ]

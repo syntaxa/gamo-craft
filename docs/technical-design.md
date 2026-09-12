@@ -122,8 +122,8 @@
 ```ts
 export type PlayerId = string;
 export type ItemId = string;
-export type EggTypeId = 'egg_common' | 'egg_rare' | 'egg_epic' | 'egg_meme';
-export type LessonProgramId = 'math-1' | 'math-bronze' | 'orthography-1';
+export type EggTypeId = 'egg_common' | 'egg_rare' | 'egg_epic' | 'egg_meme' | 'egg_sbear';
+export type LessonProgramId = 'math-1' | 'math-bronze' | 'math-silver' | 'orthography-1' | 'orthography-legendary';
 export type TxnId = string;
 export type SessionId = string;
 ```
@@ -184,12 +184,12 @@ Stack operations должны работать для блоков, ресурс
 ```ts
 export interface MathTask {
   id: string;
-  operation: 'add' | 'sub';
+  operation: 'add' | 'sub' | 'mul' | 'div';
   a: number;
   b: number;
   answer: number;
-  maxValue: 20 | 40;
-  level: 'A' | 'B' | 'C' | 'bronze';
+  maxValue: 20 | 40 | 81;
+  level: 'A' | 'B' | 'C' | 'bronze' | 'silver';
 }
 
 export interface OrthographyTask {
@@ -210,13 +210,33 @@ export interface OrthographyTask {
   level: 'A' | 'B' | 'C';
 }
 
+export interface LetterGapTask {
+  id: string;
+  type: 'letter_gap';
+  ruleId:
+    | 'zhi_shi'
+    | 'cha_sha'
+    | 'chu_shu'
+    | 'unstressed_vowel_root'
+    | 'paired_consonants'
+    | 'unpronounceable_consonants'
+    | 'hard_soft_sign'
+    | 'double_consonants';
+  prompt: string;
+  word: string;
+  stem: string;
+  options: [string, string, string, string, string, string];
+  correctOptionIndex: 0 | 1 | 2 | 3 | 4 | 5;
+  level: 'legendary';
+}
+
 export interface LessonSession {
   id: SessionId;
   playerId: PlayerId;
   programId: LessonProgramId;
   startedAt: string;
   finishedAt?: string;
-  tasks: Array<MathTask | OrthographyTask>;
+  tasks: Array<MathTask | OrthographyTask | LetterGapTask>;
   answers: Array<{
     taskId: string;
     value: number;
@@ -311,7 +331,18 @@ export interface CurrencyTxn {
       "id": "poster_meme_cat_1",
       "name": "Мемный кот",
       "kind": "poster",
+      "category": "cats",
       "image": "/assets/posters/transparent/poster_meme_cat_1.png",
+      "widthBlocks": 2,
+      "heightBlocks": 2,
+      "stackLimit": 16
+    },
+    {
+      "id": "poster_meme_cat_21",
+      "name": "Super bear adventure 21",
+      "kind": "poster",
+      "category": "sbearadventure",
+      "image": "/assets/posters/transparent/poster_meme_cat_21.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -320,7 +351,7 @@ export interface CurrencyTxn {
 }
 ```
 
-Картинки meme cats для poster items хранятся локально в `public/assets/posters/transparent` и подключаются через `items.posters.v1.json`. Новые исходники для импорта помещаются в staging-папку `public/assets/posters/toadd`; после успешного переноса в runtime-набор исходные файлы удаляются из `toadd`. Runtime-каталог должен ссылаться на нормализованные PNG с прозрачным canvas. Пополнение набора выполняется добавлением нормализованного файла, записи poster item в каталог и при необходимости записи в `loot_meme_posters`. Runtime-загрузка внешних изображений не входит в контракт.
+Картинки meme cats для poster items хранятся локально в `public/assets/posters/transparent` и подключаются через `items.posters.v1.json`. Каждый poster item имеет `category`, определяющую тематический набор постеров (`cats`, `sbearadventure`). Новые исходники для импорта помещаются в staging-папку `public/assets/posters/toadd`; после успешного переноса в runtime-набор исходные файлы удаляются из `toadd`. Runtime-каталог должен ссылаться на нормализованные PNG с прозрачным canvas. Пополнение набора выполняется добавлением нормализованного файла, записи poster item в каталог и записи в `loot_meme_posters`/`loot_sbear_posters` в зависимости от категории. Runtime-загрузка внешних изображений не входит в контракт.
 
 `items.cosmetics.v1.json`
 ```json
@@ -342,7 +373,8 @@ export interface CurrencyTxn {
     { "id": "egg_common", "priceCatCoins": 20, "lootTableId": "loot_common" },
     { "id": "egg_rare", "priceCatCoins": 50, "lootTableId": "loot_rare" },
     { "id": "egg_epic", "priceCatCoins": 100, "lootTableId": "loot_epic" },
-    { "id": "egg_meme", "priceCatCoins": 200, "lootTableId": "loot_meme_posters" }
+    { "id": "egg_meme", "priceCatCoins": 200, "lootTableId": "loot_meme_posters" },
+    { "id": "egg_sbear", "priceCatCoins": 400, "lootTableId": "loot_sbear_posters" }
   ]
 }
 ```
@@ -365,6 +397,12 @@ export interface CurrencyTxn {
       "id": "loot_meme_posters",
       "entries": [
         { "itemId": "poster_meme_cat_1", "weight": 100, "duplicateCompensationCatCoins": 20 }
+      ]
+    },
+    {
+      "id": "loot_sbear_posters",
+      "entries": [
+        { "itemId": "poster_meme_cat_21", "weight": 100, "duplicateCompensationCatCoins": 20 }
       ]
     }
   ]
@@ -403,7 +441,8 @@ export interface CurrencyTxn {
     "A": { "range": [1, 10], "operations": ["add", "sub"] },
     "B": { "range": [1, 20], "operations": ["add", "sub"] },
     "C": { "range": [1, 20], "operations": ["add", "sub"], "mixed": true },
-    "bronze": { "range": [1, 40], "operations": ["add"], "displayName": "Математика - бронзовый" }
+    "bronze": { "range": [1, 40], "operations": ["add"], "displayName": "Математика - бронзовый" },
+    "silver": { "range": [1, 20], "operations": ["mul", "div"], "displayName": "Математика - серебряный" }
   },
   "lesson": {
     "minTasks": 5,
@@ -418,6 +457,7 @@ export interface CurrencyTxn {
 ```
 
 Для текущего 5-task UI `Математика - бронзовый` использует повышенную награду: `correctAnswer = 4`, `lessonAccuracy80 = 30`, максимум `50` котокоинов.
+Для текущего 5-task UI `Математика - серебряный` использует повышенную награду: `correctAnswer = 10`, `lessonAccuracy80 = 50`, максимум `100` котокоинов. Операции: `mul` (`a,b` в `2..9`, `a*b <= 20`) и `div` (частное и делитель в `2..9`, делимое `= частное * делитель`, всегда целое).
 
 `orthography-1.v1.json`
 ```json
@@ -445,6 +485,19 @@ export interface CurrencyTxn {
   }
 }
 ```
+
+Легендарный уровень `Учим слова - Легендарно` (файл `orthography-1.v1.json`, задачи `letter_gap`) использует те же правила/лексикон и формат:
+- `stem` — слово с ровно одной пропущенной буквой (`_`), позиция пропуска определяется правилом:
+  - `zhi_shi` — слог `жи/ши`, пропуск на месте `и`;
+  - `cha_sha` — слог `ча/ща`, пропуск на месте `а`;
+  - `chu_shu` — слог `чу/щу`, пропуск на месте `у`;
+  - `unstressed_vowel_root` — безударная гласная из пар `UNSTRESSED_PAIRS`;
+  - `paired_consonants` — согласная из `PAIRED_MAP`;
+  - `unpronounceable_consonants` — по кластерам `стн/здн/лнц/вств/рдц`, пропуск на месте непроизносимой согласной;
+  - `hard_soft_sign` — разделительный `ь` или `ъ`;
+  - `double_consonants` — одна из удвоенных согласных.
+- `options` — ровно `6` уникальных букв: `1` верная + `5` дистракторов (правило-специфичные, например `жи -> ы`, `ча -> я`, `чу -> ю`, парная -> пара из `PAIRED_MAP`, `ь <-> ъ`), недостающие добираются случайными буквами алфавита.
+- Мини-урок из ровно `5` задач; награда `calculateLegendaryCardReward(correct, total)` = `round(150 * correct / total)`: максимум `150` котокоинов за `5/5`, пропорционально меньше вплоть до `0`.
 
 ## 5. Application use-cases (публичные API)
 Этот раздел описывает целевой application-слой. В текущей MVP-реализации рабочая оркестрация находится в React-экранах и `src/app/store.ts`; файлы `src/application/useCases/*.ts` и `src/features/*/use*Controller.ts` пока являются scaffold и не используются продуктивным UI.
@@ -728,22 +781,25 @@ interface AnalyticsEvent {
 ## 12.1. Unit
 - Генерация задач математики (границы 1..20).
 - Генерация задач `Математика - бронзовый`: только сложение, границы до `40`, повышенная награда до `50` котокоинов в текущем 5-task flow.
+- Генерация задач `Математика - серебряный`: только умножение и деление, диапазон до `20` (множители `2..9`, произведение/делимое `<= 20`, деление без остатка), чередование операций и повышенная награда до `100` котокоинов в текущем 5-task flow.
 - Генерация задач орфографии (`choice_3`) с инвариантом: ровно `1` правильный вариант и `2` distractor-варианта.
+- Генерация задач `Учим слова - Легендарно` (`letter_gap`): ровно `5` задач, `6` уникальных вариантов букв, верная буква восстанавливает слово из `stem`; награда `calculateLegendaryCardReward` = `150/120/90/30/0` для `5/4/3/1/0` верных ответов из `5`.
 - Расчет наград за урок и серии.
 - Roll лута по весам и дубликаты.
 - Инварианты экономики.
 - Minecraft-style inventory operations: pickup/place, drag-and-drop whole-stack movement, swap, merge, split, delete slot, hotbar synchronization, and visible carried-stack feedback for drag/split operations.
-- Jump/fall physics: grounded-only jump and continuous falling without teleport.
+- Jump/fall physics: grounded-only jump, continuous falling without teleport, landing on top faces, and upward collision against block undersides.
 - Poster placement validation: vertical face, one supporting block face, no overlap with existing posters, decor, or solid blocks, no inventory consumption on invalid placement.
 
 ## 12.2. Component
 - Экран урока: прохождение 5 задач и получение результата.
 - Экран урока: повторное нажатие «Начать мини-урок» генерирует новый набор задач.
 - Экран орфографии: рендер `3` вариантов написания слова и проверка выбора корректного варианта.
+- Экран урока: карточка `Учим слова - Легендарно` запускает урок `letter_gap` из `5` заданий по `6` вариантов букв, валюта меняется в пределах `100..250` котокоинов.
 - Экран урока: карточка `Математика - бронзовый` доступна сразу и запускает сложение до `40`.
 - Экран магазина: покупка при достаточном/недостаточном балансе.
 - Экран яиц: корректное отображение результата открытия.
-- Экран яиц: `egg_meme` стоит `200` котокоинов и выдает poster item.
+- Экран яиц: `egg_meme` стоит `200` котокоинов и выдает poster item категории `cats`; `egg_sbear` стоит `400` котокоинов и выдает poster item категории `sbearadventure`.
 - Экран инвентаря: базовые операции со стаками работают для блоков, ресурсов и poster items.
 
 ## 12.3. E2E
@@ -871,7 +927,7 @@ type ResourcePackSpec = {
 - Блок `block_grass_dirt` использует раздельные текстуры граней в стиле Minecraft: `top=grass`, `bottom=dirt`, `side=grass+dirt`.
 - Hotbar отображает иконки блоков из активного resource-pack (берется `top`-текстура блока; fallback на базовую textureUrl).
 - Базовый размер мира по оси `Y` равен `24`, чтобы верхняя граница постановки блоков была `y < 24`.
-- Вертикальная физика хранит `velocityY` и `isGrounded`; прыжок доступен только из grounded-состояния, падение интегрируется по кадрам с gravity и collision resolution.
+- Вертикальная физика хранит `velocityY` и `isGrounded`; прыжок доступен только из grounded-состояния, падение интегрируется по кадрам с gravity и collision resolution, а подъем останавливается при пересечении нижней грани твердого блока, чтобы игрок не попадал внутрь подвешенных вокселей.
 
 ## 19. Реестр требований
 - Единый структурированный реестр требований: `docs/requirements-registry.md`.

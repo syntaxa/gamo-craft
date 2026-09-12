@@ -6,11 +6,15 @@ import { useAppStore } from '../../app/store';
 import { resetAppStore } from '../testUtils';
 
 function solveExpression(expression: string): number {
-  const match = expression.match(/(\d+)\s*([+-])\s*(\d+)/);
+  const match = expression.match(/(\d+)\s*([+\-×:])\s*(\d+)/);
   if (!match) throw new Error(`Cannot parse expression: ${expression}`);
   const left = Number(match[1]);
   const right = Number(match[3]);
-  return match[2] === '+' ? left + right : left - right;
+  const op = match[2];
+  if (op === '+') return left + right;
+  if (op === '-') return left - right;
+  if (op === '×') return left * right;
+  return left / right;
 }
 
 describe('LessonScreen', () => {
@@ -70,6 +74,33 @@ describe('LessonScreen', () => {
     expect(useAppStore.getState().player.currencyCatCoins).toBe(150);
   });
 
+  it('starts the silver math card with multiplication and division up to 20 and grants the boosted reward', async () => {
+    const user = userEvent.setup();
+    render(<LessonScreen />);
+
+    const silverCard = screen.getByText('Математика - серебряный').closest('article');
+    expect(silverCard).not.toBeNull();
+    expect(within(silverCard as HTMLElement).getByText('100')).toBeInTheDocument();
+    await user.click(within(silverCard as HTMLElement).getByRole('button', { name: 'Войти в урок' }));
+
+    expect(screen.getByRole('heading', { name: 'Математика - серебряный' })).toBeInTheDocument();
+    const inputs = screen.getAllByLabelText(/Ответ для примера/);
+    const expressions = document.querySelectorAll('.lesson-expr');
+    expect(inputs).toHaveLength(5);
+
+    for (let index = 0; index < inputs.length; index += 1) {
+      const expression = expressions[index]!.textContent ?? '';
+      expect(expression).toMatch(/[×:]/);
+      await user.type(inputs[index]!, String(solveExpression(expression)));
+    }
+
+    await user.click(screen.getByRole('button', { name: 'Проверить' }));
+
+    expect(screen.getByText(/Верно: 5\/5/)).toBeInTheDocument();
+    expect(screen.getByText('100')).toBeInTheDocument();
+    expect(useAppStore.getState().player.currencyCatCoins).toBe(200);
+  });
+
   it('starts an orthography card with three choice_3 tasks and applies reward penalties', async () => {
     const user = userEvent.setup();
     render(<LessonScreen />);
@@ -94,5 +125,31 @@ describe('LessonScreen', () => {
     expect(useAppStore.getState().player.currencyCatCoins).toBeLessThanOrEqual(120);
     await user.click(screen.getByRole('button', { name: 'Закрыть' }));
     expect(screen.queryByText('Результат урока')).not.toBeInTheDocument();
+  });
+
+  it('starts the legendary word card with 5 letter_gap tasks and 6 letter options each', async () => {
+    const user = userEvent.setup();
+    render(<LessonScreen />);
+
+    const legendaryCard = screen.getByText('Учим слова - Легендарно').closest('article');
+    expect(legendaryCard).not.toBeNull();
+    expect(within(legendaryCard as HTMLElement).getByText('150')).toBeInTheDocument();
+    await user.click(within(legendaryCard as HTMLElement).getByRole('button', { name: 'Войти в урок' }));
+
+    expect(screen.getByRole('heading', { name: 'Учим слова - Легендарно' })).toBeInTheDocument();
+    const tasks = document.querySelectorAll('.lesson-orth-task');
+    expect(tasks).toHaveLength(5);
+
+    for (const task of Array.from(tasks)) {
+      const options = within(task as HTMLElement).getAllByRole('button');
+      expect(options).toHaveLength(6);
+      await user.click(options[0]!);
+    }
+
+    await user.click(screen.getByRole('button', { name: 'Проверить' }));
+
+    expect(screen.getByText(/Верно: \d\/5/)).toBeInTheDocument();
+    expect(useAppStore.getState().player.currencyCatCoins).toBeGreaterThanOrEqual(100);
+    expect(useAppStore.getState().player.currencyCatCoins).toBeLessThanOrEqual(250);
   });
 });

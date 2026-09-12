@@ -1,15 +1,16 @@
 import type { LessonProgramId, PlayerId, SessionId } from '../../shared/types/common';
 
 export type LessonLevel = 'A' | 'B' | 'C';
-export type MathLessonLevel = LessonLevel | 'bronze';
+export type MathLessonLevel = LessonLevel | 'bronze' | 'silver';
+export type MathOperation = 'add' | 'sub' | 'mul' | 'div';
 
 export interface MathTask {
   id: string;
-  operation: 'add' | 'sub';
+  operation: MathOperation;
   a: number;
   b: number;
   answer: number;
-  maxValue: 20 | 40;
+  maxValue: 20 | 40 | 81;
   level: MathLessonLevel;
 }
 
@@ -34,7 +35,21 @@ export interface OrthographyTask {
   level: LessonLevel;
 }
 
-export type LessonTask = MathTask | OrthographyTask;
+export type OrthographyLevel = LessonLevel | 'legendary';
+
+export interface LetterGapTask {
+  id: string;
+  type: 'letter_gap';
+  ruleId: OrthographyRuleId;
+  prompt: string;
+  word: string;
+  stem: string;
+  options: [string, string, string, string, string, string];
+  correctOptionIndex: 0 | 1 | 2 | 3 | 4 | 5;
+  level: 'legendary';
+}
+
+export type LessonTask = MathTask | OrthographyTask | LetterGapTask;
 
 export interface LessonSession {
   id: SessionId;

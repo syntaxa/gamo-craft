@@ -1,5 +1,5 @@
 import { makeId } from '../../../shared/lib/id';
-import type { LessonLevel, OrthographyRuleId, OrthographyTask } from '../model';
+import type { LessonLevel, LetterGapTask, OrthographyRuleId, OrthographyTask } from '../model';
 import orthographyProgram from '../../../content/learning/orthography-1.v1.json';
 
 type LexiconEntry = {
@@ -442,4 +442,191 @@ export function evaluateOrthographyLesson(
 export function buildOrthographyDistractors(word: string, ruleId: OrthographyRuleId): string[] {
   const dictionaryWords = new Set(program.lexicon.map((entry) => normalize(entry.correct)));
   return buildDistractors(word, ruleId, dictionaryWords);
+}
+
+const LETTER_BANK = '\u0430\u0431\u0432\u0433\u0434\u0435\u0436\u0437\u0438\u0439\u043a\u043b\u043c\u043d\u043e\u043f\u0440\u0441\u0442\u0443\u0444\u0445\u0446\u0447\u0448\u0449\u044a\u044b\u044c\u044d\u044e\u044f';
+
+const UNPRONOUNCEABLE_GAPS: Array<[string, number]> = [
+  ['\u0441\u0442\u043d', 1],
+  ['\u0437\u0434\u043d', 1],
+  ['\u043b\u043d\u0446', 0],
+  ['\u0432\u0441\u0442\u0432', 0],
+  ['\u0440\u0434\u0446', 1],
+];
+
+function shuffleArray<T>(items: T[], rng: () => number): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rng() * (i + 1));
+    const temp = copy[i]!;
+    copy[i] = copy[j]!;
+    copy[j] = temp;
+  }
+  return copy;
+}
+
+function indexesOf(source: string, needle: string): number[] {
+  const indexes: number[] = [];
+  let cursor = source.indexOf(needle);
+  while (cursor !== -1) {
+    indexes.push(cursor);
+    cursor = source.indexOf(needle, cursor + 1);
+  }
+  return indexes;
+}
+
+function findLetterGap(ruleId: OrthographyRuleId, word: string): Array<{ index: number; letter: string }> {
+  const candidates: Array<{ index: number; letter: string }> = [];
+
+  if (ruleId === 'zhi_shi') {
+    for (const needle of ['\u0436\u0438', '\u0448\u0438']) {
+      for (const index of indexesOf(word, needle)) {
+        candidates.push({ index: index + 1, letter: '\u0438' });
+      }
+    }
+  } else if (ruleId === 'cha_sha') {
+    for (const needle of ['\u0447\u0430', '\u0449\u0430']) {
+      for (const index of indexesOf(word, needle)) {
+        candidates.push({ index: index + 1, letter: '\u0430' });
+      }
+    }
+  } else if (ruleId === 'chu_shu') {
+    for (const needle of ['\u0447\u0443', '\u0449\u0443']) {
+      for (const index of indexesOf(word, needle)) {
+        candidates.push({ index: index + 1, letter: '\u0443' });
+      }
+    }
+  } else if (ruleId === 'unstressed_vowel_root') {
+    for (let i = 1; i < word.length; i += 1) {
+      if (UNSTRESSED_PAIRS.some((pair) => pair[0] === word[i])) {
+        candidates.push({ index: i, letter: word[i]! });
+      }
+    }
+  } else if (ruleId === 'paired_consonants') {
+    for (let i = 0; i < word.length; i += 1) {
+      if (PAIRED_MAP[word[i]!]) {
+        candidates.push({ index: i, letter: word[i]! });
+      }
+    }
+  } else if (ruleId === 'hard_soft_sign') {
+    for (let i = 0; i < word.length; i += 1) {
+      if (word[i] === LETTERS.soft || word[i] === LETTERS.hard) {
+        candidates.push({ index: i, letter: word[i]! });
+      }
+    }
+  } else if (ruleId === 'double_consonants') {
+    for (let i = 0; i < word.length - 1; i += 1) {
+      if (word[i] === word[i + 1] && CONSONANTS.includes(word[i]!)) {
+        candidates.push({ index: i, letter: word[i]! });
+      }
+    }
+  } else if (ruleId === 'unpronounceable_consonants') {
+    for (const [cluster, offset] of UNPRONOUNCEABLE_GAPS) {
+      for (const index of indexesOf(word, cluster)) {
+        candidates.push({ index: index + offset, letter: word[index + offset]! });
+      }
+    }
+  }
+
+  return candidates;
+}
+
+function wrongLettersFor(ruleId: OrthographyRuleId, letter: string): string[] {
+  if (ruleId === 'zhi_shi') return ['\u044b'];
+  if (ruleId === 'cha_sha') return ['\u044f'];
+  if (ruleId === 'chu_shu') return ['\u044e'];
+  if (ruleId === 'unstressed_vowel_root') {
+    return UNSTRESSED_PAIRS.filter((pair) => pair[0] === letter).map((pair) => pair[1]);
+  }
+  if (ruleId === 'paired_consonants') {
+    const mapped = PAIRED_MAP[letter];
+    return mapped ? [mapped] : [];
+  }
+  if (ruleId === 'hard_soft_sign') {
+    return letter === LETTERS.soft ? [LETTERS.hard] : [LETTERS.soft];
+  }
+  return [];
+}
+
+function buildLetterOptions(ruleId: OrthographyRuleId, letter: string, rng: () => number): LetterGapTask['options'] {
+  const wrongs = dedupe(wrongLettersFor(ruleId, letter));
+  const pool = shuffleArray(Array.from(LETTER_BANK).filter((candidate) => candidate !== letter), rng);
+  for (const candidate of pool) {
+    if (wrongs.length >= 5) break;
+    if (wrongs.includes(candidate)) continue;
+    wrongs.push(candidate);
+  }
+  return shuffleArray([letter, ...wrongs.slice(0, 5)], rng) as LetterGapTask['options'];
+}
+
+export function generateLetterGapLesson(count = 5, seed?: number): LetterGapTask[] {
+  const rng = createSeededRng(seed);
+  const targetCount = Math.max(1, Math.floor(count));
+  const lexicon = resolveLexicon('C');
+  const recentWordIds: string[] = [];
+  const tasks: LetterGapTask[] = [];
+  const antiRepeatWindow = Math.max(1, program.lesson.antiRepeatWindow);
+  const maxAttempts = Math.max(12, targetCount * 12);
+  let attempts = 0;
+
+  while (tasks.length < targetCount && attempts < maxAttempts) {
+    attempts += 1;
+    const ruleId = weightedRule('C', rng);
+    let pool = lexicon.filter((entry) => entry.ruleTags.includes(ruleId) && !recentWordIds.includes(entry.id));
+    if (pool.length === 0) {
+      pool = lexicon.filter((entry) => entry.ruleTags.includes(ruleId));
+    }
+    if (pool.length === 0) {
+      continue;
+    }
+
+    let entry = pickOne(pool, rng);
+    let placements = findLetterGap(ruleId, entry.correct);
+    if (placements.length === 0) {
+      const fallback = pool.filter((candidate) => candidate.id !== entry.id);
+      for (const candidate of fallback) {
+        if (findLetterGap(ruleId, candidate.correct).length > 0) {
+          entry = candidate;
+          placements = findLetterGap(ruleId, candidate.correct);
+          break;
+        }
+      }
+    }
+    if (placements.length === 0) {
+      continue;
+    }
+
+    const placement = pickOne(placements, rng);
+    const options = buildLetterOptions(ruleId, placement.letter, rng);
+    const correctOptionIndex = options.indexOf(placement.letter) as LetterGapTask['correctOptionIndex'];
+
+    tasks.push({
+      id: makeId('task'),
+      type: 'letter_gap',
+      ruleId,
+      prompt: '\u0412\u0441\u0442\u0430\u0432\u044c \u043f\u0440\u043e\u043f\u0443\u0449\u0435\u043d\u043d\u0443\u044e \u0431\u0443\u043a\u0432\u0443.',
+      word: entry.lemma,
+      stem: replaceAt(entry.correct, placement.index, '_'),
+      options,
+      correctOptionIndex,
+      level: 'legendary',
+    });
+
+    recentWordIds.push(entry.id);
+    if (recentWordIds.length > antiRepeatWindow) {
+      recentWordIds.shift();
+    }
+  }
+
+  return tasks;
+}
+
+export function evaluateLetterGapLesson(
+  tasks: LetterGapTask[],
+  answers: Record<string, number>,
+): { correct: number; total: number; accuracy: number } {
+  const correct = tasks.filter((task) => answers[task.id] === task.correctOptionIndex).length;
+  const total = tasks.length;
+  const accuracy = total > 0 ? correct / total : 0;
+  return { correct, total, accuracy };
 }

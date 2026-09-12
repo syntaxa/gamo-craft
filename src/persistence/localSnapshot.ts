@@ -40,7 +40,20 @@ function parseLocalAppSnapshot(raw: string | null): LocalAppSnapshot | undefined
   }
 }
 
-export function writeLocalAppSnapshot(snapshot: Omit<LocalAppSnapshot, 'savedAt'>): void {
+function serializeLocalAppSnapshot(
+  snapshot: Omit<LocalAppSnapshot, 'savedAt'>,
+  savedAt = new Date().toISOString(),
+): string {
+  return JSON.stringify({
+    ...snapshot,
+    savedAt,
+  });
+}
+
+export function writeLocalAppSnapshot(
+  snapshot: Omit<LocalAppSnapshot, 'savedAt'>,
+  savedAt = new Date().toISOString(),
+): void {
   if (!canUseLocalStorage()) return;
 
   const current = parseLocalAppSnapshot(window.localStorage.getItem(LOCAL_SNAPSHOT_KEY));
@@ -54,11 +67,20 @@ export function writeLocalAppSnapshot(snapshot: Omit<LocalAppSnapshot, 'savedAt'
 
   window.localStorage.setItem(
     LOCAL_SNAPSHOT_KEY,
-    JSON.stringify({
-      ...snapshot,
-      savedAt: new Date().toISOString(),
-    }),
+    serializeLocalAppSnapshot(snapshot, savedAt),
   );
+}
+
+export async function copyLocalAppSnapshotToClipboard(
+  snapshot: Omit<LocalAppSnapshot, 'savedAt'>,
+  savedAt = new Date().toISOString(),
+): Promise<string> {
+  const json = serializeLocalAppSnapshot(snapshot, savedAt);
+
+  writeLocalAppSnapshot(snapshot, savedAt);
+  await navigator.clipboard.writeText(json);
+
+  return json;
 }
 
 export function readLocalAppSnapshot(): LocalAppSnapshot | undefined {

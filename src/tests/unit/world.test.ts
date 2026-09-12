@@ -3,6 +3,7 @@ import { normalizeWorldState } from '../../app/store';
 import {
   canPlacePoster,
   createInitialWorld,
+  playerIntersectsSolidVoxel,
   placePosterInWorld,
   stepPlayerVerticalPhysics,
 } from '../../domains/world/service';
@@ -95,6 +96,96 @@ describe('world domain', () => {
 
     expect(falling.position.y).toBe(2.62);
     expect(falling.physics).toEqual({ velocityY: 0, isGrounded: true });
+  });
+
+  it('lands on a floating block instead of falling through it', () => {
+    const world = createInitialWorld('player-1', 24, 8, 24);
+    world.voxels.push({ x: 12, y: 2, z: 20, blockId: 'block_brick_red' });
+
+    let falling = {
+      position: { x: 0, y: 6, z: 8 },
+      physics: { velocityY: 0, isGrounded: false },
+    };
+
+    for (let frame = 0; frame < 120 && !falling.physics.isGrounded; frame += 1) {
+      falling = stepPlayerVerticalPhysics({
+        position: falling.position,
+        physics: falling.physics,
+        voxels: world.voxels,
+        deltaSeconds: 1 / 60,
+        jumpRequested: false,
+        isFlying: false,
+      });
+    }
+
+    expect(falling.position.y).toBe(4.62);
+    expect(falling.physics).toEqual({ velocityY: 0, isGrounded: true });
+  });
+
+  it('lands on a floating block while descending from a jump', () => {
+    const world = createInitialWorld('player-1', 24, 8, 24);
+    world.voxels.push({ x: 12, y: 1, z: 20, blockId: 'block_brick_red' });
+
+    let jumping = {
+      position: { x: 0, y: 2.62, z: 8 },
+      physics: { velocityY: 0, isGrounded: true },
+    };
+
+    for (let frame = 0; frame < 120 && (frame === 0 || !jumping.physics.isGrounded); frame += 1) {
+      jumping = stepPlayerVerticalPhysics({
+        position: jumping.position,
+        physics: jumping.physics,
+        voxels: world.voxels,
+        deltaSeconds: 1 / 60,
+        jumpRequested: frame === 0,
+        isFlying: false,
+      });
+    }
+
+    expect(jumping.position.y).toBe(3.62);
+    expect(jumping.physics).toEqual({ velocityY: 0, isGrounded: true });
+  });
+
+  it('stops upward motion at the underside of a floating block during a jump', () => {
+    const world = createInitialWorld('player-1', 24, 8, 24);
+    world.voxels.push({ x: 12, y: 3, z: 20, blockId: 'block_brick_red' });
+
+    let jumping = {
+      position: { x: 0, y: 2.62, z: 8 },
+      physics: { velocityY: 0, isGrounded: true },
+    };
+
+    for (let frame = 0; frame < 30; frame += 1) {
+      jumping = stepPlayerVerticalPhysics({
+        position: jumping.position,
+        physics: jumping.physics,
+        voxels: world.voxels,
+        deltaSeconds: 1 / 60,
+        jumpRequested: frame === 0,
+        isFlying: false,
+      });
+    }
+
+    expect(jumping.position.y).toBeLessThanOrEqual(3);
+  });
+
+  it('detects a side collision with a solid block while the player is airborne', () => {
+    const world = createInitialWorld('player-1', 24, 8, 24);
+    world.voxels.push({ x: 12, y: 2, z: 20, blockId: 'block_brick_red' });
+
+    expect(
+      playerIntersectsSolidVoxel(
+        { x: -0.83, y: 3.4, z: 8 },
+        world.voxels,
+      ),
+    ).toBe(false);
+
+    expect(
+      playerIntersectsSolidVoxel(
+        { x: -0.8, y: 3.4, z: 8 },
+        world.voxels,
+      ),
+    ).toBe(true);
   });
 
   it('allows poster placement on one vertical supporting face without requiring four wall blocks', () => {

@@ -5,7 +5,8 @@
     "A": { "range": [1, 10], "operations": ["add", "sub"] },
     "B": { "range": [1, 20], "operations": ["add", "sub"] },
     "C": { "range": [1, 20], "operations": ["add", "sub"], "mixed": true },
-    "bronze": { "range": [1, 40], "operations": ["add"], "displayName": "Математика - бронзовый" }
+    "bronze": { "range": [1, 40], "operations": ["add"], "displayName": "Математика - бронзовый" },
+    "silver": { "range": [1, 20], "operations": ["mul", "div"], "displayName": "Математика - серебряный" }
   },
   "lesson": {
     "minTasks": 5,
@@ -15,7 +16,9 @@
       "streak5": 5,
       "lessonAccuracy80": 10,
       "bronzeCorrectAnswer": 4,
-      "bronzeLessonAccuracy80": 30
+      "bronzeLessonAccuracy80": 30,
+      "silverCorrectAnswer": 10,
+      "silverLessonAccuracy80": 50
     }
   }
 }

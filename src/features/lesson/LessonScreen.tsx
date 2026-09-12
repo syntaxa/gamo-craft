@@ -2,16 +2,20 @@
 import { Card } from '../../shared/ui/Card';
 import { Button } from '../../shared/ui/Button';
 import {
+  calculateLegendaryCardReward,
   calculateMathLessonReward,
   calculateOrthographyCardReward,
   evaluateLesson,
+  evaluateLetterGapLesson,
   evaluateOrthographyLesson,
   generateBronzeMathLesson,
+  generateLetterGapLesson,
   generateMathLesson,
   generateOrthographyLesson,
+  generateSilverMathLesson,
 } from '../../domains/learning/service';
 import { useAppStore } from '../../app/store';
-import type { LessonLevel } from '../../domains/learning/model';
+import type { LetterGapTask, LessonLevel, MathOperation } from '../../domains/learning/model';
 
 type DoneState = {
   correct: number;
@@ -26,11 +30,16 @@ type DoneState = {
 } | null;
 
 type RunState =
-  | { type: 'math'; title: string; description: string; rewardMode: 'basic' | 'bronze' }
+  | { type: 'math'; title: string; description: string; rewardMode: 'basic' | 'bronze' | 'silver' }
   | {
       type: 'orthography';
       title: string;
       level: LessonLevel;
+      baseReward: number;
+    }
+  | {
+      type: 'legendary';
+      title: string;
       baseReward: number;
     }
   | null;
@@ -51,6 +60,25 @@ const BRONZE_MATH_CARD = {
   title: 'Математика - бронзовый',
   description: 'только сложение до 40',
   reward: 50,
+};
+
+const SILVER_MATH_CARD = {
+  title: 'Математика - серебряный',
+  description: 'умножение и деление до 20',
+  reward: 100,
+};
+
+const LEGENDARY_WORD_CARD = {
+  title: 'Учим слова - Легендарно',
+  description: 'вставь пропущенную букву',
+  reward: 150,
+};
+
+const OP_SYMBOL: Record<MathOperation, string> = {
+  add: '+',
+  sub: '-',
+  mul: '×',
+  div: ':',
 };
 
 function buildOrthographyLesson(level: LessonLevel): ReturnType<typeof generateOrthographyLesson> {
@@ -75,8 +103,10 @@ export function LessonScreen() {
   const [running, setRunning] = useState<RunState>(null);
   const [tasks, setTasks] = useState(() => [] as ReturnType<typeof generateMathLesson>);
   const [orthTasks, setOrthTasks] = useState(() => [] as ReturnType<typeof generateOrthographyLesson>);
+  const [letterTasks, setLetterTasks] = useState<LetterGapTask[]>([]);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [orthAnswers, setOrthAnswers] = useState<Record<string, number>>({});
+  const [letterAnswers, setLetterAnswers] = useState<Record<string, number>>({});
   const [done, setDone] = useState<DoneState>(null);
   const rewardClaimedRef = useRef(false);
   const addCatCoins = useAppStore((s) => s.addCatCoins);
@@ -95,7 +125,7 @@ export function LessonScreen() {
       const userAnswer = Number.isFinite(answer) ? String(answer) : '—';
       return {
         id: task.id,
-        label: `${task.a} ${task.operation === 'add' ? '+' : '-'} ${task.b} = ${userAnswer}`,
+        label: `${task.a} ${OP_SYMBOL[task.operation]} ${task.b} = ${userAnswer}`,
         isCorrect,
       };
     });
@@ -144,7 +174,7 @@ export function LessonScreen() {
     setOrthAnswers({});
   }
 
-  function startBronzeMathLesson() {
+function startBronzeMathLesson() {
     rewardClaimedRef.current = false;
     setTasks(generateBronzeMathLesson(5));
     setRunning({
@@ -152,6 +182,21 @@ export function LessonScreen() {
       title: BRONZE_MATH_CARD.title,
       description: 'Только сложение до 40. Бронзовая карточка дает повышенную награду.',
       rewardMode: 'bronze',
+    });
+    setDone(null);
+    setAnswers({});
+    setOrthTasks([]);
+    setOrthAnswers({});
+  }
+
+  function startSilverMathLesson() {
+    rewardClaimedRef.current = false;
+    setTasks(generateSilverMathLesson(5));
+    setRunning({
+      type: 'math',
+      title: SILVER_MATH_CARD.title,
+      description: 'Умножение и деление до 20. Серебряная карточка дает повышенную награду.',
+      rewardMode: 'silver',
     });
     setDone(null);
     setAnswers({});
@@ -171,7 +216,48 @@ export function LessonScreen() {
     setDone(null);
     setAnswers({});
     setOrthAnswers({});
+    setLetterTasks([]);
+    setLetterAnswers({});
     setTasks([]);
+  }
+
+  function startLegendaryLesson() {
+    rewardClaimedRef.current = false;
+    setLetterTasks(generateLetterGapLesson(5));
+    setRunning({
+      type: 'legendary',
+      title: LEGENDARY_WORD_CARD.title,
+      baseReward: LEGENDARY_WORD_CARD.reward,
+    });
+    setDone(null);
+    setAnswers({});
+    setOrthTasks([]);
+    setOrthAnswers({});
+    setLetterAnswers({});
+  }
+
+  function finishLegendary() {
+    if (rewardClaimedRef.current) return;
+    rewardClaimedRef.current = true;
+
+    const result = evaluateLetterGapLesson(letterTasks, letterAnswers);
+    const reward = calculateLegendaryCardReward(result);
+    const items = letterTasks.map((task) => {
+      const selectedIndex = letterAnswers[task.id];
+      const selectedValue =
+        typeof selectedIndex === 'number' && task.options[selectedIndex]
+          ? task.options[selectedIndex]
+          : '—';
+      const isCorrect = selectedIndex === task.correctOptionIndex;
+      return {
+        id: task.id,
+        label: `${task.stem.replace('_', '…')} → ${selectedValue}`,
+        isCorrect,
+      };
+    });
+    addCatCoins(reward);
+    setDone({ ...result, reward, items });
+    setRunning(null);
   }
 
   return (
@@ -182,15 +268,20 @@ export function LessonScreen() {
             <h2>Учеба</h2>
 
           </header>
-        ) : running.type === 'math' ? (
+) : running.type === 'math' ? (
           <header className="lesson-head">
             <h2>{running.title}</h2>
             <p>{running.description}</p>
           </header>
-        ) : (
+        ) : running.type === 'orthography' ? (
           <header className="lesson-head">
             <h2>{running.title}</h2>
             <p>3 задания по орфографии. Награда зависит от количества ошибок.</p>
+          </header>
+        ) : (
+          <header className="lesson-head">
+            <h2>{running.title}</h2>
+            <p>5 слов — вставь пропущенную букву. Награда зависит от количества верных ответов.</p>
           </header>
         )}
 
@@ -245,7 +336,7 @@ export function LessonScreen() {
               </div>
             </article>
 
-            <article className="lesson-program-card">
+<article className="lesson-program-card">
               <h3>{BRONZE_MATH_CARD.title}</h3>
               <p className="lesson-card-description">{BRONZE_MATH_CARD.description}</p>
               <div className="lesson-card-footer">
@@ -257,6 +348,22 @@ export function LessonScreen() {
                     CAT
                   </span>
                   <span>{BRONZE_MATH_CARD.reward}</span>
+                </div>
+              </div>
+            </article>
+
+            <article className="lesson-program-card">
+              <h3>{SILVER_MATH_CARD.title}</h3>
+              <p className="lesson-card-description">{SILVER_MATH_CARD.description}</p>
+              <div className="lesson-card-footer">
+                <Button className="lesson-cta" onClick={startSilverMathLesson}>
+                  Войти в урок
+                </Button>
+                <div className="lesson-card-reward">
+                  <span className="coin lesson-card-coin" aria-hidden>
+                    CAT
+                  </span>
+                  <span>{SILVER_MATH_CARD.reward}</span>
                 </div>
               </div>
             </article>
@@ -278,6 +385,22 @@ export function LessonScreen() {
                 </div>
               </article>
             ))}
+
+            <article className="lesson-program-card">
+              <h3>{LEGENDARY_WORD_CARD.title}</h3>
+              <p className="lesson-card-description">{LEGENDARY_WORD_CARD.description}</p>
+              <div className="lesson-card-footer">
+                <Button className="lesson-cta" onClick={startLegendaryLesson}>
+                  Войти в урок
+                </Button>
+                <div className="lesson-card-reward">
+                  <span className="coin lesson-card-coin" aria-hidden>
+                    CAT
+                  </span>
+                  <span>{LEGENDARY_WORD_CARD.reward}</span>
+                </div>
+              </div>
+            </article>
           </div>
         ) : running !== null && running.type === 'math' ? (
           <div className="lesson-body">
@@ -286,7 +409,7 @@ export function LessonScreen() {
                 {tasks.map((t, idx) => (
                   <Fragment key={t.id}>
                     <span className="lesson-expr">
-                      {t.a} {t.operation === 'add' ? '+' : '-'} {t.b}
+                      {t.a} {OP_SYMBOL[t.operation]} {t.b}
                     </span>
                     <label className="lesson-answer-cell">
                       <span className="lesson-equals">=</span>
@@ -351,6 +474,39 @@ export function LessonScreen() {
                 ))}
               </div>
               <Button className="lesson-cta" onClick={() => finishOrthography(running.baseReward)}>
+                Проверить
+              </Button>
+            </div>
+          </div>
+        ) : running !== null && running.type === 'legendary' ? (
+          <div className="lesson-body">
+            <div className="lesson-left">
+              <div className="lesson-orth-list">
+                {letterTasks.map((task, taskIndex) => (
+                  <section className="lesson-orth-task" key={task.id}>
+                    <p className="lesson-orth-title">{taskIndex + 1}. Вставь пропущенную букву</p>
+                    <div className="lesson-orth-word lesson-gap-word">{task.stem}</div>
+                    <div className="lesson-orth-options">
+                      {task.options.map((option, optionIndex) => {
+                        const isSelected = letterAnswers[task.id] === optionIndex;
+                        return (
+                          <button
+                            key={`${task.id}-${option}`}
+                            className={`lesson-orth-option${isSelected ? ' is-selected' : ''}`}
+                            type="button"
+                            onClick={() =>
+                              setLetterAnswers((prev) => ({ ...prev, [task.id]: optionIndex }))
+                            }
+                          >
+                            {option}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
+              </div>
+              <Button className="lesson-cta" onClick={finishLegendary}>
                 Проверить
               </Button>
             </div>

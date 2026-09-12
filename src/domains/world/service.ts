@@ -79,6 +79,40 @@ function horizontallyOverlapsPlayer(
   );
 }
 
+export function playerIntersectsSolidVoxel(
+  position: GridPosition,
+  voxels: Array<GridPosition>,
+): boolean {
+  const minX = position.x - PLAYER_RADIUS;
+  const maxX = position.x + PLAYER_RADIUS;
+  const minY = position.y - PLAYER_HEIGHT;
+  const maxY = position.y;
+  const minZ = position.z - PLAYER_RADIUS;
+  const maxZ = position.z + PLAYER_RADIUS;
+
+  return voxels.some((voxel) => {
+    const centerX = voxel.x - WORLD_RENDER_OFFSET;
+    const centerY = voxel.y + 0.5;
+    const centerZ = voxel.z - WORLD_RENDER_OFFSET;
+
+    const voxelMinX = centerX - 0.5;
+    const voxelMaxX = centerX + 0.5;
+    const voxelMinY = centerY - 0.5;
+    const voxelMaxY = centerY + 0.5;
+    const voxelMinZ = centerZ - 0.5;
+    const voxelMaxZ = centerZ + 0.5;
+
+    return (
+      maxX > voxelMinX &&
+      minX < voxelMaxX &&
+      maxY > voxelMinY &&
+      minY < voxelMaxY &&
+      maxZ > voxelMinZ &&
+      minZ < voxelMaxZ
+    );
+  });
+}
+
 function findLandingEyeY(
   position: GridPosition,
   nextY: number,
@@ -101,6 +135,29 @@ function findLandingEyeY(
   }
 
   return landingEyeY;
+}
+
+function findCeilingEyeY(
+  position: GridPosition,
+  nextY: number,
+  voxels: Array<GridPosition>,
+): number | null {
+  const currentHeadY = position.y;
+  const nextHeadY = nextY;
+  let ceilingEyeY: number | null = null;
+
+  for (const voxel of voxels) {
+    if (!horizontallyOverlapsPlayer(position, voxel)) continue;
+
+    const undersideY = voxel.y;
+    if (currentHeadY <= undersideY && nextHeadY >= undersideY) {
+      if (ceilingEyeY === null || undersideY < ceilingEyeY) {
+        ceilingEyeY = undersideY;
+      }
+    }
+  }
+
+  return ceilingEyeY;
 }
 
 export function stepPlayerVerticalPhysics({
@@ -135,6 +192,16 @@ export function stepPlayerVerticalPhysics({
 
   velocityY = Math.max(velocityY + GRAVITY * deltaSeconds, MAX_FALL_SPEED);
   const nextY = position.y + velocityY * deltaSeconds;
+
+  if (velocityY > 0) {
+    const ceilingEyeY = findCeilingEyeY(position, nextY, voxels);
+    if (ceilingEyeY !== null) {
+      return {
+        position: { ...position, y: ceilingEyeY },
+        physics: { velocityY: 0, isGrounded: false },
+      };
+    }
+  }
 
   if (velocityY <= 0) {
     const landingEyeY = findLandingEyeY(position, nextY, voxels);

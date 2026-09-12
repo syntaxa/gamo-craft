@@ -20,7 +20,7 @@ import { useResourcePack } from '../../theme/useResourcePack';
 import resourceItemsCatalog from '../../content/catalogs/items.resources.v1.json';
 import posterItemsCatalog from '../../content/catalogs/items.posters.v1.json';
 import type { PlayerPhysicsState, PlayerTransformState, PosterPlacement } from '../../domains/world/model';
-import { canPlacePoster, stepPlayerVerticalPhysics } from '../../domains/world/service';
+import { canPlacePoster, playerIntersectsSolidVoxel, stepPlayerVerticalPhysics } from '../../domains/world/service';
 import type { InventorySlot } from '../../domains/inventory/model';
 import {
   applyInventoryAction,
@@ -29,6 +29,7 @@ import {
   moveInventoryStack,
   type InventorySlotAddress,
 } from '../../domains/inventory/slotActions';
+import { copyLocalAppSnapshotToClipboard } from '../../persistence/localSnapshot';
 
 type ControlKey = 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down';
 type GridTarget = { x: number; y: number; z: number };
@@ -86,8 +87,6 @@ function releaseStuckMovementKeys() {
   }
 }
 
-const PLAYER_HEIGHT = 1.62;
-const PLAYER_RADIUS = 0.32;
 const WORLD_RENDER_OFFSET = 12;
 const POSTER_THICKNESS = 0.08;
 
@@ -147,37 +146,6 @@ function sameTarget(a: GridTarget | null, b: GridTarget | null): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
   return a.x === b.x && a.y === b.y && a.z === b.z;
-}
-
-function collidesWithVoxel(position: Vector3, voxels: Array<{ x: number; y: number; z: number }>): boolean {
-  const minX = position.x - PLAYER_RADIUS;
-  const maxX = position.x + PLAYER_RADIUS;
-  const minY = position.y - PLAYER_HEIGHT;
-  const maxY = position.y;
-  const minZ = position.z - PLAYER_RADIUS;
-  const maxZ = position.z + PLAYER_RADIUS;
-
-  return voxels.some((voxel) => {
-    const cx = voxel.x - WORLD_RENDER_OFFSET;
-    const cy = voxel.y + 0.5;
-    const cz = voxel.z - WORLD_RENDER_OFFSET;
-
-    const voxelMinX = cx - 0.5;
-    const voxelMaxX = cx + 0.5;
-    const voxelMinY = cy - 0.5;
-    const voxelMaxY = cy + 0.5;
-    const voxelMinZ = cz - 0.5;
-    const voxelMaxZ = cz + 0.5;
-
-    return (
-      maxX > voxelMinX &&
-      minX < voxelMaxX &&
-      maxY > voxelMinY &&
-      minY < voxelMaxY &&
-      maxZ > voxelMinZ &&
-      minZ < voxelMaxZ
-    );
-  });
 }
 
 function samePlayerTransform(a: PlayerTransformState, b: PlayerTransformState): boolean {
@@ -265,22 +233,22 @@ function PlayerController({
         const basePosition = camera.position.clone();
 
         const target = basePosition.clone().add(step);
-        if (!collidesWithVoxel(target, voxels)) {
+        if (!playerIntersectsSolidVoxel(target, voxels)) {
           camera.position.copy(target);
         } else {
           const slideX = basePosition.clone().add(new Vector3(step.x, 0, 0));
-          if (!collidesWithVoxel(slideX, voxels)) {
+          if (!playerIntersectsSolidVoxel(slideX, voxels)) {
             camera.position.copy(slideX);
           }
 
           const slideZ = camera.position.clone().add(new Vector3(0, 0, step.z));
-          if (!collidesWithVoxel(slideZ, voxels)) {
+          if (!playerIntersectsSolidVoxel(slideZ, voxels)) {
             camera.position.copy(slideZ);
           }
 
           if (isFlying) {
             const slideY = camera.position.clone().add(new Vector3(0, step.y, 0));
-            if (!collidesWithVoxel(slideY, voxels)) {
+            if (!playerIntersectsSolidVoxel(slideY, voxels)) {
               camera.position.copy(slideY);
             }
           }
@@ -1074,6 +1042,14 @@ export function BuildScreen() {
           setIsFlying((prev) => !prev);
         }
         lastSpacePressRef.current = now;
+        return;
+      }
+
+      if (event.code === 'KeyM' && !event.repeat) {
+        const { player, inventory, world } = useAppStore.getState();
+        void copyLocalAppSnapshotToClipboard({ player, inventory, world }).catch((error) => {
+          console.error('Failed to copy debug snapshot', error);
+        });
         return;
       }
 

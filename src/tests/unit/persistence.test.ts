@@ -1,8 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createInitialWorld } from '../../domains/world/service';
 import type { InventoryState } from '../../domains/inventory/model';
 import type { PlayerProfile } from '../../domains/player/model';
-import { readLocalAppSnapshot, writeLocalAppSnapshot } from '../../persistence/localSnapshot';
+import {
+  copyLocalAppSnapshotToClipboard,
+  readLocalAppSnapshot,
+  writeLocalAppSnapshot,
+} from '../../persistence/localSnapshot';
 
 function makeSnapshot(worldId = 'world-1') {
   const player: PlayerProfile = {
@@ -71,5 +75,30 @@ describe('LocalStorage app snapshot', () => {
 
     expect(readLocalAppSnapshot()?.world.id).toBe('built-world');
     expect(readLocalAppSnapshot()?.world.voxels).toContainEqual({ x: 1, y: 1, z: 1, blockId: 'block_brick_red' });
+  });
+
+  it('writes the current snapshot and copies the same state JSON to the clipboard for debugging', async () => {
+    const snapshot = makeSnapshot('debug-world');
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+
+    const json = await copyLocalAppSnapshotToClipboard(snapshot, '2026-05-17T10:00:00.000Z');
+
+    expect(JSON.parse(json)).toMatchObject({
+      player: snapshot.player,
+      inventory: snapshot.inventory,
+      world: snapshot.world,
+      savedAt: '2026-05-17T10:00:00.000Z',
+    });
+    expect(readLocalAppSnapshot()).toMatchObject({
+      player: snapshot.player,
+      inventory: snapshot.inventory,
+      world: snapshot.world,
+      savedAt: '2026-05-17T10:00:00.000Z',
+    });
+    expect(writeText).toHaveBeenCalledWith(json);
   });
 });

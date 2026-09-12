@@ -24,20 +24,26 @@ const commonEggRewards: EggReward[] = [
   { id: 'block_coin', label: 'Монетный блок', count: 3, weight: 15, kind: 'block' },
 ];
 
-const memeEggRewards: EggReward[] =
-  lootTablesCatalog.tables
-    .find((table) => table.id === 'loot_meme_posters')
-    ?.entries.map((entry) => {
-      const poster = posterById.get(entry.itemId);
-      return {
-        id: entry.itemId,
-        label: poster?.name ?? entry.itemId,
-        count: 1,
-        weight: entry.weight,
-        kind: 'poster' as const,
-        imageUrl: poster?.image,
-      };
-    }) ?? [];
+const memeEggRewards: EggReward[] = posterRewardsFromLootTable('loot_meme_posters');
+const sbearEggRewards: EggReward[] = posterRewardsFromLootTable('loot_sbear_posters');
+
+function posterRewardsFromLootTable(tableId: string): EggReward[] {
+  return (
+    lootTablesCatalog.tables
+      .find((table) => table.id === tableId)
+      ?.entries.map((entry) => {
+        const poster = posterById.get(entry.itemId);
+        return {
+          id: entry.itemId,
+          label: poster?.name ?? entry.itemId,
+          count: 1,
+          weight: entry.weight,
+          kind: 'poster' as const,
+          imageUrl: poster?.image,
+        };
+      }) ?? []
+  );
+}
 
 function rollReward(pool: EggReward[]): EggReward {
   const total = pool.reduce((acc, item) => acc + item.weight, 0);
@@ -113,8 +119,10 @@ export function EggsScreen() {
       <h2>Яйца с призами</h2>
       <p>Обычное яйцо: 20 котокоинов.</p>
       <Button onClick={() => openEgg(20, commonEggRewards)}>Открыть обычное яйцо</Button>
-      <p>Мемное яйцо: 200 котокоинов.</p>
-      <Button onClick={() => openEgg(200, memeEggRewards)}>Открыть мемное яйцо</Button>
+      <p>Котовое яйцо: 200 котокоинов.</p>
+      <Button onClick={() => openEgg(200, memeEggRewards)}>Открыть котовое яйцо</Button>
+      <p>Яйцо Super bear: 400 котокоинов.</p>
+      <Button onClick={() => openEgg(400, sbearEggRewards)}>Открыть яйцо Super bear</Button>
 
       {errorMessage ? <p style={{ marginTop: 12 }}>{errorMessage}</p> : null}
 
