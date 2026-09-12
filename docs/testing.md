@@ -41,6 +41,7 @@ E2E smoke-набор находится в `src/tests/e2e` и запускает
 - Zustand-store сценарии: `src/app/store.ts` (`spendCatCoins`, `addInventoryItem`, `addBlockRewardItem`, `placeVoxel`, `removeVoxel`);
 - active use-case функции после их реализации/переноса в `src/application/useCases/*.ts`;
 - LocalStorage-снимок: `src/persistence/localSnapshot.ts`.
+- Сохранение/восстановление из файла: `src/persistence/saveFile.ts` (`createAppSave`, `serializeAppSave`, `parseAppSave`, `downloadAppSaveFile`, `readAppSaveFile`).
 - каталожные инварианты: наличие обязательных buildable blocks и shop-позиций из `docs/requirements-registry.md`.
 
 Обязательные unit-инварианты:
@@ -52,6 +53,7 @@ E2E smoke-набор находится в `src/tests/e2e` и запускает
 - `placeBlock` списывает ресурс/блок, `removeBlock` возвращает ресурс в инвентарь;
 - стартовый инвентарь после bootstrap/reset содержит `24` `block_brick_red`;
 - `writeLocalAppSnapshot` пишет `player + inventory + world`, `readLocalAppSnapshot` игнорирует битый JSON.
+- `parseAppSave` сериализует и восстанавливает `player + inventory + world` из файла, отклоняет битый JSON и файлы без обязательных блоков, а legacy-файлы без `savedAt` парсит по fallback на `world.updatedAt`.
 - hotbar и full inventory используют одни и те же данные инвентаря; перемещение между слотами не меняет количество предметов;
 - overflow-инвентарь не теряет новые ресурсы, когда hotbar заполнен;
 - операции inventory management поддерживают swap, merge compatible stacks, split stack и child-safe delete slot;
@@ -83,6 +85,7 @@ E2E smoke-набор находится в `src/tests/e2e` и запускает
 - `ShopScreen`: покупка при достаточном и недостаточном балансе;
 - `ShopScreen`: покупка `10` `block_glass` за `50` котокоинов и отображение стеклянного блока как semi-transparent preview с рамкой;
 - App Shell: роутинг и базовая навигация между `Мир`, `Учеба`, `Магазин`, `Яйца`, `Профиль`.
+- `ProfileScreen`: сохранение полного состояния в файл (download) и восстановление из файла с подтверждением; невалидный файл отклоняется без изменения store.
 
 Цель покрытия:
 - критичные экраны MVP: >= 70% line coverage.

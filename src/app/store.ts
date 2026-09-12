@@ -11,6 +11,7 @@ import {
 } from '../domains/world/service';
 import { defaultResourcePackId, resourcePackRegistry } from '../theme/resourcePacks';
 import posterItemsCatalog from '../content/catalogs/items.posters.v1.json';
+import type { AppSave } from '../persistence/saveFile';
 
 interface AppState {
   player: PlayerProfile;
@@ -32,6 +33,7 @@ interface AppState {
   setPlayerTransform: (playerTransform: PlayerTransformState) => void;
   setPlayerPhysics: (playerPhysics: PlayerPhysicsState) => void;
   setInventorySlots: (slots: InventorySlot[]) => void;
+  restoreSave: (save: AppSave) => void;
 }
 
 const POSTER_ITEM_IDS = new Set(posterItemsCatalog.items.map((item) => item.id));
@@ -512,6 +514,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   setInventorySlots: (slots) =>
     set((state) => ({
       inventory: recalculateInventoryFromSlots(normalizeInventoryState(state.inventory), slots),
+    })),
+
+  restoreSave: (save) =>
+    set(() => ({
+      player: save.player,
+      inventory: normalizeInventoryState(save.inventory),
+      world: normalizeWorldState(save.world),
     })),
 }));
 

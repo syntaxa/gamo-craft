@@ -59,6 +59,7 @@
 | IMPLEMENTED | `REQ-LEARN-014`, `REQ-LEARN-015`, `REQ-LEARN-016`, `REQ-ECO-007` | `src/features/lesson/LessonScreen.tsx`, `src/domains/learning/service.ts`, `src/domains/learning/generators/mathAdd.ts`, `src/content/learning/math-1.v1.json`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
 | IMPLEMENTED | `REQ-LEARN-017`, `REQ-LEARN-018`, `REQ-ECO-008` | `src/features/lesson/LessonScreen.tsx`, `src/domains/learning/service.ts`, `src/domains/learning/generators/mathSilver.ts`, `src/content/learning/math-1.v1.json`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
 | IMPLEMENTED | `REQ-LEARN-019`, `REQ-LEARN-020`, `REQ-ECO-009` | `src/features/lesson/LessonScreen.tsx`, `src/domains/learning/service.ts`, `src/domains/learning/generators/orthography.ts`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
+| IMPLEMENTED | `REQ-SAVE-001`, `REQ-SAVE-002`, `REQ-SAVE-003`, `REQ-SAVE-004` | `src/persistence/saveFile.ts` (serialize/parse/download/read), `src/app/store.ts:restoreSave`, `src/features/profile/ProfileScreen.tsx`, `src/tests/unit/saveFile.test.ts`, `src/tests/component/profile.test.tsx`. |
 | UNKNOWN | `REQ-PROD-001`, `REQ-PROD-003` | Возраст аудитории и тон UX являются продуктовыми критериями; текущий код и тесты не дают надежной автоматической проверки. |
 
 ## 1. Продукт и аудитория
@@ -146,6 +147,10 @@
 27. `REQ-WORLD-027` A poster is a placeable world item with visual size `2x2` blocks and may be placed only on vertical surfaces.
 28. `REQ-WORLD-028` Poster placement requires one valid supporting vertical block face under the placement cursor; it does not require four supporting blocks behind the whole `2x2` area.
 29. `REQ-WORLD-029` Posters cannot be placed over other posters or overlapping occupied world cells, including decor and solid blocks.
+30. `REQ-SAVE-001` Игрок должен иметь возможность сохранить полное состояние игры (профиль игрока, инвентарь и мир) в файл через штатный браузерный download.
+31. `REQ-SAVE-002` Игрок должен иметь возможность восстановить полное состояние игры из ранее сохранённого файла: импортируемые `player`, `inventory` и `world` заменяют текущие данные и сразу персистятся в локальное хранилище.
+32. `REQ-SAVE-003` Импорт должен валидировать структуру файла; невалидный JSON или отсутствие одного из блоков `player`/`inventory`/`world` отклоняется без изменения текущего состояния.
+33. `REQ-SAVE-004` Формат файла совместим с существующим снимком `player + inventory + world` и legacy-файлами без поля `savedAt` (fallback на `world.updatedAt`).
 
 ## 6. UI и визуалы
 1. `REQ-UI-001` Lesson cards in the Learning catalog must fill available horizontal space using a responsive multi-column layout.

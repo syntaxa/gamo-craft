@@ -351,7 +351,7 @@ export interface CurrencyTxn {
 }
 ```
 
-Картинки meme cats для poster items хранятся локально в `public/assets/posters/transparent` и подключаются через `items.posters.v1.json`. Каждый poster item имеет `category`, определяющую тематический набор постеров (`cats`, `sbearadventure`). Новые исходники для импорта помещаются в staging-папку `public/assets/posters/toadd`; после успешного переноса в runtime-набор исходные файлы удаляются из `toadd`. Runtime-каталог должен ссылаться на нормализованные PNG с прозрачным canvas. Пополнение набора выполняется добавлением нормализованного файла, записи poster item в каталог и записи в `loot_meme_posters`/`loot_sbear_posters` в зависимости от категории. Runtime-загрузка внешних изображений не входит в контракт.
+Картинки meme cats для poster items хранятся локально в `public/assets/posters/transparent` и подключаются через `items.posters.v1.json`. Каждый poster item имеет `category`, определяющую тематический набор постеров (`cats`, `sbearadventure`). Новые исходники для импорта помещаются в staging-папку `public/assets/posters/toadd`; после успешного переноса в runtime-набор исходные файлы удаляются из `toadd`. Runtime-каталог должен ссылаться на локальные PNG без обязательных требований к прозрачности. Пополнение набора выполняется добавлением файла, записи poster item в каталог и записи в `loot_meme_posters`/`loot_sbear_posters` в зависимости от категории. Runtime-загрузка внешних изображений не входит в контракт.
 
 `items.cosmetics.v1.json`
 ```json
@@ -684,6 +684,28 @@ this.version(2).stores({
 });
 ```
 
+## 7.5. Сохранение и восстановление из файла
+Резервное копирование полного состояния реализуется в `src/persistence/saveFile.ts` без зависимостей на store/репозитории:
+
+```ts
+export interface AppSave {
+  player: PlayerProfile;
+  inventory: InventoryState;
+  world: WorldState;
+  savedAt: string;
+}
+
+declare function createAppSave(input: AppSaveInput, savedAt?: string): AppSave;
+declare function serializeAppSave(save: AppSave): string;
+declare function parseAppSave(raw: string): AppSave | undefined;
+declare function downloadAppSaveFile(save: AppSave): void;
+declare function readAppSaveFile(file: File): Promise<AppSave | undefined>;
+```
+
+Формат файла совпадает со снимком LocalStorage (`player + inventory + world` + `savedAt`). `parseAppSave` отклоняет битый JSON и файлы без одного из блоков `player`/`inventory`/`world`; для legacy-файлов без `savedAt` используется fallback на `world.updatedAt`.
+
+Восстановление выполняется через store-action `useAppStore.restoreSave(save)`, которая нормализует `inventory` (`normalizeInventoryState`) и `world` (`normalizeWorldState`), а затем заменяет текущее состояние. После `restoreSave` штатный подписчик StoreProvider синхронно пишет LocalStorage-снимок и по debounce персистит `player`, `inventory`, `world` в IndexedDB. UI сохранения/восстановления расположен в `src/features/profile/ProfileScreen.tsx`.
+
 ## 8. Валидация и инварианты
 Проверки на уровне доменных сервисов:
 - Баланс не уходит ниже нуля.
@@ -695,7 +717,7 @@ this.version(2).stores({
 - Для active poster item выбранная грань должна быть вертикальной (`faceNormal.y === 0`).
 - Для плаката достаточно одного supporting block face под курсором; итоговая область `2x2` не должна пересекать существующие poster/decor occupancy или твердые блоки мира.
 - Невалидное размещение плаката показывает invalid wireframe и не списывает предмет из инвентаря.
-- В Build world постер рендерится как тонкая основа с лицевой картинкой; прозрачные области poster image показывают основу постера, а не текстуру блока за ним.
+- В Build world постер рендерится как тонкая основа с лицевой картинкой.
 - Каждый frame Build-режима применяет gravity к `velocityY`, интегрирует вертикальное движение и выполняет collision resolution с твердыми блоками. Запрещена логика мгновенного переноса игрока на нижнюю поверхность при потере опоры.
 - Для `orthography-1` distractor-варианты проходят quality-filter:
   - генерация сначала по целевому `ruleId`, затем по ограниченному `allowedRuleChain` для этого правила;
