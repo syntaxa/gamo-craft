@@ -755,7 +755,8 @@ interface PointerState {
 
 Контролы MVP (FPV):
 - Desktop: `WASD` (движение), `Space` (одинарный прыжок), удержание ПКМ + мышь (free camera view), ЛКМ выполняет действие активного слота hotbar.
-- Tablet: левый виртуальный джойстик (движение), touch-кнопка прыжка, правый свайп (обзор), кнопки `Поставить/Удалить`.
+- Tablet (coarse pointer): левый виртуальный джойстик задает `touchInput.movement` (вперед/назад/вправо/влево, мертвая зона по центру), свайп по окну мира вращает камеру, короткий тап выполняет действие активного слота (аналог ЛКМ), кнопки — прыжок, переключение полета, в полете «вверх»/«вниз», полный инвентарь.
+- Общий mutable-объект `src/features/build/touchInput.ts` хранит флаги движения для touch-контролов и читается общим control-контуром, минуя доступ к `set` KeyboardControls.
 - Jump срабатывает только при `playerPhysics.isGrounded === true`.
 - При `window.blur` и `document.visibilitychange -> hidden` Build-режим ставится на паузу, а состояние клавиш принудительно сбрасывается (защита от «залипания» движения).
 - При клике/контекстном меню вне области `.build-stage` Build-режим также ставится на паузу с тем же сбросом клавиш.
@@ -765,6 +766,7 @@ interface PointerState {
 - Превью постановки: тонкая рамка только по ребрам (без диагоналей), рассчитывается тем же raycast-контуром, что и фактическое действие слота.
 - Для active poster item Build preview рендерит `2x2` wireframe на вертикальной поверхности. Existing one-block placement preview остается для block items.
 - Hotbar: 9 слотов, где слот 1 = ластик, слоты 2-9 = ресурсы/пусто. По умолчанию выбирается слот с первым ресурсом; если ресурсов нет, активен пустой слот 2 и ЛКМ не выполняет действие.
+- Первый touch на паузе только снимает паузу (подсказка «кликните по окну мира»), look/действие армятся после снятия паузы.
 
 ## 10. UI/UX технические требования
 - Минимальный размер кнопок: 44x44 px.
@@ -773,6 +775,9 @@ interface PointerState {
 - Анимации открытия яйца: 400-900ms.
 - Карточка награды после открытия яйца должна начинать fade-out через `2` секунды и автоматически скрываться.
 - Поддержка `prefers-reduced-motion`.
+- Layout: `.app-shell` использует `height: 100dvh` (fallback `100vh`) и grid `grid-template-rows: auto auto 1fr`; `.screen-wrap` прокручивается внутри; в Build-режиме `.build-screen` (flex:1) + `.build-stage` (flex:1 1 auto, `min-height: 0`, `touch-action: none`) занимают всю свободную высоту под шапкой и навигацией.
+- На coarse-pointer устройствах (`@media (pointer: coarse)`): скрываются `.build-controls-hint`, `.build-hud` (карточка-подпись) и desktop-подсказки; hotbar поднимается на `bottom: 168px`, чтобы не перекрываться кнопками; поверх окна мира показывается компактный чип `.build-touch-hint`; подсказка паузы наложена по центру окна мира (`.build-pause-hint`), не съедая высоту сцены.
+- Touch-джойстик: зона базы 44px, максимальное смещение ручки `MAX_TRAVEL = 44` px, мертвая зона `DEAD_ZONE = 0.22` от нормированного вектора; чувствительность свайп-обзора `TOUCH_LOOK_SENSITIVITY = 0.0042`, порог переключения тап/свайп `TOUCH_DRAG_THRESHOLD = 8` px.
 - Hotbar должен быть доступен мышью и горячими клавишами `1..9`.
 - Full inventory UI использует Minecraft-style baseline: main storage grid, visible hotbar row, item icons, stack counts, selected/hover states, drag-and-drop movement for whole stacks, visible carried-stack feedback under the pointer for drag/split operations, and large cells suitable for mouse and touch.
 - UI результата урока показывает earned currency в формате `value + coin icon`.
@@ -953,8 +958,10 @@ type ResourcePackSpec = {
 
 ## 19. Реестр требований
 - Единый структурированный реестр требований: `docs/requirements-registry.md`.
-- Текущий контракт Build UI: `VirtualJoystick` рендерится только при `matchMedia('(pointer: coarse)')`.
+- Текущий контракт Build UI: `VirtualJoystick` рендерится только при `matchMedia('(pointer: coarse)')`; `touchInput.movement` читается общим control-контуром BuildScreen; свайп-обзор и тап-действие обрабатываются pointer-событиями канваса; кнопки полета/вверх-вниз/инвентаря меняют `isFlying`/открывают инвентарь.
+- PWA: `vite.config.ts` подключает `vite-plugin-pwa` (mode `generateSW`, `registerType: 'autoUpdate'`, manifest с иконками 192/512/maskable и `apple-touch-icon-180`, `navigateFallback: 'index.html'`, `cleanupOutdatedCaches: true`, devOptions для dev); иконки генерируются `npm run icons` через `scripts/generate-icons.mjs` (растеризация `public/resource-packs/cartoon-blocky-v1/ui/coin_icon_kotocoin.svg` пакетом `@resvg/resvg-js`); генерируемый `dev-dist` исключен из eslint.
+- Деплой на GitHub Pages: `base: './'` (vite) + `.github/workflows/deploy-pages.yml` (npm `ci` -> `icons` -> `build` -> копия `dist/index.html` в `dist/404.html` для SPA-маршрутов BrowserRouter -> `upload-pages-artifact` -> `deploy-pages`); источник Pages должен быть «GitHub Actions» (не «Deploy from branch», который публикует сырой репозиторий без сборки).
 - При `placeBlock` списывается не только `blocks`, но и соответствующий `resources`-остаток.
 - Награды из обычных строительных яиц добавляются только в `blocks` без прироста `resources`; poster-награды добавляются в poster item kind.
-- Базовый seed `initialInventory`: `resources = { block_brick_red: 24 }`, `blocks = { block_brick_red: 24 }`, пустые poster/cosmetics collections и слотированное представление hotbar/main inventory.
+- Базовый seed `initialInventory`: `resources = { block_brick_red: 24 }`, `blocks = { block_brick_red: 24 }`, пустые poster/cosmetics коллекции и слотированное представление hotbar/main inventory.
 - При `db.delete()` и следующем запуске применяется тот же стартовый seed.

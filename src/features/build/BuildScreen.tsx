@@ -30,6 +30,7 @@ import {
   type InventorySlotAddress,
 } from '../../domains/inventory/slotActions';
 import { copyLocalAppSnapshotToClipboard } from '../../persistence/localSnapshot';
+import { hasTouchMovementInput, touchInput } from './touchInput';
 
 type ControlKey = 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down';
 type GridTarget = { x: number; y: number; z: number };
@@ -192,16 +193,17 @@ function PlayerController({
     lastPersistedPhysicsRef.current = playerPhysics;
   }, [playerPhysics]);
 
-  useFrame(({ camera }, delta) => {
-    if (isWorldPaused || !isKeyboardInputArmed) {
+useFrame(({ camera }, delta) => {
+    if (isWorldPaused || (!isKeyboardInputArmed && !hasTouchMovementInput())) {
       return;
     }
 
     const { forward, backward, left, right, up, down } = getKeys();
+    const touch = touchInput.movement;
 
-    const forwardAxis = (forward ? 1 : 0) - (backward ? 1 : 0);
-    const sideAxis = (right ? 1 : 0) - (left ? 1 : 0);
-    const verticalAxis = (up ? 1 : 0) - (down ? 1 : 0);
+    const forwardAxis = (forward ? 1 : 0) - (backward ? 1 : 0) + (touch.forward ? 1 : 0) - (touch.backward ? 1 : 0);
+    const sideAxis = (right ? 1 : 0) - (left ? 1 : 0) + (touch.right ? 1 : 0) - (touch.left ? 1 : 0);
+    const verticalAxis = (up ? 1 : 0) - (down ? 1 : 0) + (touch.up ? 1 : 0) - (touch.down ? 1 : 0);
 
     const hasMovementInput = forwardAxis !== 0 || sideAxis !== 0 || (isFlying && verticalAxis !== 0);
 
@@ -330,6 +332,75 @@ function Scene({
   const isFreeLookRef = useRef(false);
   const yawPitchRef = useRef({ yaw: 0, pitch: 0 });
   const lastMouseRef = useRef({ x: 0, y: 0 });
+  const touchLookRef = useRef<{ pointerId: number; lastX: number; lastY: number; moved: boolean } | null>(null);
+  const TOUCH_LOOK_SENSITIVITY = 0.0042;
+  const TOUCH_DRAG_THRESHOLD = 8;
+
+  const findHit = useCallback(
+    (ndc: Vector2): HitResult | null => {
+      const raycaster = raycasterRef.current;
+      raycaster.setFromCamera(ndc, camera);
+      const hits = raycaster.intersectObjects(scene.children, true);
+      const hit = hits.find((candidate) => {
+        const kind = candidate.object.userData?.kind as 'voxel' | 'poster' | undefined;
+        if (selectedSlot.kind === 'eraser') {
+          return kind === 'voxel' || kind === 'poster';
+        }
+        return kind === 'voxel';
+      });
+      if (!hit) return null;
+
+      const hitKind = hit.object.userData?.kind as 'voxel' | 'poster' | undefined;
+      if (hitKind === 'voxel') {
+        return {
+          kind: 'voxel',
+          point: hit.point.clone(),
+          faceNormal: hit.face?.normal.clone(),
+          voxel: {
+            x: hit.object.userData?.x as number,
+            y: hit.object.userData?.y as number,
+            z: hit.object.userData?.z as number,
+          },
+        };
+      }
+      if (hitKind === 'poster') {
+        return {
+          kind: 'poster',
+          point: hit.point.clone(),
+          posterId: hit.object.userData?.posterId as string,
+        };
+      }
+      return null;
+    },
+    [camera, scene, selectedSlot],
+  );
+
+  const performSlotAction = useCallback(
+    (hit: HitResult | null) => {
+      if (!hit) return;
+      if (selectedSlot.kind === 'item' && selectedSlot.itemKind === 'block') {
+        const target = placeFromHit(hit);
+        if (!target) return;
+        placeVoxel(target.x, target.y, target.z, selectedSlot.itemId);
+        return;
+      }
+      if (selectedSlot.kind === 'item' && selectedSlot.itemKind === 'poster') {
+        const placement = posterPlacementFromHit(hit, selectedSlot);
+        if (!placement) return;
+        placePoster(placement);
+        return;
+      }
+      if (selectedSlot.kind === 'eraser') {
+        if (hit.kind === 'poster' && hit.posterId) {
+          removePoster(hit.posterId);
+          return;
+        }
+        if (hit.kind !== 'voxel' || !hit.voxel) return;
+        removeVoxel(hit.voxel.x, hit.voxel.y, hit.voxel.z);
+      }
+    },
+    [placePoster, placeVoxel, removePoster, removeVoxel, selectedSlot],
+  );
 
   const previewEdgesGeometry = useMemo(() => new EdgesGeometry(new BoxGeometry(1.02, 1.02, 1.02)), []);
   const posterPreviewEdgesGeometry = useMemo(() => new EdgesGeometry(new BoxGeometry(2.02, 2.02, 0.04)), []);
@@ -496,6 +567,7 @@ function Scene({
   useEffect(() => {
     if (isWorldPaused) {
       isFreeLookRef.current = false;
+      touchLookRef.current = null;
     }
   }, [isWorldPaused]);
 
@@ -509,6 +581,26 @@ function Scene({
 
       mouseNdcRef.current.x = (x / rect.width) * 2 - 1;
       mouseNdcRef.current.y = -(y / rect.height) * 2 + 1;
+
+      const touchLook = touchLookRef.current;
+      if (touchLook && event.pointerId === touchLook.pointerId) {
+        const dx = event.clientX - touchLook.lastX;
+        const dy = event.clientY - touchLook.lastY;
+        touchLook.lastX = event.clientX;
+        touchLook.lastY = event.clientY;
+
+        if (!touchLook.moved && Math.hypot(dx, dy) < TOUCH_DRAG_THRESHOLD) {
+          return;
+        }
+        touchLook.moved = true;
+
+        yawPitchRef.current.yaw -= dx * TOUCH_LOOK_SENSITIVITY;
+        yawPitchRef.current.pitch -= dy * TOUCH_LOOK_SENSITIVITY;
+        yawPitchRef.current.pitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, yawPitchRef.current.pitch));
+
+        camera.rotation.set(yawPitchRef.current.pitch, yawPitchRef.current.yaw, 0, 'YXZ');
+        return;
+      }
 
       if (!isFreeLookRef.current) return;
 
@@ -527,6 +619,17 @@ function Scene({
     const onPointerDown = (event: PointerEvent) => {
       if (isWorldPaused) return;
 
+      if (event.pointerType === 'touch') {
+        if (event.button !== 0) return;
+        touchLookRef.current = {
+          pointerId: event.pointerId,
+          lastX: event.clientX,
+          lastY: event.clientY,
+          moved: false,
+        };
+        return;
+      }
+
       if (event.button === 2) {
         isFreeLookRef.current = true;
         lastMouseRef.current = { x: event.clientX, y: event.clientY };
@@ -536,34 +639,29 @@ function Scene({
         return;
       }
 
-      if (event.button !== 0 || !currentHitRef.current) return;
+      if (event.button !== 0) return;
 
-      if (selectedSlot.kind === 'item' && selectedSlot.itemKind === 'block') {
-        const target = placeFromHit(currentHitRef.current);
-        if (!target) return;
-        placeVoxel(target.x, target.y, target.z, selectedSlot.itemId);
-        return;
-      }
-
-      if (selectedSlot.kind === 'item' && selectedSlot.itemKind === 'poster') {
-        const placement = posterPlacementFromHit(currentHitRef.current, selectedSlot);
-        if (!placement) return;
-        placePoster(placement);
-        return;
-      }
-
-      if (selectedSlot.kind === 'eraser') {
-        if (currentHitRef.current.kind === 'poster' && currentHitRef.current.posterId) {
-          removePoster(currentHitRef.current.posterId);
-          return;
-        }
-        if (currentHitRef.current.kind !== 'voxel' || !currentHitRef.current.voxel) return;
-        const t = currentHitRef.current.voxel;
-        removeVoxel(t.x, t.y, t.z);
-      }
+      performSlotAction(currentHitRef.current);
     };
 
     const onPointerUp = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') {
+        const touchLook = touchLookRef.current;
+        if (!touchLook || touchLook.pointerId !== event.pointerId) return;
+        touchLookRef.current = null;
+
+        if (!touchLook.moved) {
+          const rect = canvas.getBoundingClientRect();
+          mouseNdcRef.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+          mouseNdcRef.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+          const hit = findHit(mouseNdcRef.current);
+          currentHitRef.current = hit;
+          performSlotAction(hit);
+        }
+        persistCurrentPlayerTransform(true);
+        return;
+      }
+
       if (event.button === 2) {
         isFreeLookRef.current = false;
         persistCurrentPlayerTransform(true);
@@ -579,7 +677,7 @@ function Scene({
       canvas.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointerup', onPointerUp);
     };
-  }, [camera, gl, isWorldPaused, persistCurrentPlayerTransform, placePoster, placeVoxel, removePoster, removeVoxel, selectedSlot]);
+  }, [camera, findHit, gl, isWorldPaused, performSlotAction, persistCurrentPlayerTransform]);
 
   useEffect(() => {
     const flushTransform = () => persistCurrentPlayerTransform(true);
@@ -599,48 +697,9 @@ function Scene({
     };
   }, [persistCurrentPlayerTransform]);
 
-  useFrame(({ camera }) => {
-    const raycaster = raycasterRef.current;
-    raycaster.setFromCamera(mouseNdcRef.current, camera);
-
-    const hits = raycaster.intersectObjects(scene.children, true);
-    const hit = hits.find((candidate) => {
-      const kind = candidate.object.userData?.kind as 'voxel' | 'poster' | undefined;
-      if (selectedSlot.kind === 'eraser') {
-        return kind === 'voxel' || kind === 'poster';
-      }
-      return kind === 'voxel';
-    });
-
-    let currentHit: HitResult | null = null;
-
-    if (!hit) {
-      currentHitRef.current = null;
-    } else {
-      const hitKind = hit.object.userData?.kind as 'voxel' | 'poster' | undefined;
-
-      if (hitKind === 'voxel') {
-        const voxel = {
-          x: hit.object.userData?.x as number,
-          y: hit.object.userData?.y as number,
-          z: hit.object.userData?.z as number,
-        };
-        currentHit = {
-          kind: 'voxel',
-          point: hit.point.clone(),
-          faceNormal: hit.face?.normal.clone(),
-          voxel,
-        };
-      } else if (hitKind === 'poster') {
-        currentHit = {
-          kind: 'poster',
-          point: hit.point.clone(),
-          posterId: hit.object.userData?.posterId as string,
-        };
-      }
-
-      currentHitRef.current = currentHit;
-    }
+  useFrame(() => {
+    const currentHit = findHit(mouseNdcRef.current);
+    currentHitRef.current = currentHit;
 
     const nextPreview = previewFromHit(currentHit, selectedSlot);
     if (!sameTarget(previewTarget, nextPreview)) {
@@ -943,8 +1002,11 @@ export function BuildScreen() {
     setIsWorldPaused(false);
     releaseStuckMovementKeys();
   }, []);
-  const requestJump = useCallback(() => {
+const requestJump = useCallback(() => {
     setJumpRequestId((prev) => prev + 1);
+  }, []);
+  const toggleFly = useCallback(() => {
+    setIsFlying((prev) => !prev);
   }, []);
   const closeInventory = useCallback(() => {
     if (cursorSlot) {
@@ -959,6 +1021,14 @@ export function BuildScreen() {
     setIsInventoryOpen(false);
     resumeWorld();
   }, [cursorSlot, inventorySlots, resumeWorld, setInventorySlots]);
+  const toggleInventory = useCallback(() => {
+    if (isInventoryOpen) {
+      closeInventory();
+    } else {
+      setIsInventoryOpen(true);
+      pauseWorld();
+    }
+  }, [closeInventory, isInventoryOpen, pauseWorld]);
 
   useEffect(() => {
     const onWindowBlur = () => {
@@ -1177,14 +1247,11 @@ export function BuildScreen() {
   const carriedIconUrl = carriedSlot ? getSlotIconUrl(inventorySlotToHotbarSlot(carriedSlot, carriedLabel), resourcePack) : null;
 
   return (
-    <div style={{ display: 'grid', gap: 12 }}>
+    <div className="build-screen">
       <div
         ref={stageRef}
         className="build-stage"
         style={{
-          height: '64vh',
-          minHeight: 360,
-          borderRadius: 16,
           overflow: 'hidden',
           position: 'relative',
         }}
@@ -1217,7 +1284,12 @@ export function BuildScreen() {
             />
           </Canvas>
         </KeyboardControls>
-        <VirtualJoystick onJump={requestJump} />
+        <VirtualJoystick
+          onJump={requestJump}
+          onToggleFly={toggleFly}
+          onToggleInventory={toggleInventory}
+          isFlying={isFlying}
+        />
 
         <div className="hotbar" aria-label="Инвентарь">
           {hotbarSlots.map((slot, idx) => {
@@ -1316,14 +1388,21 @@ export function BuildScreen() {
             ) : null}
           </div>
         ) : null}
+      <div className="build-touch-hint" aria-hidden>
+          Джойстик — движение · свайп — обзор · тап — действие слота
+        </div>
+        {isWorldPaused ? (
+          <div className="build-pause-hint">Мир на паузе: кликните по окну мира, чтобы продолжить.</div>
+        ) : null}
       </div>
 
-      <BuildHUD isFlying={isFlying} packName={resourcePack.displayName} />
+      <div className="build-hud">
+        <BuildHUD isFlying={isFlying} packName={resourcePack.displayName} />
+      </div>
 
-      <p style={{ margin: 0 }}>
+      <p className="build-controls-hint">
         ЛКМ: действие выбранного слота. Слот 1: ластик (удаление). Удержание ПКМ: свободный обзор камеры. WASD: движение. Двойной Space: режим полета. В полете: Space вверх, Shift вниз.
       </p>
-      {isWorldPaused ? <p style={{ margin: 0 }}>Мир на паузе: кликните по окну мира, чтобы продолжить.</p> : null}
     </div>
   );
 }

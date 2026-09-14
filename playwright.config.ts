@@ -21,7 +21,7 @@ export default defineConfig({
     },
     {
       name: 'tablet-chromium',
-      use: { ...devices['Pixel Tablet'] },
+      use: { ...devices['Galaxy Tab S9 landscape'] },
     },
   ],
 });

@@ -1,9 +1,45 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  // Относительный base: работает на GitHub Pages как в корне пользователя,
+  // так и в подкаталоге проекта (/gamo-craft/), и на кастомном домене.
+  base: './',
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg'],
+      manifest: {
+        name: 'Gamo',
+        short_name: 'Gamo',
+        description: 'Игровая песочница для учёбы и строительства',
+        theme_color: '#1d5eb5',
+        background_color: '#9ed8ff',
+        display: 'standalone',
+        start_url: './',
+        scope: './',
+        orientation: 'any',
+        lang: 'ru',
+        icons: [
+          { src: './icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: './icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: './icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,woff,woff2,ttf,otf,svg,png,jpg,jpeg,gif,webp,json,ico}'],
+        globIgnores: ['**/dev.log', '**/dev.out.log', '**/dev.err.log'],
+        navigateFallback: 'index.html',
+        cleanupOutdatedCaches: true,
+      },
+      devOptions: {
+        enabled: true,
+      },
+    }),
+  ],
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? '0.1.0'),
   },

@@ -27,7 +27,9 @@
 | IMPLEMENTED | `REQ-TECH-004` | Политика синхронизации требований описана в `docs/requirements-change-policy.md`; текущий реестр содержит матрицу реализации. |
 | IMPLEMENTED | `REQ-TECH-005`, `REQ-TECH-006`, `REQ-TECH-007` | `package.json` scripts `orth:build`, `orth:validate`, `orth:program`, `orth:samples`; `scripts/orthography/*`; `src/domains/learning/generators/orthography.ts`; `src/tests/unit/learning.test.ts`. |
 | IMPLEMENTED | `REQ-INPUT-001` | `src/features/build/BuildScreen.tsx`: `KeyboardControls` для `WASD`, удержание ПКМ для обзора, ЛКМ по выбранному слоту. |
-| IMPLEMENTED | `REQ-INPUT-002`, `REQ-INPUT-003` | `src/features/build/VirtualJoystick.tsx` показывает touch-control только при `(pointer: coarse)`. |
+| IMPLEMENTED | `REQ-INPUT-002`, `REQ-INPUT-003` | `src/features/build/VirtualJoystick.tsx` показывает touch-control только при `(pointer: coarse)`; `src/features/build/touchInput.ts` — общий mutable-флаг движения для touch-контролов. |
+| IMPLEMENTED | `REQ-INPUT-007`, `REQ-INPUT-008` | `src/features/build/VirtualJoystick.tsx` (джойстик задает `touchInput.movement`), `src/features/build/BuildScreen.tsx` (touch-свайп вращает камеру), `src/tests/unit/touchInput.test.ts`, `src/tests/e2e/tablet-touch.spec.ts`. |
+| IMPLEMENTED | `REQ-INPUT-009`, `REQ-INPUT-010`, `REQ-INPUT-011` | `src/features/build/BuildScreen.tsx` (`performSlotAction` по короткому тапу, `toggleFly`, `toggleInventory`), `src/features/build/VirtualJoystick.tsx` (кнопки прыжок/полет/вверх-вниз/инвентарь), `src/tests/e2e/tablet-touch.spec.ts`. |
 | IMPLEMENTED | `REQ-INPUT-004`, `REQ-INPUT-005` | `src/features/build/BuildScreen.tsx`: pause/release на blur/visibility/pointer outside; `E`/`Esc` открывают и закрывают полный инвентарь с паузой управления. |
 | IMPLEMENTED | `REQ-LEARN-001`, `REQ-LEARN-002`, `REQ-LEARN-003`, `REQ-LEARN-004` | `src/domains/learning/service.ts`, `src/features/lesson/LessonScreen.tsx`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
 | IMPLEMENTED | `REQ-LEARN-005`, `REQ-LEARN-006`, `REQ-LEARN-007`, `REQ-LEARN-008` | `src/content/learning/orthography-1.v1.json`, `src/domains/learning/generators/orthography.ts`, `src/tests/unit/learning.test.ts`. |
@@ -54,7 +56,10 @@
 | IMPLEMENTED | `REQ-UI-001`, `REQ-UI-002`, `REQ-UI-003` | `src/features/lesson/LessonScreen.tsx`, `src/shared/ui/CurrencyBadge.tsx`, `src/styles.css`, `src/tests/component/lesson.test.tsx`. |
 | IMPLEMENTED | `REQ-UI-004`, `REQ-UI-005` | `src/features/build/BuildScreen.tsx`, `src/styles.css`, `src/tests/unit/inventorySlotActions.test.ts`. |
 | IMPLEMENTED | `REQ-VIS-001`, `REQ-VIS-002`, `REQ-VIS-004`, `REQ-VIS-005`, `REQ-VIS-006`, `REQ-VIS-007`, `REQ-VIS-008`, `REQ-VIS-009` | `src/theme/resourcePacks.ts`, `src/theme/applyResourcePack.ts`, `src/features/build/BuildScreen.tsx`, `src/styles.css`. |
-| PARTIAL | `REQ-PROD-002`, `REQ-PLAT-002`, `REQ-VIS-003` | Основной цикл и desktop/tablet-ориентированные экраны есть, но нет полного приемочного покрытия для всей продуктовой петли, Android-планшета и юридической проверки всех ассетов. |
+| IMPLEMENTED | `REQ-PLAT-002` | `playwright.config.ts` (проект `tablet-chromium` = Galaxy Tab S9 landscape, hasTouch), `src/tests/e2e/tablet-touch.spec.ts` — приемочное покрытие Android-планшета. |
+| IMPLEMENTED | `REQ-PLAT-003`, `REQ-TECH-008` | `vite.config.ts` (VitePWA: generateSW, registerType autoUpdate, manifest, navigateFallback, cleanupOutdatedCaches), `public/icons/*` (сгенерены из `coin_icon_kotocoin.svg` скриптом `scripts/generate-icons.mjs`, npm-run `icons`), `index.html` (meta viewport-render, mobile-web-app-capable, apple-*); сборка генерирует `dist/sw.js` + `manifest.webmanifest` (precache), офлайн-загрузка проверена на `vite preview`. |
+| IMPLEMENTED | `REQ-UI-006`, `REQ-UI-007` | `src/styles.css` (`.app-shell` height `100dvh`/grid `1fr`, `.build-stage` flex:1 + min-height:0, `@media (pointer: coarse)` скрывает подсказки клавиатуры и HUD-карточку, показывает touch-чип), `src/features/build/BuildScreen.tsx`, `src/tests/e2e/tablet-touch.spec.ts`. |
+| PARTIAL | `REQ-PROD-002`, `REQ-VIS-003` | Основной цикл и desktop/tablet-ориентированные экраны есть, но нет полного приемочного покрытия для всей продуктовой петли и юридической проверки всех ассетов. |
 | IMPLEMENTED | `REQ-INPUT-006`, `REQ-WORLD-023`, `REQ-WORLD-024`, `REQ-VIS-013` | `src/domains/world/service.ts:stepPlayerVerticalPhysics` реализует grounded-only jump, покадровое gravity-driven падение, посадку на верхние грани и остановку подъема о нижние грани твердых блоков; `src/features/build/BuildScreen.tsx` вызывает физику в кадре, обрабатывает `Space` и touch-кнопку прыжка; `src/tests/unit/world.test.ts` покрывает стартовую физику, запрет air-jump, непрерывное падение до приземления, посадку на подвешенный блок и запрет входа в подвешенный блок снизу. |
 | IMPLEMENTED | `REQ-LEARN-014`, `REQ-LEARN-015`, `REQ-LEARN-016`, `REQ-ECO-007` | `src/features/lesson/LessonScreen.tsx`, `src/domains/learning/service.ts`, `src/domains/learning/generators/mathAdd.ts`, `src/content/learning/math-1.v1.json`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
 | IMPLEMENTED | `REQ-LEARN-017`, `REQ-LEARN-018`, `REQ-ECO-008` | `src/features/lesson/LessonScreen.tsx`, `src/domains/learning/service.ts`, `src/domains/learning/generators/mathSilver.ts`, `src/content/learning/math-1.v1.json`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
@@ -76,6 +81,12 @@
 6. `REQ-INPUT-004` При потере фокуса окна/вкладки в Build-режиме мир должен переходить на паузу и сбрасывать состояние зажатых клавиш, чтобы исключить бесконечное движение.
 7. `REQ-INPUT-005` На desktop клавиша `E` переключает полный экран инвентаря. Открытие инвентаря отпускает/ставит на паузу Build camera controls; повторное нажатие `E` или `Esc` закрывает инвентарь и возвращает предыдущий Build interaction mode.
 8. `REQ-INPUT-006` Build mode должен поддерживать одинарный прыжок: `Space` на desktop и эквивалентный touch-control на устройствах с coarse pointer.
+9. `REQ-PLAT-003` Игра должна быть доступна как устанавливаемое PWA: manifest + service worker (generateSW), кэширование статики с офлайн-доступом к приложению и маршрутам, автообновление (`autoUpdate`), иконки приложения на основе игрового ассета котокоины.
+10. `REQ-INPUT-007` На устройствах с coarse pointer левый виртуальный джойстик управляет движением (вперед/назад/вправо/влево) с мертвой зоной по центру.
+11. `REQ-INPUT-008` Свайп по окну мира на touch-устройстве вращает камеру (обзор); тач-обзор не конфликтует с джойстиком.
+12. `REQ-INPUT-009` Короткий тап по окну мира на touch-устройстве выполняет действие выбранного слота hotbar (постановка/удаление блока) — аналог ЛКМ на desktop.
+13. `REQ-INPUT-010` Touch-кнопки: прыжок, переключение режима полета; в полете дополнительно кнопки «вверх»/«вниз».
+14. `REQ-INPUT-011` Touch-кнопка открывает полный инвентарь (аналог `E` на desktop).
 
 ## 3. Обучение
 1. `REQ-LEARN-001` Обучение MVP: сложение/вычитание до 20.
@@ -172,6 +183,8 @@
 17. `REQ-VIS-012` Resource-pack `cartoon-blocky-v1` must provide texture asset `world/block_glass.svg` for `block_glass`.
 18. `REQ-VIS-013` The fall process must be visually animated so the player sees smooth downward motion until landing.
 19. `REQ-VIS-014` Poster placement must show a `2x2` wireframe placement preview; the preview communicates valid and invalid placement states before confirmation.
+20. `REQ-UI-006` Окно Build (FPV) должно заполнять всю свободную высоту экрана под главным меню: topbar и навигация остаются видимыми, карточка-подпись и текстовые подсказки не съедают высоту окна мира.
+21. `REQ-UI-007` На устройствах с coarse pointer скрываются подписи управления клавиатурой, desktop-подсказки и карточка HUD; показывается компактная touch-подсказка поверх окна мира; главное меню (topbar + nav) остается видимым.
 
 ## 7. Технические ограничения и качество
 1. `REQ-TECH-001` Стек: React + TypeScript + Vite.
@@ -181,3 +194,4 @@
 5. `REQ-TECH-005` Offline lexicon pipeline must include commands `orth:build`, `orth:validate`, `orth:program` and produce `src/content/learning/orthography-1.v1.json`.
 6. `REQ-TECH-006` QA sample mode must be available via `orth:samples` and save JSON batches to `tmp/orthography/samples/`.
 7. `REQ-TECH-007` If a word cannot produce 2 valid distractors after filtering, it must not be emitted into a lesson/sample batch.
+8. `REQ-TECH-008` PWA настраивается через `vite-plugin-pwa` (mode `generateSW`, registerType `autoUpdate`, `navigateFallback` на `/index.html`, `cleanupOutdatedCaches`, devOptions для dev-режима); иконки генерируются npm-скриптом `icons` из `coin_icon_kotocoin.svg` через `@resvg/resvg-js`; сгенерированный `dev-dist` исключен из линта.
