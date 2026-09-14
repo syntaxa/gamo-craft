@@ -6,7 +6,7 @@
       "name": "Мемный кот 1",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_1.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_1.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -16,7 +16,7 @@
       "name": "Мемный кот 2",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_2.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_2.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -26,7 +26,7 @@
       "name": "Мемный кот 3",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_3.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_3.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -36,7 +36,7 @@
       "name": "Мемный кот 4",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_4.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_4.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -46,7 +46,7 @@
       "name": "Мемный кот 5",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_5.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_5.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -56,7 +56,7 @@
       "name": "Мемный кот 6",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_6.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_6.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -66,7 +66,7 @@
       "name": "Мемный кот 7",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_7.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_7.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -76,7 +76,7 @@
       "name": "Мемный кот 8",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_8.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_8.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -86,7 +86,7 @@
       "name": "Мемный кот 9",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_9.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_9.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -96,7 +96,7 @@
       "name": "Мемный кот 10",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_10.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_10.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -106,7 +106,7 @@
       "name": "Мемный кот 11",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_11.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_11.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -116,7 +116,7 @@
       "name": "Мемный кот 12",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_12.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_12.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -126,7 +126,7 @@
       "name": "Мемный кот 13",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_13.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_13.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -136,7 +136,7 @@
       "name": "Мемный кот 14",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_14.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_14.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -146,7 +146,7 @@
       "name": "Мемный кот 15",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_15.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_15.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -156,7 +156,7 @@
       "name": "Мемный кот 16",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_16.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_16.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -166,7 +166,7 @@
       "name": "Мемный кот 17",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_17.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_17.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -176,7 +176,7 @@
       "name": "Мемный кот 18",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_18.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_18.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -186,7 +186,7 @@
       "name": "Мемный кот 19",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_19.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_19.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -196,7 +196,7 @@
       "name": "Мемный кот 20",
       "kind": "poster",
       "category": "cats",
-      "image": "/assets/posters/transparent/poster_meme_cat_20.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_20.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -206,7 +206,7 @@
       "name": "Super bear adventure 21",
       "kind": "poster",
       "category": "sbearadventure",
-      "image": "/assets/posters/transparent/poster_meme_cat_21.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_21.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -216,7 +216,7 @@
       "name": "Super bear adventure 22",
       "kind": "poster",
       "category": "sbearadventure",
-      "image": "/assets/posters/transparent/poster_meme_cat_22.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_22.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -226,7 +226,7 @@
       "name": "Super bear adventure 23",
       "kind": "poster",
       "category": "sbearadventure",
-      "image": "/assets/posters/transparent/poster_meme_cat_23.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_23.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -236,7 +236,7 @@
       "name": "Super bear adventure 24",
       "kind": "poster",
       "category": "sbearadventure",
-      "image": "/assets/posters/transparent/poster_meme_cat_24.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_24.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -246,7 +246,7 @@
       "name": "Super bear adventure 25",
       "kind": "poster",
       "category": "sbearadventure",
-      "image": "/assets/posters/transparent/poster_meme_cat_25.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_25.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -256,7 +256,7 @@
       "name": "Super bear adventure 26",
       "kind": "poster",
       "category": "sbearadventure",
-      "image": "/assets/posters/transparent/poster_meme_cat_26.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_26.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -266,7 +266,7 @@
       "name": "Super bear adventure 27",
       "kind": "poster",
       "category": "sbearadventure",
-      "image": "/assets/posters/transparent/poster_meme_cat_27.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_27.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -276,7 +276,7 @@
       "name": "Super bear adventure 28",
       "kind": "poster",
       "category": "sbearadventure",
-      "image": "/assets/posters/transparent/poster_meme_cat_28.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_28.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -286,7 +286,7 @@
       "name": "Super bear adventure 29",
       "kind": "poster",
       "category": "sbearadventure",
-      "image": "/assets/posters/transparent/poster_meme_cat_29.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_29.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -296,7 +296,7 @@
       "name": "Super bear adventure 30",
       "kind": "poster",
       "category": "sbearadventure",
-      "image": "/assets/posters/transparent/poster_meme_cat_30.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_30.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -306,7 +306,7 @@
       "name": "Super bear adventure 31",
       "kind": "poster",
       "category": "sbearadventure",
-      "image": "/assets/posters/transparent/poster_meme_cat_31.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_31.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -316,7 +316,7 @@
       "name": "Super bear adventure 32",
       "kind": "poster",
       "category": "sbearadventure",
-      "image": "/assets/posters/transparent/poster_meme_cat_32.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_32.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16
@@ -326,7 +326,7 @@
       "name": "Super bear adventure 33",
       "kind": "poster",
       "category": "sbearadventure",
-      "image": "/assets/posters/transparent/poster_meme_cat_33.png",
+      "image": "./assets/posters/transparent/poster_meme_cat_33.png",
       "widthBlocks": 2,
       "heightBlocks": 2,
       "stackLimit": 16

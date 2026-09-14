@@ -1,10 +1,4 @@
-﻿@font-face {
-  font-family: 'Kenney Future';
-  src: url('/resource-packs/cartoon-blocky-v1/fonts/KenneyFuture.ttf') format('truetype');
-  font-display: swap;
-}
-
-:root {
+﻿:root {
   --font-ui: Verdana, 'Segoe UI', Tahoma, sans-serif;
   --line: #2e4a21;
   --text-main: #172412;

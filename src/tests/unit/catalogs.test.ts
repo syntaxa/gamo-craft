@@ -47,8 +47,8 @@ describe('catalog invariants', () => {
         widthBlocks: 2,
         heightBlocks: 2,
       });
-      expect(poster.image).toMatch(/^\/assets\//);
-      expect(existsSync(join(process.cwd(), 'public', poster.image))).toBe(true);
+      expect(poster.image).toMatch(/^\.\/assets\//);
+      expect(existsSync(join(process.cwd(), 'public', poster.image.slice(2)))).toBe(true);
     }
 
     expect(lootTables.tables.find((table) => table.id === 'loot_meme_posters')?.entries).toEqual(
@@ -60,7 +60,7 @@ describe('catalog invariants', () => {
 
   it('uses normalized transparent poster image assets', () => {
     for (const poster of posterItems.items) {
-      expect(poster.image).toMatch(/^\/assets\/posters\/transparent\//);
+      expect(poster.image).toMatch(/^\.\/assets\/posters\/transparent\//);
     }
   });
 });

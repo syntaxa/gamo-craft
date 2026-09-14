@@ -31,6 +31,8 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          BASE_PATH: /gamo-craft
         run: |
           npm run icons
           npm run build

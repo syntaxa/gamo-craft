@@ -4,9 +4,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // Относительный base: работает на GitHub Pages как в корне пользователя,
-  // так и в подкаталоге проекта (/gamo-craft/), и на кастомном домене.
-  base: './',
+  // Абсолютный base: локально и в dev-сервере — '/'; при сборке для GitHub Pages
+  // в подкаталог проекта задаётся через env BASE_PATH=/gamо-craft/ (см. workflow deploy-pages).
+  base: process.env.BASE_PATH || '/',
   plugins: [
     react(),
     VitePWA({

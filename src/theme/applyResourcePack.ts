@@ -8,7 +8,21 @@ function asBgTexture(url: string): string {
   return url ? `url("${url}")` : 'none';
 }
 
+function loadPackFont(fontFamily: string, fontUrl: string) {
+  if (!fontUrl || !document.fonts || document.fonts.check(`16px "${fontFamily}"`)) return;
+  const face = new FontFace(fontFamily, `url("${fontUrl}") format("truetype")`, {
+    style: 'normal',
+    weight: 'normal',
+    display: 'swap',
+  });
+  face
+    .load()
+    .then((loaded) => document.fonts.add(loaded))
+    .catch(() => undefined);
+}
+
 export function applyResourcePack(pack: ResourcePackSpec) {
+  loadPackFont(pack.ui.fontFamily, pack.ui.fontUrl);
   setCssVar('--font-ui', pack.ui.fontFamily);
   setCssVar('--line', pack.ui.palette.line);
   setCssVar('--text-main', pack.ui.palette.text);

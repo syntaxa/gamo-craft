@@ -27,6 +27,7 @@ export type WorldPackSpec = {
 
 export type UiPackSpec = {
   fontFamily: string;
+  fontUrl: string;
   textures: {
     appBg: string;
     card: string;
@@ -62,64 +63,64 @@ const cartoonBlockyV1: ResourcePackSpec = {
   license: 'CC0',
   sources: ['https://www.kenney.nl/assets/voxel-pack', 'https://www.kenney.nl/assets/ui-pack'],
   world: {
-    skyTextureUrl: '/resource-packs/cartoon-blocky-v1/world/sky_fading_night.png',
-    groundTextureUrl: '/resource-packs/cartoon-blocky-v1/world/ground_grass.jpg',
+    skyTextureUrl: './resource-packs/cartoon-blocky-v1/world/sky_fading_night.png',
+    groundTextureUrl: './resource-packs/cartoon-blocky-v1/world/ground_grass.jpg',
     defaultBlock: {
-      textureUrl: '/resource-packs/cartoon-blocky-v1/world/block_brick_red.png',
+      textureUrl: './resource-packs/cartoon-blocky-v1/world/block_brick_red.png',
       color: '#f7f7f7',
       roughness: 0.9,
       metalness: 0.03,
     },
     blocks: {
       block_grass_dirt: {
-        textureUrl: '/resource-packs/cartoon-blocky-v1/world/block_grass_dirt.png',
+        textureUrl: './resource-packs/cartoon-blocky-v1/world/block_grass_dirt.png',
         faceTextures: {
-          side: '/resource-packs/cartoon-blocky-v1/world/block_grass_dirt.png',
-          top: '/resource-packs/cartoon-blocky-v1/world/block_grass_top.png',
-          bottom: '/resource-packs/cartoon-blocky-v1/world/block_dirt_bottom.png',
+          side: './resource-packs/cartoon-blocky-v1/world/block_grass_dirt.png',
+          top: './resource-packs/cartoon-blocky-v1/world/block_grass_top.png',
+          bottom: './resource-packs/cartoon-blocky-v1/world/block_dirt_bottom.png',
         },
         color: '#f7f7f7',
       },
       block_brick_red: {
-        textureUrl: '/resource-packs/cartoon-blocky-v1/world/block_brick_red.png',
+        textureUrl: './resource-packs/cartoon-blocky-v1/world/block_brick_red.png',
         color: '#f7f7f7',
       },
       res_planks: {
-        textureUrl: '/resource-packs/cartoon-blocky-v1/world/block_wood.png',
+        textureUrl: './resource-packs/cartoon-blocky-v1/world/block_wood.png',
         faceTextureRotationDeg: {
           side: 90,
         },
         color: '#f7f7f7',
       },
       block_glow_blue: {
-        textureUrl: '/resource-packs/cartoon-blocky-v1/world/block_glow_blue.png',
+        textureUrl: './resource-packs/cartoon-blocky-v1/world/block_glow_blue.png',
         color: '#e4f1ff',
         emissive: '#3f88d4',
         roughness: 0.6,
         metalness: 0.08,
       },
       block_rainbow: {
-        textureUrl: '/resource-packs/cartoon-blocky-v1/world/block_rainbow.png',
+        textureUrl: './resource-packs/cartoon-blocky-v1/world/block_rainbow.png',
         color: '#ffffff',
         roughness: 0.75,
         metalness: 0.03,
       },
       block_cat_gold: {
-        textureUrl: '/resource-packs/cartoon-blocky-v1/world/block_cat_gold.png',
+        textureUrl: './resource-packs/cartoon-blocky-v1/world/block_cat_gold.png',
         color: '#fff3c2',
         emissive: '#8a5a18',
         roughness: 0.5,
         metalness: 0.2,
       },
       block_coin: {
-        textureUrl: '/resource-packs/cartoon-blocky-v1/world/block_coin.png',
+        textureUrl: './resource-packs/cartoon-blocky-v1/world/block_coin.png',
         color: '#fff1bf',
         emissive: '#7a4f16',
         roughness: 0.52,
         metalness: 0.18,
       },
       block_glass: {
-        textureUrl: '/resource-packs/cartoon-blocky-v1/world/block_glass.svg',
+        textureUrl: './resource-packs/cartoon-blocky-v1/world/block_glass.svg',
         color: '#dff9ff',
         emissive: '#2c7f92',
         roughness: 0.18,
@@ -129,16 +130,17 @@ const cartoonBlockyV1: ResourcePackSpec = {
       },
     },
   },
-  ui: {
+ui: {
     fontFamily: "Verdana, 'Segoe UI', Tahoma, sans-serif",
+    fontUrl: './resource-packs/cartoon-blocky-v1/fonts/KenneyFuture.ttf',
     textures: {
-      appBg: '/resource-packs/cartoon-blocky-v1/world/sky_clouds.png',
+      appBg: './resource-packs/cartoon-blocky-v1/world/sky_clouds.png',
       card: '',
-      button: '/resource-packs/cartoon-blocky-v1/ui/button_primary.png',
-      hudPanel: '/resource-packs/cartoon-blocky-v1/ui/hud_panel.png',
-      hotbarSlot: '/resource-packs/cartoon-blocky-v1/ui/hotbar_slot.png',
-      hotbarSlotSelected: '/resource-packs/cartoon-blocky-v1/ui/hotbar_slot_selected.png',
-      coinIcon: '/resource-packs/cartoon-blocky-v1/ui/coin_icon_kotocoin.svg',
+      button: './resource-packs/cartoon-blocky-v1/ui/button_primary.png',
+      hudPanel: './resource-packs/cartoon-blocky-v1/ui/hud_panel.png',
+      hotbarSlot: './resource-packs/cartoon-blocky-v1/ui/hotbar_slot.png',
+      hotbarSlotSelected: './resource-packs/cartoon-blocky-v1/ui/hotbar_slot_selected.png',
+      coinIcon: './resource-packs/cartoon-blocky-v1/ui/coin_icon_kotocoin.svg',
     },
     palette: {
       line: '#2e4a21',
