@@ -772,8 +772,9 @@ interface PointerState {
 - Минимальный размер кнопок: 44x44 px.
 - Ключевые зоны HUD строительства: минимум 56x56 px.
 - Ограничить число одновременных CTA на экране до 3.
-- Анимации открытия яйца: 400-900ms.
-- Карточка награды после открытия яйца должна начинать fade-out через `2` секунды и автоматически скрываться.
+- Анимация открытия яйца (модальное окно «лента призов» `EggOpenModal`): вращение ленты `3000ms` с плавным замедлением, подсветка выигрыша `900ms`, показ карточки награды `2000ms`, fade-out `800ms`, затем закрытие модалки.
+- Карточка награды после остановки ленты показывается внутри модального окна, через `2` секунды запускает fade-out, после чего модальное окно закрывается.
+- Модальное окно открытия яйца реализуется фазами `spin` -> `landed` -> `reward` -> `closing`; лента строится хелпером `buildReelSequence` (каждый приз пула минимум один раз, случайный порядок с повторами, выигрышный закреплён в позиции остановки), смещения считаются через `resolveReelTransforms` так, что в финальном смещении победитель центрируется точно под указателем; фактическое положение указателя измеряется по DOM (центр bounding rect указателя относительно вьюпорта ленты с учётом его рамки), поэтому выравнивание не зависит от размеров окна и отступов; прокрутка выполняется CSS-transition `transform` с `cubic-bezier(0.16, 1, 0.3, 1)`.
 - Поддержка `prefers-reduced-motion`.
 - Layout: `.app-shell` использует `height: 100dvh` (fallback `100vh`) и grid `grid-template-rows: auto auto 1fr`; `.screen-wrap` прокручивается внутри; в Build-режиме `.build-screen` (flex:1) + `.build-stage` (flex:1 1 auto, `min-height: 0`, `touch-action: none`) занимают всю свободную высоту под шапкой и навигацией.
 - На coarse-pointer устройствах (`@media (pointer: coarse)`): скрываются `.build-controls-hint`, `.build-hud` (карточка-подпись) и desktop-подсказки; hotbar поднимается на `bottom: 168px`, чтобы не перекрываться кнопками; поверх окна мира показывается компактный чип `.build-touch-hint`; подсказка паузы наложена по центру окна мира (`.build-pause-hint`), не съедая высоту сцены.
@@ -781,7 +782,7 @@ interface PointerState {
 - Hotbar должен быть доступен мышью и горячими клавишами `1..9`.
 - Full inventory UI использует Minecraft-style baseline: main storage grid, visible hotbar row, item icons, stack counts, selected/hover states, drag-and-drop movement for whole stacks, visible carried-stack feedback under the pointer for drag/split operations, and large cells suitable for mouse and touch.
 - UI результата урока показывает earned currency в формате `value + coin icon`.
-- `EggsScreen` рендерит последний reward через классы витрины магазина: `shop-lot`, `shop-lot-iso`, `shop-cube-*`, `shop-lot-count`.
+- `EggOpenModal` рендерит ленту призов и итоговый reward через классы витрины магазина: `shop-lot`, `shop-lot-iso`, `shop-cube-*`, `shop-lot-count`. `EggsScreen` открывает модалку после roll и выдачи награды.
 - `ShopScreen` рендерит боковые грани preview через `side`-текстуру и применяет `faceTextureRotationDeg.side` из resource-pack.
 
 ## 11. Логирование и диагностика

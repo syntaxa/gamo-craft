@@ -62,6 +62,7 @@ E2E smoke-набор находится в `src/tests/e2e` и запускает
 - Build physics supports a grounded-only single jump and continuous falling; falling must not teleport the player to the next lower surface, and jumps must not move the player through the underside of a solid block.
 - `egg_meme` costs `200` котокоинов and grants local poster items of category `cats` that can be stored in inventory.
 - `egg_sbear` costs `400` котокоинов and grants local poster items of category `sbearadventure` that can be stored in inventory.
+- лента открытия яйца (`src/features/eggs/reel.ts`): `easeOutQuart` монотонно убывает от `1` до `0`; `buildReelSequence` содержит каждый приз пула минимум один раз и ставит выигрыш строго на `stopIndex`; `reelOffset` центрирует выигрыш под указателем в финальном смещении; `resolveReelTransforms` выдает корректный набор смещений для всех переходов ленты.
 - Poster placement accepts only vertical faces, previews a `2x2` wireframe, requires one supporting block face, rejects overlap with existing posters, decor, or solid blocks, and does not consume inventory on invalid placement.
 - `Математика - бронзовый` is available immediately, generates addition tasks up to `40`, and can award up to `50` котокоинов in the current 5-task lesson flow.
 - `Математика - серебряный` is available immediately, generates only multiplication and division tasks in the range up to `20` (operands `2..9`, product/dividend `<= 20`, exact division), alternates operations, and can award up to `150` котокоинов in the current 5-task lesson flow.
@@ -77,7 +78,7 @@ E2E smoke-набор находится в `src/tests/e2e` и запускает
 - `LessonScreen`: карточки `Учим слова - Легко/Средне/Сложно`, генерация `3` заданий `choice_3`, расчет награды `20/40/80` со штрафами за ошибки;
 - `LessonScreen`: карточка `Математика - серебряный` запускает урок умножения/деления до `20` (знаки `×` и `:`), решается 5 задач, начисляется награда `150` котокоинов;
 - `LessonScreen`: карточка `Учим слова - Легендарно` запускает урок `letter_gap` из `5` заданий по `6` вариантов букв в каждом, начисляется награда в пределах `100..250` котокоинов;
-- `EggsScreen`: покупка яйца, выдача FPV-награды, визуальный результат, fade-out карточки лута через 2 секунды;
+- `EggsScreen`: покупка яйца, выдача FPV-награды, модальная анимация «лента призов» (спин `3000ms` -> подсветка `900ms` -> карточка награды `2000ms` -> fade-out `800ms` -> закрытие модалки), отказ при недостатке монет и при полном инвентаре (рефанд); анимация проигрывается даже при `prefers-reduced-motion`;
 - `BuildScreen`: выбор блока, установка/удаление, расход и возврат инвентаря;
 - `BuildScreen hotbar`: слот 1 = ластик, слоты 2-9 читаются из общего `inventory.slots` и могут содержать блоки или poster items, поведение пустого слота при пустом инвентаре;
 - `BuildScreen full inventory`: клавиша `E` открывает/закрывает инвентарь, `Esc` закрывает его, camera controls при открытии отпускаются/ставятся на паузу;

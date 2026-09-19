@@ -72,7 +72,9 @@ test('Super bear egg reward lands in inventory slots', async ({ page }) => {
   await page.goto('/eggs');
 
   await page.getByRole('button', { name: 'Открыть яйцо Super bear' }).click();
-  await expect(page.getByText(/Super bear adventure/)).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Открытие яйца' })).toBeVisible();
+  await expect(page.locator('.egg-spin-reward')).toBeVisible({ timeout: 10000 });
+  await expect(page.locator('.egg-spin-reward')).toContainText(/Super bear adventure/);
 
   await page.waitForTimeout(1000);
 
@@ -93,7 +95,9 @@ test('cat egg reward still lands in inventory slots', async ({ page }) => {
   await page.goto('/eggs');
 
   await page.getByRole('button', { name: 'Открыть котовое яйцо' }).click();
-  await expect(page.getByText(/Мемный кот/)).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Открытие яйца' })).toBeVisible();
+  await expect(page.locator('.egg-spin-reward')).toBeVisible({ timeout: 10000 });
+  await expect(page.locator('.egg-spin-reward')).toContainText(/Мемный кот/);
 
   await page.waitForTimeout(1000);
 
