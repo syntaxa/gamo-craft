@@ -49,8 +49,8 @@ test('touch controls and layout on tablet @smoke', async ({ page }) => {
   await expect(page.locator('.build-controls-hint')).toBeHidden();
   await expect(page.locator('.build-hud')).toBeHidden();
 
-  // Touch hint chip visible
-  await expect(page.locator('.build-touch-hint')).toBeVisible();
+  // Touch hint should not exist on tablet
+  await expect(page.locator('.build-touch-hint')).toHaveCount(0);
 
   // Nav and stage visible
   await expect(page.getByRole('link', { name: 'Мир' })).toBeVisible();
@@ -138,4 +138,28 @@ test('swipe rotates the camera @smoke', async ({ page }) => {
   }
 
   expect(Math.abs(yaw - startYaw)).toBeGreaterThan(0.01);
+});
+
+test('inventory closes by tapping outside the modal @smoke', async ({ page }) => {
+  const cdp = await page.context().newCDPSession(page);
+
+  const invBtn = await page.getByRole('button', { name: 'Полный инвентарь' }).boundingBox();
+  expect(invBtn).not.toBeNull();
+  const ix = invBtn!.x + invBtn!.width / 2;
+  const iy = invBtn!.y + invBtn!.height / 2;
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: ix, y: iy, id: 40 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+
+  await expect(page.locator('.inventory-overlay')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('.inventory-panel')).toBeVisible();
+
+  const overlayBox = await page.locator('.inventory-overlay').boundingBox();
+  expect(overlayBox).not.toBeNull();
+  const ox = overlayBox!.x + overlayBox!.width - 20;
+  const oy = overlayBox!.y + overlayBox!.height - 20;
+
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: ox, y: oy, id: 41 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+
+  await expect(page.locator('.inventory-overlay')).toBeHidden({ timeout: 5000 });
 });

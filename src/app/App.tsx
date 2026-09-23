@@ -14,23 +14,18 @@ export function App() {
     applyResourcePack(resourcePack);
   }, [resourcePack]);
 
-  return (
+return (
     <div className="app-shell">
-      <header className="topbar">
-        <div>
-          <div className="brand">Gamo</div>
-          <div className="app-version">v{__APP_VERSION__}</div>
-        </div>
+      <div className="main-nav-row">
+        <nav className="main-nav" aria-label="Main">
+          <NavLink to="/" end>Мир</NavLink>
+          <NavLink to="/lesson">Учеба</NavLink>
+          <NavLink to="/shop">Магазин</NavLink>
+          <NavLink to="/eggs">Яйца</NavLink>
+          <NavLink to="/profile">Профиль</NavLink>
+        </nav>
         <CurrencyBadge value={catCoins} />
-      </header>
-
-      <nav className="main-nav" aria-label="Main">
-        <NavLink to="/" end>Мир</NavLink>
-        <NavLink to="/lesson">Учеба</NavLink>
-        <NavLink to="/shop">Магазин</NavLink>
-        <NavLink to="/eggs">Яйца</NavLink>
-        <NavLink to="/profile">Профиль</NavLink>
-      </nav>
+      </div>
 
       <main className="screen-wrap">
         <AppRouter />

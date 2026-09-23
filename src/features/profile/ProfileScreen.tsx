@@ -80,6 +80,7 @@ export function ProfileScreen() {
     <Card>
       <h2>Профиль</h2>
       <p>Ник: {player.nickname}</p>
+      <p>Версия: v{__APP_VERSION__}</p>
       <p>Уровень математики: {player.learning.mathLevel}</p>
       <p>Решено задач: {player.learning.totalSolved}</p>
       <p>Ресурсы в инвентаре: {Object.keys(inventory.resources).length}</p>

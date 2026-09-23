@@ -1325,6 +1325,11 @@ const requestJump = useCallback(() => {
             className="inventory-overlay"
             role="dialog"
             aria-label="Полный инвентарь"
+            onPointerDown={(e) => {
+              if (e.target === e.currentTarget) {
+                closeInventory();
+              }
+            }}
             onPointerMove={(e) => {
               if (cursorSlot && !dragState) {
                 setCarriedPointer({ x: e.clientX, y: e.clientY });
@@ -1388,9 +1393,6 @@ const requestJump = useCallback(() => {
             ) : null}
           </div>
         ) : null}
-      <div className="build-touch-hint" aria-hidden>
-          Джойстик — движение · свайп — обзор · тап — действие слота
-        </div>
         {isWorldPaused ? (
           <div className="build-pause-hint">Мир на паузе: кликните по окну мира, чтобы продолжить.</div>
         ) : null}

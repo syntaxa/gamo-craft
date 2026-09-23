@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
 test('app shell navigation @smoke', async ({ page }) => {
   await page.goto('/');
 
-  await expect(page.getByText('Gamo')).toBeVisible();
+  await expect(page.locator('.currency-badge')).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
 
   await page.getByRole('link', { name: 'Учеба' }).click();
@@ -24,6 +24,7 @@ test('app shell navigation @smoke', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Яйца с призами' })).toBeVisible();
 
   await page.getByRole('link', { name: 'Профиль' }).click();
+  await expect(page.getByText(/Версия: v/)).toBeVisible();
   await expect(page.getByText(/Игрок|Тестер/)).toBeVisible();
 });
 
@@ -56,6 +57,21 @@ test('glass shop flow @smoke', async ({ page }) => {
   await expect(page.locator('.currency-badge')).toContainText('50');
   await page.getByRole('link', { name: 'Мир' }).click();
   await expect(page.locator('.hotbar-slot[title*="Стеклянный блок"]')).toBeVisible();
+});
+
+test('inventory closes by clicking outside the modal @smoke', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.hotbar')).toBeVisible();
+
+  await page.evaluate(() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e' }));
+  });
+
+  await expect(page.locator('.inventory-overlay')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('.inventory-panel')).toBeVisible();
+
+  await page.locator('.inventory-overlay').click({ position: { x: 8, y: 8 } });
+  await expect(page.locator('.inventory-overlay')).toBeHidden({ timeout: 5000 });
 });
 
 test('egg economy guardrail @smoke', async ({ page }) => {

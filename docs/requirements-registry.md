@@ -58,9 +58,10 @@
 | IMPLEMENTED | `REQ-VIS-001`, `REQ-VIS-002`, `REQ-VIS-004`, `REQ-VIS-005`, `REQ-VIS-006`, `REQ-VIS-007`, `REQ-VIS-008`, `REQ-VIS-009` | `src/theme/resourcePacks.ts`, `src/theme/applyResourcePack.ts`, `src/features/build/BuildScreen.tsx`, `src/styles.css`. |
 | IMPLEMENTED | `REQ-PLAT-002` | `playwright.config.ts` (проект `tablet-chromium` = Galaxy Tab S9 landscape, hasTouch), `src/tests/e2e/tablet-touch.spec.ts` — приемочное покрытие Android-планшета. |
 | IMPLEMENTED | `REQ-PLAT-003`, `REQ-TECH-008` | `vite.config.ts` (VitePWA: generateSW, registerType autoUpdate, manifest, navigateFallback, cleanupOutdatedCaches), `public/icons/*` (сгенерены из `coin_icon_kotocoin.svg` скриптом `scripts/generate-icons.mjs`, npm-run `icons`), `index.html` (meta viewport-render, mobile-web-app-capable, apple-*); сборка генерирует `dist/sw.js` + `manifest.webmanifest` (precache), офлайн-загрузка проверена на `vite preview`. |
-| IMPLEMENTED | `REQ-UI-006`, `REQ-UI-007` | `src/styles.css` (`.app-shell` height `100dvh`/grid `1fr`, `.build-stage` flex:1 + min-height:0, `@media (pointer: coarse)` скрывает подсказки клавиатуры и HUD-карточку, показывает touch-чип), `src/features/build/BuildScreen.tsx`, `src/tests/e2e/tablet-touch.spec.ts`. |
+| IMPLEMENTED | `REQ-UI-006`, `REQ-UI-007` | `src/styles.css` (`.app-shell` height `100dvh`/grid `auto 1fr`, `.main-nav-row`, `.build-stage` flex:1 + min-height:0, `@media (pointer: coarse)` скрывает подсказки клавиатуры и HUD-карточку; touch-чип удален), `src/features/build/BuildScreen.tsx`, `src/tests/e2e/tablet-touch.spec.ts`. |
 | PARTIAL | `REQ-PROD-002`, `REQ-VIS-003` | Основной цикл и desktop/tablet-ориентированные экраны есть, но нет полного приемочного покрытия для всей продуктовой петли и юридической проверки всех ассетов. |
 | IMPLEMENTED | `REQ-INPUT-006`, `REQ-WORLD-023`, `REQ-WORLD-024`, `REQ-VIS-013` | `src/domains/world/service.ts:stepPlayerVerticalPhysics` реализует grounded-only jump, покадровое gravity-driven падение, посадку на верхние грани и остановку подъема о нижние грани твердых блоков; `src/features/build/BuildScreen.tsx` вызывает физику в кадре, обрабатывает `Space` и touch-кнопку прыжка; `src/tests/unit/world.test.ts` покрывает стартовую физику, запрет air-jump, непрерывное падение до приземления, посадку на подвешенный блок и запрет входа в подвешенный блок снизу. |
+| IMPLEMENTED | `REQ-UI-008`, `REQ-UI-009`, `REQ-INPUT-012` | `src/app/App.tsx` (topbar/brand удалены, `main-nav-row` + `CurrencyBadge`), `src/features/profile/ProfileScreen.tsx` (версия в профиле), `src/features/build/BuildScreen.tsx` (закрытие инвентаря тапом по фону), `src/styles.css` (`.main-nav-row`, `.currency-badge`), `src/tests/component/profile.test.tsx`, `src/tests/e2e/app-smoke.spec.ts`, `src/tests/e2e/tablet-touch.spec.ts`. |
 | IMPLEMENTED | `REQ-LEARN-014`, `REQ-LEARN-015`, `REQ-LEARN-016`, `REQ-ECO-007` | `src/features/lesson/LessonScreen.tsx`, `src/domains/learning/service.ts`, `src/domains/learning/generators/mathAdd.ts`, `src/content/learning/math-1.v1.json`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
 | IMPLEMENTED | `REQ-LEARN-017`, `REQ-LEARN-018`, `REQ-ECO-008` | `src/features/lesson/LessonScreen.tsx`, `src/domains/learning/service.ts`, `src/domains/learning/generators/mathSilver.ts`, `src/content/learning/math-1.v1.json`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
 | IMPLEMENTED | `REQ-LEARN-019`, `REQ-LEARN-020`, `REQ-ECO-009` | `src/features/lesson/LessonScreen.tsx`, `src/domains/learning/service.ts`, `src/domains/learning/generators/orthography.ts`, `src/tests/unit/learning.test.ts`, `src/tests/component/lesson.test.tsx`. |
@@ -87,6 +88,7 @@
 12. `REQ-INPUT-009` Короткий тап по окну мира на touch-устройстве выполняет действие выбранного слота hotbar (постановка/удаление блока) — аналог ЛКМ на desktop.
 13. `REQ-INPUT-010` Touch-кнопки: прыжок, переключение режима полета; в полете дополнительно кнопки «вверх»/«вниз».
 14. `REQ-INPUT-011` Touch-кнопка открывает полный инвентарь (аналог `E` на desktop).
+15. `REQ-INPUT-012` Полный инвентарь (на desktop и touch) закрывается при нажатии/тапе по фону за пределами модального окна инвентаря.
 
 ## 3. Обучение
 1. `REQ-LEARN-001` Обучение MVP: сложение/вычитание до 20.
@@ -167,7 +169,7 @@
 ## 6. UI и визуалы
 1. `REQ-UI-001` Lesson cards in the Learning catalog must fill available horizontal space using a responsive multi-column layout.
 2. `REQ-UI-002` All lesson cards use a unified structure: title, one-line description, one-line reward row with coin icon and numeric value.
-3. `REQ-UI-003` Reward coin icon in lesson cards must use the same visual size as the top-bar player currency icon.
+3. `REQ-UI-003` Reward coin icon in lesson cards must use the same visual size as the nav-bar player currency icon.
 4. `REQ-UI-004` The inventory screen must follow the familiar Minecraft-like layout: a main storage grid, a visible hotbar row, item icons with stack counts, clear selected/hover states, and large enough cells for mouse and touch interaction.
 5. `REQ-UI-005` The full inventory requirement is extended as the baseline Minecraft-style inventory: main storage grid, visible hotbar row, item icons, stack counts, selected/hover states, and large cells suitable for mouse and touch.
 6. `REQ-VIS-001` В проекте используется механизм `resource pack`.
@@ -184,8 +186,10 @@
 17. `REQ-VIS-012` Resource-pack `cartoon-blocky-v1` must provide texture asset `world/block_glass.svg` for `block_glass`.
 18. `REQ-VIS-013` The fall process must be visually animated so the player sees smooth downward motion until landing.
 19. `REQ-VIS-014` Poster placement must show a `2x2` wireframe placement preview; the preview communicates valid and invalid placement states before confirmation.
-20. `REQ-UI-006` Окно Build (FPV) должно заполнять всю свободную высоту экрана под главным меню: topbar и навигация остаются видимыми, карточка-подпись и текстовые подсказки не съедают высоту окна мира.
-21. `REQ-UI-007` На устройствах с coarse pointer скрываются подписи управления клавиатурой, desktop-подсказки и карточка HUD; показывается компактная touch-подсказка поверх окна мира; главное меню (topbar + nav) остается видимым.
+20. `REQ-UI-006` Окно Build (FPV) должно заполнять всю свободную высоту экрана под главным меню: панель навигации с индикатором валюты остается видимой, карточка-подпись и текстовые подсказки не съедают высоту окна мира.
+21. `REQ-UI-007` На устройствах с coarse pointer скрываются подписи управления клавиатурой, desktop-подсказки и карточка HUD; компактная touch-подсказка поверх окна мира не показывается; главное меню (панель навигации + индикатор валюты) остается видимым.
+22. `REQ-UI-008` На главном экране не отображается заголовок/бренд с версией приложения; версия приложения показывается на экране «Профиль».
+23. `REQ-UI-009` Индикатор котокоинов размещается в одной строке с главной навигацией и не перекрывается пунктами меню при прокрутке.
 
 ## 7. Технические ограничения и качество
 1. `REQ-TECH-001` Стек: React + TypeScript + Vite.

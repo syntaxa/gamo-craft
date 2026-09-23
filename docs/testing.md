@@ -219,7 +219,7 @@ E2E smoke-набор находится в `src/tests/e2e` и запускает
 - Отдельный тест на превью установки: рамка показывает именно ту клетку, куда блок встанет по клику.
 - Отдельный тест на визуальную форму рамки: только ребра, без диагональных линий на гранях.
 - Touch-only элементы, включая `VirtualJoystick`, отображаются только при coarse pointer.
-- Table e2e (`src/tests/e2e/tablet-touch.spec.ts`, проекция `tablet-chromium` = Galaxy Tab S9 landscape, `isMobile` + `hasTouch`): тач-джойстик виден, клавиатурные подсказки и HUD-карточка скрыты, окно мира заполняет всю свободную высоту, джойстик двигает игрока, свайп вращает камеру; тесты отправляют реальные touch-события через CDP `Input.dispatchTouchEvent`.
+- Table e2e (`src/tests/e2e/tablet-touch.spec.ts`, проекция `tablet-chromium` = Galaxy Tab S9 landscape, `isMobile` + `hasTouch`): тач-джойстик виден, клавиатурные подсказки и HUD-карточка скрыты, touch-чип отсутствует, окно мира заполняет всю свободную высоту, джойстик двигает игрока, свайп вращает камеру, полный инвентарь закрывается тапом по фону за пределами модалки; тесты отправляют реальные touch-события через CDP `Input.dispatchTouchEvent`.
 - Unit (`src/tests/unit/touchInput.test.ts`): `hasTouchMovementInput` учитывает каждый из флагов `touchInput.movement`.
 - Офлайн-режим PWA проверен вручную на `npm run build` + `vite preview`: после второго захода (SW контролирует страницу) и `context.setOffline(true)` приложение рендерится и маршрутизируется.
 

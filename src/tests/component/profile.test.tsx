@@ -24,6 +24,7 @@ describe('ProfileScreen save/load', () => {
 
     expect(screen.getByRole('button', { name: 'Сохранить игру в файл' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Загрузить из файла' })).toBeInTheDocument();
+    expect(screen.getByText(/Версия: v/)).toBeInTheDocument();
   });
 
   it('saves the full current app state to a file', async () => {
